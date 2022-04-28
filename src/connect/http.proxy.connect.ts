@@ -35,8 +35,8 @@ export default class HttpProxyConnect extends Connect {
          });
          socket.setTimeout(15000);
          socket.on("error", (err) => {
-            callback(err, socket);
             socket.destroy(err);
+            callback(err, socket);
          });
       });
    }

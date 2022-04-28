@@ -16,11 +16,11 @@ const config = {
    entry: {
       cli: {
          import: "./bin/start.ts",
-         filename: "service/cli.js",
+         filename: "cli.js",
       },
       lib: {
          import: "./src/index.ts",
-         filename: "service/lib.js",
+         filename: "lib.js",
       },
    },
    output: {

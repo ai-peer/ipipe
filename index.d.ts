@@ -1,25 +1,22 @@
 import net from "net";
 import EventEmitter from "events";
-import { AcceptOptions } from './src/accept/accept';
 
 /** 创建服务回调 */
 export declare type CreateAcceptServerCallback = (server: net.Server) => void;
 export declare interface Options {
-    /** 是否直接连接目标 */
-    isDirect?: boolean;
-    auth?: {
-       username: string;
-       password: string;
-    };
- }
- export declare interface TestOptions {
-    
-       username?: string;
-       password?: string;
-
- }
+   /** 是否直接连接目标 */
+   isDirect?: boolean;
+   auth?: {
+      username: string;
+      password: string;
+   };
+}
+export declare interface TestOptions {
+   username?: string;
+   password?: string;
+}
 export declare class ProxyPipe<T> {
-    constructor(options?: Options);
+   constructor(options?: Options);
    /**
     * 创建连接接入服务
     * @param port 代理端口, 默认4321
@@ -72,17 +69,17 @@ export declare abstract class Stream extends EventEmitter {
 }
 
 export declare interface AcceptOptions {
-    auth?: {
-       username: string;
-       password: string;
-    };
- }
+   auth?: {
+      username: string;
+      password: string;
+   };
+}
 /**
  * 接收应用端接入协议处理基类
  */
 export declare abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
-   constructor(options? AcceptOptions);
+   constructor(options?: AcceptOptions);
 
    /**;
     * 是否可以接入， 请求的协议是否可以接入处理
@@ -110,7 +107,7 @@ export declare abstract class Connect extends Stream {
    public proxy: Proxy;
    constructor(options: { protocol: string });
    /**
-    * 连接远程代理主机
+    * 连接远程代理主机s
     * @param host 目标主机ip或域名
     * @param port 目标主机端口
     * @param callback 连接成功后的回调方法

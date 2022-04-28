@@ -3,6 +3,7 @@ import net from "net";
 //import ping from "ping";
 import { Proxy } from "../types";
 import Stream from "../core/stream";
+import transform from "../core/transform";
 
 export type Callback = (error: Error | undefined, socket: net.Socket) => void;
 
@@ -16,7 +17,7 @@ export default abstract class Connect extends Stream {
    public proxy: Proxy;
    constructor(options: { protocol: string }) {
       super();
-      this.setMaxListeners(9999);
+      this.setMaxListeners(999);
       this.on("error", (err) => console.error(`connect error ${err.stack || err.message}`));
       this.protocol = options.protocol;
    }
@@ -27,4 +28,23 @@ export default abstract class Connect extends Stream {
     * @param callback 连接成功后的回调方法
     */
    public abstract connect(host: string, port: number, callback: Callback): Promise<net.Socket>;
+
+   public pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer) {
+      sourceSocket
+         .pipe(
+            transform((chunk, encoding, callback) => {
+               //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
+               callback(null, chunk);
+            }),
+         )
+         .pipe(targetSocket)
+         .pipe(
+            transform((chunk: Buffer, encoding, callback) => {
+               //console.info("\r\nchunk===2", chunk.toString(), [...chunk].slice(0, 128).join(","));
+               callback(null, chunk);
+            }),
+         )
+         .pipe(sourceSocket);
+      targetSocket.write(chunk);
+   }
 }

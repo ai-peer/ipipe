@@ -53,8 +53,8 @@ export default class Socks5ProxyConnect extends Connect {
             resolve(socket);
          });
          socket.on("error", (err) => {
-            callback(err, socket);
             socket.destroy(err);
+            callback(err, socket);
          });
       });
    }

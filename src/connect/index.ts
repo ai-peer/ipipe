@@ -77,20 +77,18 @@ export default class ConnectFactor {
       }
       connect.proxy = proxy;
       connect.connect(host, port, (err, proxySocket: net.Socket) => {
-         if (err) {
-            return localSocket.destroy(err);
-         }
+         if (err) return localSocket.destroy(err);
          localSocket.on("error", (err) => {
             localSocket.destroy();
-            proxySocket.destroy(err);
+            proxySocket?.destroy(err);
          });
-         localSocket.on("close", () => proxySocket.destroy());
+         localSocket.on("close", () => proxySocket?.destroy());
          proxySocket.on("error", (err) => {
             proxySocket.destroy();
             localSocket.destroy(err);
          });
          proxySocket.on("close", () => localSocket.destroy());
-         localSocket
+         /*  localSocket
             .pipe(
                transform((chunk, encoding, callback) => {
                   //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
@@ -104,8 +102,8 @@ export default class ConnectFactor {
                   callback(null, chunk);
                }),
             )
-            .pipe(localSocket);
-         proxySocket.write(chunk);
+            .pipe(localSocket); */
+         connect?.pipe(localSocket, proxySocket, chunk);
       });
    }
 
