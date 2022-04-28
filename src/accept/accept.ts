@@ -2,16 +2,28 @@ import net from "net";
 import ConnectFactor from "../connect";
 import Stream from "../core/stream";
 
+export interface AcceptOptions {
+   auth?: {
+      username: string;
+      password: string;
+   };
+}
 /**
  * 接收应用端接入协议处理基类
  */
 export default abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
-   protected connectFactor: ConnectFactor;
-   constructor() {
+   public connectFactor: ConnectFactor;
+   public options: AcceptOptions;
+   constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(9999);
+      this.options = Object.assign({}, options);
       //this.protocol = options.protocol;
+   }
+
+   clone2target(target: Accept) {
+      target.connectFactor = this.connectFactor;
    }
    /**
     * 注册连接器, 连接目标服务协议

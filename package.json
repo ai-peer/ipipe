@@ -15,8 +15,7 @@
     "watch": "webpack --watch",
     "serve": "webpack serve",
     "start": "cross-env NODE_ENV=development ts-node bin/start.ts -l debug -s true",
-    "start-proxy": "cross-env NODE_ENV=development ts-node bin/start.single.ts",
-    "dev": "cross-env NODE_ENV=development ts-node bin/start.ts",
+    "dev": "cross-env NODE_ENV=development ts-node bin/dev.proxy.ts",
     "format": "run-s format:*",
     "format:js": " prettier --write   \"src/**/*.ts\"  "
   },
@@ -49,6 +48,7 @@
     "style-loader": "^3.2.1",
     "ts-loader": "^9.2.4",
     "ts-node": "^10.1.0",
+    "ts-node-dev": "^1.1.8",
     "tslint-config-prettier": "^1.18.0",
     "typescript": "^4.3.5",
     "vue": "^2.6.14",

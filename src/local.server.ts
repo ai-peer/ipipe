@@ -1,5 +1,9 @@
 import ProxyServer from "transparent-proxy";
 
+export interface Options {
+   username?: string;
+   password?: string;
+}
 /**
  * 
  * Options Object
@@ -17,13 +21,21 @@ import ProxyServer from "transparent-proxy";
  */
 export default class LocalServer {
    private server;
-   createServer(port: number = 0, host: string = "0.0.0.0", handle?: Function) {
+   createServer(port: number = 0, host: string = "0.0.0.0", options?: Options, handle?: Function) {
       //init ProxyServer
-      this.server = new ProxyServer({
-         /*  auth: function (username, password) {
-      return username === "user" && password === "12345";
-    }, */
-      });
+      options = Object.assign({}, options);
+      if (options.username) {
+         this.server = new ProxyServer({
+            auth: function (username, password) {
+               if (!options) return true;
+               if (!(options.username && options.password)) return true;
+               return username == options?.username && password == options?.password;
+            },
+         });
+      } else {
+         this.server = new ProxyServer({});
+      }
+
       this.server.listen(port, host, () => {
          console.info("local proxy server start ok! ", this.server.address());
          handle && handle(this.server);

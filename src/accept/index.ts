@@ -4,6 +4,7 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import { CreateCallback } from "../types";
+import { AcceptOptions } from "./accept";
 
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
@@ -13,9 +14,9 @@ export default class AcceptFactor {
    protected acceptList: Accept[] = [];
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
-   constructor() {
-      let httpAccept = new HttpAccept(); //http接入
-      let socks5Accept = new Socks5Accept(); //socks5接入
+   constructor(options?: AcceptOptions) {
+      let httpAccept = new HttpAccept(options); //http接入
+      let socks5Accept = new Socks5Accept(options); //socks5接入
       this.register(httpAccept).register(socks5Accept);
    }
    /**
@@ -23,7 +24,14 @@ export default class AcceptFactor {
     * @param accept
     */
    public register(accept: Accept) {
-      this.acceptList.push(accept);
+      let index = this.acceptList.findIndex((v) => v.protocol == accept.protocol);
+      if (index >= 0) {
+         let oldAccept = this.acceptList[index];
+         oldAccept.clone2target(accept);
+         this.acceptList[index] = accept;
+      } else {
+         this.acceptList.push(accept);
+      }
       return this;
    }
    /**

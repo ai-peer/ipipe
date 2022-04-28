@@ -2,8 +2,8 @@ import AcceptFactor from "./accept";
 import Accept from "./accept/accept";
 import Connect from "./connect/connect";
 import ConnectFactor from "./connect";
-import { Proxy, CreateCallback, LocalServerCallbacck } from "./types";
-import LocalServer from "./local.server";
+import { Proxy, CreateCallback, LocalServerCallbacck, Options } from "./types";
+import LocalServer, { Options as LocalOptions } from "./local.server";
 import net from "net";
 
 /**
@@ -13,10 +13,10 @@ export default class ProxyServer {
    private connectFactor: ConnectFactor;
    private acceptFactor: AcceptFactor;
    private localServer: LocalServer;
-   constructor() {
+   constructor(options?: Options) {
       this.localServer = new LocalServer();
       this.connectFactor = new ConnectFactor();
-      this.acceptFactor = new AcceptFactor();
+      this.acceptFactor = new AcceptFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
    }
    /**
@@ -33,9 +33,9 @@ export default class ProxyServer {
     * @param host
     * @param callback
     */
-   createTestProxyServer(port: number = 0, host: string = "0.0.0.0", callback?: LocalServerCallbacck): Promise<net.Server> {
+   createTestProxyServer(port: number = 0, host: string = "0.0.0.0", options?: LocalOptions, callback?: LocalServerCallbacck): Promise<net.Server> {
       return new Promise((resolve) => {
-         this.localServer.createServer(port, host, (server) => {
+         this.localServer.createServer(port, host, options, (server) => {
             callback && callback(server);
             resolve(server);
          });

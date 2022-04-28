@@ -1,6 +1,12 @@
 import net from "net";
 import ProxyServer from "transparent-proxy";
 
+export interface Options {
+   auth?: {
+      username: string;
+      password: string;
+   };
+}
 export interface Proxy {
    /** 协议 */
    protocol: string;

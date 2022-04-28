@@ -1,13 +1,14 @@
 import Accept from "./accept";
 import net from "net";
 import { parseSocks5IpPort, isIpv4, isIpv6, isDomain } from "../core/geoip";
+import { AcceptOptions } from "./accept";
 
 /**
  * socks5协议接入类
  */
 export default class Socks5Accept extends Accept {
-   constructor() {
-      super();
+   constructor(options?: AcceptOptions) {
+      super(options);
       this.protocol = "socks5";
    }
 

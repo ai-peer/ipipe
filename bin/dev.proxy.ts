@@ -1,6 +1,4 @@
-//import path from "path";
-//import { runJSFromFile } from "../src/utils/jsrun";
-import ProxyServer from "../src/index";
+import ProxyServer from "../src";
 import axios from "axios";
 /* 
 let cFileConfig = path.resolve(__dirname, "../env/config.js");
@@ -14,25 +12,27 @@ console.info("proxyList", proxyList); */
       host: "127.0.0.1",
       port: 1082,
       protocol: "http",
-      username: "",
-      password: "",
+      username: "admin",
+      password: "123456",
       //forwardHost: "127.0.0.1",
       //forwardPort: 1082,
    };
-   let proxyServer = new ProxyServer();
+   let proxyServer = new ProxyServer({
+      auth: {
+         username: "admin",
+         password: "123456",
+      },
+   });
 
-   await proxyServer.createTestProxyServer(proxy.port, "0.0.0.0");
+   await proxyServer.createTestProxyServer(proxy.port, "0.0.0.0", {
+      //username: "admin",
+      //password: "123456",
+   });
 
    let acceptServer = await proxyServer.createAcceptServer(4321);
    let address: any = acceptServer.address();
 
-   proxyServer.registerProxy({
-      host: "127.0.0.1",
-      port: proxy.port,
-      protocol: "http",
-      username: "",
-      password: "",
-   });
+   proxyServer.registerProxy(proxy);
    //console.info("address", address);
    //myIp();
    proxyIp({ host: proxy.host, port: address.port });
@@ -57,9 +57,13 @@ async function proxyIp(proxy: { host: string; port: number }) {
       proxy: {
          host: proxy.host,
          port: proxy.port,
+         auth: {
+            username: "admin",
+            password: "123456",
+         },
       },
    })
       .then((res) => res.data)
-      .catch((err) => console.error("get proxy ip error", err.message));
+      .catch((err) => console.error("get proxy ip error", err.stack, err.message));
    console.info("proxy ip", info);
 }

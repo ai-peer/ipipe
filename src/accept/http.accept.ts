@@ -1,12 +1,13 @@
 import Accept from "./accept";
 import net from "net";
+import { AcceptOptions } from "./accept";
 
 /**
  * Http协议接入类
  */
 export default class HttpAccept extends Accept {
-   constructor() {
-      super();
+   constructor(options?: AcceptOptions) {
+      super(options);
       this.protocol = "http";
    }
 
@@ -22,6 +23,13 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return false;
+      let isAuth = !!headers["proxy-authorization"];
+      if (isAuth) {
+         let authRes = this.auth(headers["proxy-authorization"]);
+         if (!authRes) {
+            return this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+         }
+      }
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示
@@ -31,6 +39,14 @@ export default class HttpAccept extends Accept {
       /** 解析首次http请求协议获取反馈和主机信息 end */
 
       this.connect(host, port, socket, firstChunk);
+   }
+   private auth(headerValue: string): boolean {
+      let kv = headerValue.split(" ")[1];
+      let buf = Buffer.from(kv, "base64");
+      let kvs = buf.toString().split(":");
+      let username = kvs[0],
+         password = kvs[1];
+      return this.options.auth?.username == username && this.options.auth?.password == password;
    }
    private isHttpProtocol(str: string) {
       switch (str[0].toUpperCase()) {
