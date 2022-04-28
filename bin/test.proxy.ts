@@ -20,11 +20,20 @@ console.info("proxyList", proxyList); */
       //forwardPort: proxyInfo.forwardPort,
    };
    let proxyServer = new ProxyServer();
-   proxyServer.createLocalProxyServer(1088, "0.0.0.0");
-   let server = await proxyServer.createAcceptServer(0);
-   let address: any = server.address();
-   proxyServer.registerProxy(proxy);
-   console.info("address", address);
+
+   await proxyServer.createProxyServer(proxy.port, "0.0.0.0");
+
+   let acceptServer = await proxyServer.createAcceptServer(0);
+   let address: any = acceptServer.address();
+
+   proxyServer.registerProxy({
+      host: "127.0.0.1",
+      port: address.port,
+      protocol: "http",
+      username: "",
+      password: "",
+   });
+   //console.info("address", address);
    myIp();
    proxyIp({ host: proxy.host, port: proxy.port });
 })();

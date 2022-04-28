@@ -33,6 +33,7 @@ export default class HttpProxyConnect extends Connect {
             resolve(socket);
             if (statusCode != "200") socket.destroy(new Error(receiveChunk.toString()));
          });
+         socket.setTimeout(15000);
          socket.on("error", (err) => {
             callback(err, socket);
             socket.destroy(err);

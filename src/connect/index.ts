@@ -43,7 +43,6 @@ export default class ConnectFactor {
     * @param proxy
     */
    public registerProxy(proxy: Proxy) {
-      //console.info("===>register proxy", proxy);
       this.proxy = proxy;
    }
 

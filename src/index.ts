@@ -20,30 +20,22 @@ export default class ProxyServer {
       this.acceptFactor.registerConnect(this.connectFactor);
    }
    /**
-    * 创建本地代理接入服务
-    * @param port 本地代理端口
-    * @param host 本地代理ip, 默认0.0.0.0,代表所有ip都可以访问
+    * 创建接入服务
+    * @param port 代理端口, 默认4321
+    * @param host 代理ip, 默认0.0.0.0,代表所有ip都可以访问
     */
    createAcceptServer(port: number = 4321, host: string = "0.0.0.0", callback?: CreateCallback): Promise<net.Server> {
       return this.acceptFactor.createServer(port, host, callback);
    }
    /**
-    * 创建本地代理服务
+    * 创建代理服务
     * @param port
     * @param host
     * @param callback
     */
-   createLocalProxyServer(port: number = 0, host: string = "0.0.0.0", callback?: LocalServerCallbacck): Promise<net.Server> {
+   createProxyServer(port: number = 0, host: string = "0.0.0.0", callback?: LocalServerCallbacck): Promise<net.Server> {
       return new Promise((resolve) => {
          this.localServer.createServer(port, host, (server) => {
-            let address = server.address();
-            /*  this.registerProxy({
-               host: "127.0.0.1",
-               port: address.port,
-               protocol: "http",
-               //username: 'user',
-               //password: '12345'
-            }); */
             callback && callback(server);
             resolve(server);
          });
@@ -51,7 +43,7 @@ export default class ProxyServer {
    }
 
    /**
-    * 注册本地接收接入协议， 原生支持http和socks5代理协议
+    * 注册本地接自定义接入协议， 原生支持http和socks5代理协议
     * 协议继承类Accept
     * @param accept
     */
@@ -60,7 +52,7 @@ export default class ProxyServer {
       this.acceptFactor.register(accept);
    }
    /**
-    * 注册连接远程代理服务器协议， 原生支持http和socks5协议
+    * 注册连接远程代理服务器自定义协议， 原生支持http,socks5协议,forward.http http转发协议
     * 协议继承类 Connect
     * @param connect
     */
@@ -68,7 +60,7 @@ export default class ProxyServer {
       this.connectFactor.register(connect);
    }
    /**
-    * 注册远程代理服务器
+    * 注册远程代理服务器信息
     * @param proxy
     */
    registerProxy(proxy: Proxy) {
