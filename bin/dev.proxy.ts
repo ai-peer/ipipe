@@ -12,8 +12,8 @@ console.info("proxyList", proxyList); */
       host: "127.0.0.1",
       port: 1082,
       protocol: "http",
-      username: "admin",
-      password: "123456",
+      //username: "admin",
+      //password: "123456",
       //forwardHost: "127.0.0.1",
       //forwardPort: 1082,
    };
@@ -34,6 +34,9 @@ console.info("proxyList", proxyList); */
    let address: any = acceptServer.address();
 
    proxyServer.registerProxy(proxy);
+
+   proxyServer.on("in", (size) => console.info("in ", size));
+   proxyServer.on("out", (size) => console.info("out ", size));
    //console.info("address", address);
    //myIp();
    proxyIp({ host: proxy.host, port: address.port });

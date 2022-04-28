@@ -5,19 +5,32 @@ import ConnectFactor from "./connect";
 import { Proxy, CreateCallback, LocalServerCallbacck, Options } from "./types";
 import LocalServer, { Options as LocalOptions } from "./local.server";
 import net from "net";
+import EventEmitter from "events";
 
+const Event = {
+   out: "out",
+   in: "in",
+};
 /**
  * 本地代理服务
  */
-export default class ProxyServer {
+export default class ProxyServer extends EventEmitter {
+   static Event = Event;
    private connectFactor: ConnectFactor;
    private acceptFactor: AcceptFactor;
    private localServer: LocalServer;
    constructor(options?: Options) {
+      super();
+      this.setMaxListeners(99);
       this.localServer = new LocalServer();
-      this.connectFactor = new ConnectFactor(options);
       this.acceptFactor = new AcceptFactor(options);
+      this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
+
+      this.acceptFactor.on("read", (size) => this.emit(Event.in, size));
+      this.acceptFactor.on("write", (size) => this.emit(Event.out, size));
+      this.connectFactor.on("read", (size) => this.emit(Event.in, size));
+      this.connectFactor.on("write", (size) => this.emit(Event.out, size));
    }
    /**
     * 创建连接接入服务

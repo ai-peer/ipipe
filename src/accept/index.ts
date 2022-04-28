@@ -5,18 +5,26 @@ import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import { CreateCallback } from "../types";
 import { AcceptOptions } from "./accept";
+import EventEmitter from "events";
 
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
-export default class AcceptFactor {
+export default class AcceptFactor extends EventEmitter {
    /** 接入协议类列表 */
    protected acceptList: Accept[] = [];
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
    constructor(options?: AcceptOptions) {
+      super();
+      this.setMaxListeners(99);
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
+
+      httpAccept.on("read", (size: number) => this.emit("read", size));
+      httpAccept.on("write", (size: number) => this.emit("write", size));
+      socks5Accept.on("read", (size: number) => this.emit("read", size));
+      socks5Accept.on("write", (size: number) => this.emit("write", size));
       this.register(httpAccept).register(socks5Accept);
    }
    /**

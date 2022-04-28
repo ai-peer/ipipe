@@ -10,10 +10,11 @@ import assert from "assert";
 import transform from "../core/transform";
 import ForwardHttpProxyConnect from "./forward.http.proxy.connect";
 import log from "../core/logger";
+import EventEmitter from "events";
 /**
  * 连接代理的封装类
  */
-export default class ConnectFactor {
+export default class ConnectFactor extends EventEmitter {
    private directConnectDomains: string[] = [];
    /** 连接器列表 */
    private connects: Map<string, Connect> = new Map();
@@ -21,6 +22,8 @@ export default class ConnectFactor {
    /** 代理服务器信息 */
    private proxy: Proxy;
    constructor(options?: Options) {
+      super();
+      this.setMaxListeners(99);
       this.options = Object.assign({}, options);
       /**
        * 默认支持http,socks5,direct协议连接
@@ -29,6 +32,16 @@ export default class ConnectFactor {
       let socks5Connect = new Socks5Connect();
       let directConnect = new DirectConnect();
       let forwardHttpProxyConnect = new ForwardHttpProxyConnect();
+
+      httpConnect.on("read", (size: number) => this.emit("read", size));
+      httpConnect.on("write", (size: number) => this.emit("write", size));
+      socks5Connect.on("read", (size: number) => this.emit("read", size));
+      socks5Connect.on("write", (size: number) => this.emit("write", size));
+      directConnect.on("read", (size: number) => this.emit("read", size));
+      directConnect.on("write", (size: number) => this.emit("write", size));
+      forwardHttpProxyConnect.on("read", (size: number) => this.emit("read", size));
+      forwardHttpProxyConnect.on("write", (size: number) => this.emit("write", size));
+
       this.register(httpConnect).register(socks5Connect).register(directConnect).register(forwardHttpProxyConnect);
    }
    /**

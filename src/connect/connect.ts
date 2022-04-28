@@ -33,6 +33,7 @@ export default abstract class Connect extends Stream {
       sourceSocket
          .pipe(
             transform((chunk, encoding, callback) => {
+               this.emit("write", chunk.length);
                //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
                callback(null, chunk);
             }),
@@ -40,6 +41,7 @@ export default abstract class Connect extends Stream {
          .pipe(targetSocket)
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
+               this.emit("read", chunk.length);
                //console.info("\r\nchunk===2", chunk.toString(), [...chunk].slice(0, 128).join(","));
                callback(null, chunk);
             }),

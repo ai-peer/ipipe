@@ -13,25 +13,29 @@ export default abstract class Stream extends EventEmitter {
    public async write(socket: net.Socket, chunk: Buffer): Promise<Error | undefined> {
       return new Promise((resolve) => {
          socket.pause();
-         setTimeout(() => {
-            socket.write(chunk, function (err) {
-               socket.resume();
-               err ? resolve(err) : resolve(undefined);
-               //chunk?.length > 0 && callback && callback(chunk.length);
-            });
-         }, 5);
+         //setTimeout(() => {
+         socket.write(chunk, (err) => {
+            socket.resume();
+            if (err) {
+               resolve(err);
+            } else {
+               this.emit("write", chunk.length);
+               resolve(undefined);
+            }
+         });
+         //}, 5);
       });
    }
    public async end(socket: net.Socket, chunk: Buffer): Promise<Error | undefined> {
       return new Promise((resolve) => {
          socket.pause();
-         setTimeout(() => {
-            socket.end(chunk, () => {
-               socket.resume();
-               //chunk?.length > 0 && callback && callback(chunk.length);
-               resolve(undefined);
-            });
-         }, 5);
+         //setTimeout(() => {
+         socket.end(chunk, () => {
+            socket.resume();
+            this.emit("write", chunk.length);
+            resolve(undefined);
+         });
+         //}, 5);
       });
    }
    public async read(socket: net.Socket, ttl: number = 0): Promise<Buffer> {
@@ -50,10 +54,11 @@ export default abstract class Stream extends EventEmitter {
                resolve(Buffer.alloc(0));
             }, ttl);
          }
-         socket.once("data", (ss) => {
+         socket.once("data", (ss: Buffer) => {
             if (isRead) return;
             isRead = true;
             pid && clearTimeout(pid);
+            this.emit("read", ss.length);
             resolve(ss);
             //ss?.length > 0 && callback && callback(ss.length);
             //callback && callback(ss?.length || 0);
