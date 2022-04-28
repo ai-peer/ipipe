@@ -15,7 +15,7 @@ const CopyPlugin = require("copy-webpack-plugin");
 const config = {
    entry: {
       cli: {
-         import: "./bin/start.ts",
+         import: "./bin/proxy.ts",
          filename: "cli.js",
       },
       lib: {
@@ -43,9 +43,7 @@ const config = {
    },
    target: "node",
    externals: {
-      "@ai-lion/liondb": "@ai-lion/liondb",
-      "@ai-lion/antdb": "@ai-lion/antdb",
-      ramda: "ramda",
+    
    },
    devServer: {
       open: false,
@@ -98,23 +96,14 @@ const config = {
       //new VueLoaderPlugin(),
       // Add your plugins here
       // Learn more about plugins from https://webpack.js.org/configuration/plugins/
-      new CopyPlugin({
+    /*   new CopyPlugin({
          patterns: [
-            /*          {
-               from: path.resolve("public"),
-               to: "public/",
-               filter: async (resourcePath) => {
-                  return !/(public\/up\/)/i.test(resourcePath);
-               },
-            }, */
+          
             //{ from: path.resolve("node_modules/@ai-lion/liondb/dist/prebuilds"), to: "service/prebuilds" },
             //{ from: path.resolve("package.dist.json"), to: "package.json" },
             //node_modules\node-analyzer\lib\dict
-            // { from: path.resolve("databak"), to: "service/databak" },
-            { from: path.resolve("node_modules/node-analyzer/lib/dict"), to: "service/dict" },
-            { from: path.resolve("extensions"), to: "service/extensions" },
          ],
-      }),
+      }), */
       //new webpack.BannerPlugin({
       //   banner: "/*! https://github.com/ai-lion/liondb */",
       //   raw: true,

@@ -4,6 +4,8 @@ import ProxyServer from "transparent-proxy";
 export interface Options {
    /** 是否直接连接目标 */
    isDirect?: boolean;
+   /** 是否设置默认接入器 */
+   isAccept?: boolean;
    auth?: {
       username: string;
       password: string;

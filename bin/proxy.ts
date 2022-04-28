@@ -5,8 +5,8 @@ const program = new Command();
 let appParams: any = program //
    .option("-p, --port [value]", "绑定端口", "6379") //
    .option("-h, --host [value]", "绑定IP", "0.0.0.0") //
-   .option("-p2, --port2 [value]", "代理端口", "6379") //
-   .option("-h2, --host2 [value]", "代理IP", "0.0.0.0") //
+   .option("-p2, --port2 [value]", "代理端口", "") //
+   .option("-h2, --host2 [value]", "代理IP", "127.0.0.1") //
    .option("-user, --username [value]", "用户名", "") //
    .option("-pass, --password [value]", "密码", "") //
    .option("-user2, --username2 [value]", "用户名", "") //
@@ -71,8 +71,8 @@ async function createClient() {
 
    proxyPipe.registerProxy(proxy);
 
-   proxyPipe.on("in", (size) => console.info("client in", size));
-   proxyPipe.on("out", (size) => console.info("client out", size));
+   //proxyPipe.on("in", (size) => console.info("client in", size));
+   //proxyPipe.on("out", (size) => console.info("client out", size));
 }
 
 (async () => {

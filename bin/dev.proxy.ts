@@ -33,13 +33,13 @@ console.info("proxyList", proxyList); */
    let acceptServer = await proxyServer.createAcceptServer(4321);
    let address: any = acceptServer.address();
 
-   proxyServer.registerProxy(proxy);
+   //proxyServer.registerProxy(proxy);
 
-   proxyServer.on("in", (size) => console.info("in ", size));
-   proxyServer.on("out", (size) => console.info("out ", size));
+   //proxyServer.on("in", (size) => console.info("in ", size));
+   //proxyServer.on("out", (size) => console.info("out ", size));
    //console.info("address", address);
    //myIp();
-   proxyIp({ host: proxy.host, port: address.port });
+   //proxyIp({ host: proxy.host, port: address.port });
 })();
 
 async function myIp() {

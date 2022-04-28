@@ -7,7 +7,6 @@ import net from "net";
 import { isLocalNetwork } from "../core/geoip";
 import { Proxy, Options } from "../types";
 import assert from "assert";
-import transform from "../core/transform";
 import ForwardHttpProxyConnect from "./forward.http.proxy.connect";
 import log from "../core/logger";
 import EventEmitter from "events";
@@ -76,7 +75,7 @@ export default class ConnectFactor extends EventEmitter {
       //本地网络直连
       if (isLocal || this.options.isDirect) connect = this.connects.get("direct");
       else {
-         assert.ok(proxy, "proxy host no exist");
+         assert.ok(proxy && proxy.host && proxy.port, "proxy host no exist");
          connect = this.connects.get(proxy.protocol);
       }
 

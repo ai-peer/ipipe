@@ -54,6 +54,9 @@ export default abstract class Accept extends Stream {
     * @param chunk 首次请求的原始数据
     */
    protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer) {
-      this.connectFactor.pipe(host, port, localSocket, chunk);
+      this.connectFactor.pipe(host, port, localSocket, chunk).catch((err) => {
+         console.info("[ERROR] connect", err.message);
+         localSocket.destroy(err);
+      });
    }
 }

@@ -4,9 +4,9 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import { CreateCallback } from "../types";
-import { AcceptOptions } from "./accept";
+//import { AcceptOptions } from "./accept";
 import EventEmitter from "events";
-
+import { Options } from "../types";
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
@@ -15,9 +15,10 @@ export default class AcceptFactor extends EventEmitter {
    protected acceptList: Accept[] = [];
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
-   constructor(options?: AcceptOptions) {
+   constructor(options?: Options) {
       super();
       this.setMaxListeners(99);
+
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
@@ -25,7 +26,8 @@ export default class AcceptFactor extends EventEmitter {
       httpAccept.on("write", (size: number) => this.emit("write", size));
       socks5Accept.on("read", (size: number) => this.emit("read", size));
       socks5Accept.on("write", (size: number) => this.emit("write", size));
-      this.register(httpAccept).register(socks5Accept);
+
+      if (options?.isAccept != false) this.register(httpAccept).register(socks5Accept);
    }
    /**
     * 注册本地代理的可接入协议类
@@ -42,6 +44,7 @@ export default class AcceptFactor extends EventEmitter {
       }
       return this;
    }
+
    /**
     * 注册连接远程代理的协议封装类
     * @param connectFactor
@@ -86,6 +89,7 @@ export default class AcceptFactor extends EventEmitter {
          let accept = this.acceptList[i];
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
+            console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
             accept.handle(socket, chunk);
             break;
          }

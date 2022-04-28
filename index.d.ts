@@ -6,6 +6,8 @@ export declare type CreateAcceptServerCallback = (server: net.Server) => void;
 export declare interface Options {
    /** 是否直接连接目标 */
    isDirect?: boolean;
+   /** 是否设置默认接收器 */
+   isAccept?: boolean;
    auth?: {
       username: string;
       password: string;
@@ -113,6 +115,8 @@ export declare abstract class Connect extends Stream {
     * @param callback 连接成功后的回调方法
     */
    abstract connect(host: string, port: number, callback: CallbackConnect): Promise<net.Socket>;
+
+   pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer): void;
 }
 
 export declare interface Proxy {
