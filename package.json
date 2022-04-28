@@ -1,6 +1,6 @@
 {
   "name": "@ai-lion/iautorun",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "main": "dist/service/lib.js",
   "license": "MIT",
   "bin": {

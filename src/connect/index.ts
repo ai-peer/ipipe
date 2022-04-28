@@ -107,7 +107,7 @@ export default class ConnectFactor {
       });
    }
 
- /*   public async ping(host: string): Promise<boolean> {
+   /*   public async ping(host: string): Promise<boolean> {
       let res = await ping.promise.probe(host);
       //console.info("res", res.alive, res.avg);
       return res.alive == true;

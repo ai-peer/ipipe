@@ -17,7 +17,7 @@ export default abstract class Connect extends Stream {
    constructor(options: { protocol: string }) {
       super();
       this.setMaxListeners(9999);
-      this.on("error", (err)=>console.error(`connect error ${err.stack || err.message}`));
+      this.on("error", (err) => console.error(`connect error ${err.stack || err.message}`));
       this.protocol = options.protocol;
    }
    /**

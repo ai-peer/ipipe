@@ -1,9 +1,23 @@
 import net from "net";
 import EventEmitter from "events";
+import { AcceptOptions } from './src/accept/accept';
 
 /** 创建服务回调 */
 export declare type CreateAcceptServerCallback = (server: net.Server) => void;
+export declare interface Options {
+    auth?: {
+       username: string;
+       password: string;
+    };
+ }
+ export declare interface TestOptions {
+    
+       username?: string;
+       password?: string;
+
+ }
 export declare class ProxyPipe<T> {
+    constructor(options?: Options);
    /**
     * 创建连接接入服务
     * @param port 代理端口, 默认4321
@@ -16,7 +30,7 @@ export declare class ProxyPipe<T> {
     * @param host
     * @param callback
     */
-   createTestProxyServer(port: number, host?: string, callback?: Function): Promise<net.Server>;
+   createTestProxyServer(port: number, host?: string, options?: TestOptions, callback?: Function): Promise<net.Server>;
 
    /**
     * 注册本地接自定义接入协议， 原生支持http和socks5代理协议
@@ -43,7 +57,6 @@ export declare class ProxyPipe<T> {
 }
 
 export declare type CallbackAccept = (length: number) => void;
-
 export declare abstract class Stream extends EventEmitter {
    /**
     * 写数据
@@ -56,12 +69,18 @@ export declare abstract class Stream extends EventEmitter {
    read(socket: net.Socket, ttl?: number): Promise<Buffer>;
 }
 
+export declare interface AcceptOptions {
+    auth?: {
+       username: string;
+       password: string;
+    };
+ }
 /**
  * 接收应用端接入协议处理基类
  */
 export declare abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
-   constructor();
+   constructor(options? AcceptOptions);
 
    /**;
     * 是否可以接入， 请求的协议是否可以接入处理

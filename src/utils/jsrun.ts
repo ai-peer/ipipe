@@ -14,8 +14,8 @@ export function loadJSONFromFile(f: string) {
    }
 }
 /**
- * 
- * @param f 
+ *
+ * @param f
  */
 export function runJSFromFile(f: string): any {
    let script = "";
