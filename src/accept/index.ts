@@ -90,15 +90,13 @@ export default class AcceptFactor extends EventEmitter {
             break;
          }
       }
+      if (isAccept == false) {
+         console.warn("===>no support protocol to hanle");
+         socket.destroy(new Error("no support protocol to hanle"));
+      }
    }
    private read(socket: net.Socket, ttl: number = 0): Promise<Buffer> {
       return new Promise((resolve) => {
-         /*       socket.once("readable", () => {
-      let ss = socket.read();
-      resolve(ss);
-      ss?.length > 0 && callback && callback(ss.length);
-    }); */
-         //let pid = setTimeout(() => resolve(Buffer.from([])), 40);
          let isRead = false;
          socket.once("data", (ss) => {
             if (isRead) return;

@@ -18,7 +18,7 @@ console.info("proxyList", proxyList); */
       //forwardPort: 1082,
    };
    let proxyServer = new ProxyServer({
-      isDirect: false,
+      //isDirect: true,
       auth: {
          username: "admin",
          password: "123456",

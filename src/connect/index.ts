@@ -69,25 +69,30 @@ export default class ConnectFactor extends EventEmitter {
     */
    public async pipe(host: string, port: number, localSocket: net.Socket, chunk: Buffer) {
       let proxy = this.proxy;
-      assert.ok(proxy, "proxy host no exist");
-      let connect: Connect | undefined = this.connects.get(proxy.protocol);
+
+      let connect: Connect | undefined;
       let isLocal = await isLocalNetwork(host);
 
       //本地网络直连
-      if (isLocal) connect = this.connects.get("direct");
-      else if (this.options.isDirect) connect = this.connects.get("direct");
-
-      let domain = getDomainFromBytes(chunk);
-      if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
-         log.log("===>direct connect", domain);
-         connect = this.connects.get("direct");
+      if (isLocal || this.options.isDirect) connect = this.connects.get("direct");
+      else {
+         assert.ok(proxy, "proxy host no exist");
+         connect = this.connects.get(proxy.protocol);
       }
-      //console.info("===>>", domain);
+
+      if (connect?.protocol != "direct") {
+         let domain = getDomainFromBytes(chunk);
+         if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
+            log.log("===>direct connect", domain);
+            connect = this.connects.get("direct");
+         }
+      }
 
       if (!connect) {
          localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
          assert.ok(connect, "no handle protocol " + proxy.protocol);
       }
+
       connect.proxy = proxy;
       connect.connect(host, port, (err, proxySocket: net.Socket) => {
          if (err) return localSocket.destroy(err);
