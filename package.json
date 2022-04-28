@@ -23,9 +23,10 @@
       "format:js": " prettier --write   \"src/**/*.ts\"  "
    },
    "dependencies": {
-      "transparent-proxy": "^1.8.10"
+      
    },
    "devDependencies": {
+      "transparent-proxy": "^1.8.10",
       "@types/mocha": "^9.0.0",
       "@types/node": "^16.4.2",
       "@vue/component-compiler-utils": "^3.2.2",

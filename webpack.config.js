@@ -43,7 +43,7 @@ const config = {
    },
    target: "node",
    externals: {
-    
+      "transparent-proxy": "transparent-proxy",
    },
    devServer: {
       open: false,
@@ -96,7 +96,7 @@ const config = {
       //new VueLoaderPlugin(),
       // Add your plugins here
       // Learn more about plugins from https://webpack.js.org/configuration/plugins/
-    /*   new CopyPlugin({
+      /*   new CopyPlugin({
          patterns: [
           
             //{ from: path.resolve("node_modules/@ai-lion/liondb/dist/prebuilds"), to: "service/prebuilds" },
