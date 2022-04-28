@@ -12,30 +12,30 @@ console.info("proxyList", proxyList); */
 (async () => {
    let proxy = {
       host: "127.0.0.1",
-      port: 1088,
+      port: 1082,
       protocol: "http",
       username: "",
       password: "",
-      //forwardHost: proxyInfo.forwardHost,
-      //forwardPort: proxyInfo.forwardPort,
+      //forwardHost: "127.0.0.1",
+      //forwardPort: 1082,
    };
    let proxyServer = new ProxyServer();
 
-   await proxyServer.createProxyServer(proxy.port, "0.0.0.0");
+   await proxyServer.createTestProxyServer(proxy.port, "0.0.0.0");
 
-   let acceptServer = await proxyServer.createAcceptServer(0);
+   let acceptServer = await proxyServer.createAcceptServer(4321);
    let address: any = acceptServer.address();
 
    proxyServer.registerProxy({
       host: "127.0.0.1",
-      port: address.port,
+      port: proxy.port,
       protocol: "http",
       username: "",
       password: "",
    });
    //console.info("address", address);
-   myIp();
-   proxyIp({ host: proxy.host, port: proxy.port });
+   //myIp();
+   proxyIp({ host: proxy.host, port: address.port });
 })();
 
 async function myIp() {
