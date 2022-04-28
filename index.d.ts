@@ -5,6 +5,8 @@ import { AcceptOptions } from './src/accept/accept';
 /** 创建服务回调 */
 export declare type CreateAcceptServerCallback = (server: net.Server) => void;
 export declare interface Options {
+    /** 是否直接连接目标 */
+    isDirect?: boolean;
     auth?: {
        username: string;
        password: string;

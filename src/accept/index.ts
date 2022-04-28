@@ -73,9 +73,10 @@ export default class AcceptFactor {
     */
    public async accept(socket: net.Socket) {
       let chunk: Buffer = await this.read(socket);
+      let isAccept = false;
       for (let i = 0; i < this.acceptList.length; i++) {
          let accept = this.acceptList[i];
-         let isAccept = await accept.isAccept(socket, chunk);
+         isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
             accept.handle(socket, chunk);
             break;

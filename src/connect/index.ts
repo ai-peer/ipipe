@@ -5,7 +5,7 @@ import Connect from "./connect";
 import net from "net";
 //import ping from "ping";
 import { isLocalNetwork } from "../core/geoip";
-import { Proxy } from "../types";
+import { Proxy, Options } from "../types";
 import assert from "assert";
 import transform from "../core/transform";
 import ForwardHttpProxyConnect from "./forward.http.proxy.connect";
@@ -17,9 +17,11 @@ export default class ConnectFactor {
    private directConnectDomains: string[] = [];
    /** 连接器列表 */
    private connects: Map<string, Connect> = new Map();
+   private options: Options;
    /** 代理服务器信息 */
    private proxy: Proxy;
-   constructor() {
+   constructor(options?: Options) {
+      this.options = Object.assign({}, options);
       /**
        * 默认支持http,socks5,direct协议连接
        */
@@ -57,12 +59,12 @@ export default class ConnectFactor {
       assert.ok(proxy, "proxy host no exist");
       let connect: Connect | undefined = this.connects.get(proxy.protocol);
       let isLocal = await isLocalNetwork(host);
+
       //本地网络直连
       if (isLocal) connect = this.connects.get("direct");
+      else if (this.options.isDirect) connect = this.connects.get("direct");
 
-      //console.info("first chunk", chunk.toString(), [...chunk].join(","));
       let domain = getDomainFromBytes(chunk);
-      //log.info("pipe===", domain)
       if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
          log.log("===>direct connect", domain);
          connect = this.connects.get("direct");
@@ -155,12 +157,27 @@ function getDomainFromBytes(chunk: Buffer): string {
       case "O": //OPTIONS
       case "T": //TRACE
       case "C": //CONNECT */
-      let lines = chunk.toString().split(/\r\n/);
-      let ls = lines[0].split(" ");
-      let uuu = new URL(ls[1]);
-      return uuu.hostname;
+      let headers = parseHeader(chunk.toString());
+      let host = headers["host"];
+      //let lines = chunk.toString().split(/\r\n/);
+      //let ls = lines[0].split(" ");
+      //console.info("ls===", ls, lines, headers);
+      //let uuu = new URL(ls[1]);
+      return host;
    }
    return "";
 }
 
+function parseHeader(str: string) {
+   let lines = str.split("\r\n");
+   let headers = {};
+   lines.forEach((v) => {
+      let ks = v.split(": ");
+      if (ks.length < 2) return;
+      let key = ks[0] || "",
+         value = ks[1] || "";
+      headers[key.trim().toLowerCase()] = value.trim();
+   });
+   return headers;
+}
 export { Connect, HttpConnect, Socks5Connect, DirectConnect };

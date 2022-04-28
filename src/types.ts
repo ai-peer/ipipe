@@ -2,6 +2,8 @@ import net from "net";
 import ProxyServer from "transparent-proxy";
 
 export interface Options {
+   /** 是否直接连接目标 */
+   isDirect?: boolean;
    auth?: {
       username: string;
       password: string;

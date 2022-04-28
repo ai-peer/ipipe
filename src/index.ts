@@ -15,7 +15,7 @@ export default class ProxyServer {
    private localServer: LocalServer;
    constructor(options?: Options) {
       this.localServer = new LocalServer();
-      this.connectFactor = new ConnectFactor();
+      this.connectFactor = new ConnectFactor(options);
       this.acceptFactor = new AcceptFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
    }
