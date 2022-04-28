@@ -6,7 +6,7 @@
    "bin": {
       "iproxy": "dist/cli.js"
    },
-   "types": "typings/src/index.d.ts",
+   "types": "index.d.ts",
    "scripts": {
       "test": "mocha 'tests/**/*.ts' ",
       "build": "webpack --mode=production --node-env=production",
