@@ -2,7 +2,7 @@ import AcceptFactor from "./accept";
 import Accept from "./accept/accept";
 import Connect from "./connect/connect";
 import ConnectFactor from "./connect";
-import { Proxy, CreateCallback, LocalServerCallbacck, Options } from "./types";
+import { Proxy, CreateCallback, LocalServerCallbacck, Options, AcceptAuth } from "./types";
 import LocalServer, { Options as LocalOptions } from "./local.server";
 import net from "net";
 import EventEmitter from "events";
@@ -31,6 +31,10 @@ export default class IPipe extends EventEmitter {
       this.acceptFactor.on("write", (data) => this.emit(Event.out, data));
       this.connectFactor.on("read", (data) => this.emit(Event.in, data));
       this.connectFactor.on("write", (data) => this.emit(Event.out, data));
+   }
+   close() {
+      this.acceptFactor?.close();
+      this.localServer?.close();
    }
    /**
     * 创建连接接入服务
@@ -65,6 +69,7 @@ export default class IPipe extends EventEmitter {
       this.acceptFactor.register(accept);
       return this;
    }
+
    /**
     * 注册连接远程代理服务器自定义协议， 原生支持http,socks5协议,forward.http http转发协议
     * 协议继承类 Connect

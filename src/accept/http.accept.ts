@@ -28,7 +28,8 @@ export default class HttpAccept extends Accept {
       // 需要鉴权
       if (isAuth) {
          let user = this.getUser(headers["proxy-authorization"]);
-         let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
+         //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
+         let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
          if (!authRes) {
             this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
             return;

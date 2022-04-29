@@ -1,7 +1,7 @@
 import net from "net";
 //import { EventEmitter } from "events";
 //import ping from "ping";
-import { Proxy } from "../types";
+import { Proxy, ConnectOptions } from "../types";
 import Stream from "../core/stream";
 import transform from "../core/transform";
 import { Transform } from "stream";
@@ -16,9 +16,11 @@ export default abstract class Connect extends Stream {
    public protocol: string;
    /** 代理服务器信息 */
    public proxy: Proxy;
-   constructor(options: { protocol: string }) {
+   protected options: ConnectOptions;
+   constructor(options: ConnectOptions) {
       super();
       this.setMaxListeners(999);
+      this.options = options;
       this.on("error", (err) => console.error(`connect error ${err.stack || err.message}`));
       this.protocol = options.protocol;
    }

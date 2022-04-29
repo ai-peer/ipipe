@@ -27,9 +27,8 @@ async function createRelay() {
    };
    let ipipe = new IPipe({
       isDirect: false,
-      auth: {
-         username: appParams.username,
-         password: appParams.password,
+      auth: async (username, password) => {
+         return username == appParams.username && password == appParams.password;
       },
    });
    await ipipe.createAcceptServer(appParams.port, appParams.host);
@@ -42,9 +41,8 @@ async function createServer() {
    console.info("======createServer");
    let ipipe = new IPipe({
       isDirect: true,
-      auth: {
-         username: appParams.username,
-         password: appParams.password,
+      auth: async (username, password) => {
+         return username == appParams.username && password == appParams.password;
       },
    });
    await ipipe.createAcceptServer(appParams.port, appParams.host);
@@ -60,7 +58,11 @@ async function createClient() {
       username: appParams.username,
       password: appParams.password,
    };
-   let ipipe = new IPipe({});
+   let ipipe = new IPipe({
+      auth: async (username, password) => {
+         return username == appParams.username && password == appParams.password;
+      },
+   });
 
    /*   await proxyPipe.createTestProxyServer(proxy.port, "0.0.0.0", {
       //username: "admin",

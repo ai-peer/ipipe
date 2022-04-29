@@ -1,6 +1,6 @@
 import Accept from "./accept";
 import net from "net";
-import { parseSocks5IpPort, isIpv4, isIpv6, isDomain } from "../core/geoip";
+import { parseSocks5IpPort, isIpv4, isIpv6, isDomain, validSocks5Target } from "../core/geoip";
 import { AcceptOptions } from "../types";
 
 /**
@@ -32,19 +32,15 @@ export default class Socks5Accept extends Accept {
 
       // 需要鉴权
       if (isAuth) {
-         let sysUserAuth = options.auth;
          let userChunk = await _this.read(socket); //读取将要建立连接的目标服务,
          if (userChunk[0] != 1) {
             this.end(socket, Buffer.from([0x01, 0x01]));
             return;
          }
-         if (!sysUserAuth || !sysUserAuth?.username || !sysUserAuth.password) {
-            this.end(socket, Buffer.from([0x01, 0x01]));
-            return;
-         }
          //let authRes = this.auth(userChunk);
          let user = this.getUser(userChunk);
-         let authRes = sysUserAuth.username == user.username && sysUserAuth.password == user.password;
+         // let authRes = sysUserAuth.username == user.username && sysUserAuth.password == user.password;
+         let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
          //console.info("auth res =", authRes);
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
@@ -63,13 +59,9 @@ export default class Socks5Accept extends Accept {
       let targetInfoBuffer = await _this.read(socket); //读取将要建立连接的目标服务,
       isReadTargetInfo = true;
       let { host, port, atyp } = parseSocks5IpPort(targetInfoBuffer); //读取将要建立连接的目标服务
-      let isUseV4 = atyp == 0x01 && isIpv4(host);
-      let isUseV6 = atyp == 0x04 && isIpv6(host);
-      let isUseDomain = atyp == 0x03 && (isIpv4(host) || isDomain(host));
-      if (!(isUseV4 || isUseV6 || isUseDomain)) {
-         //数据错误, 解析不到要访问的域名
-         console.error("解析访问的域名出错", atyp, host, [...targetInfoBuffer]);
-         await _this.end(socket, Buffer.from([0x05, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])); //返回告诉
+      let validRes = validSocks5Target(socket, { host, port, atyp });
+      if (!validRes) {
+         socket.destroy();
          return;
       }
       //await _this.write(socket, Buffer.from([0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])); //返回告诉
@@ -99,16 +91,5 @@ export default class Socks5Accept extends Accept {
          username: username.toString(),
          password: password.toString(),
       };
-   }
-   private auth(chunk: Buffer): boolean {
-      let auth = this.options.auth;
-      if (chunk[0] != 1) return false;
-      if (!auth) return false;
-      let userLength = chunk[1];
-      let passLength = chunk[2 + userLength];
-      let username = chunk.slice(2, 2 + userLength);
-      let password = chunk.slice(3 + userLength, 3 + userLength + passLength);
-      //console.info("user==", username.toString(), [...username], password.toString(), [...password], auth);
-      return auth.username == username.toString() && auth.password == password.toString();
    }
 }

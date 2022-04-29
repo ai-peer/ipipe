@@ -2,6 +2,7 @@ import net from "net";
 import Connect, { Callback } from "./connect";
 import assert from "assert";
 import * as geoip from "../core/geoip";
+import { Socks5 } from "../core/protocol";
 
 /**
  * 走socks5代理连接
@@ -42,7 +43,8 @@ export default class Socks5Connect extends Connect {
                assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0, "connect socks5 server error " + [...chunkReceive]);
             }
 
-            sendChunk = this.createClientInfo(host, port);
+            //sendChunk = this.createClientInfo(host, port);
+            sendChunk = Socks5.buildClientInfo(host, port);
             await this.write(socket, sendChunk);
             chunkReceive = await this.read(socket);
             assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
@@ -59,7 +61,7 @@ export default class Socks5Connect extends Connect {
       });
    }
 
-   private createClientInfo(host: string, port: number): Buffer {
+   /*  private createClientInfo(host: string, port: number): Buffer {
       host = host.trim();
       let bhosts: Buffer = Buffer.from(host);
       let bufferSize = 6 + (geoip.isIpv4(host) ? 4 : bhosts.length + 1);
@@ -86,5 +88,5 @@ export default class Socks5Connect extends Connect {
       buffer.writeUInt8((nport >> 8) & 0xff, offset++);
       buffer.writeUInt8(nport & 0xff, offset++);
       return buffer;
-   }
+   } */
 }

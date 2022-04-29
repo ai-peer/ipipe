@@ -20,7 +20,7 @@ export interface Options {
  * 
  */
 export default class LocalServer {
-   private server;
+   private server: ProxyServer;
    createServer(port: number = 0, host: string = "0.0.0.0", options?: Options, handle?: Function) {
       //init ProxyServer
       options = Object.assign({}, options);
@@ -40,5 +40,8 @@ export default class LocalServer {
          console.info("local proxy server start ok! ", this.server.address());
          handle && handle(this.server);
       });
+   }
+   close() {
+      this.server.close();
    }
 }

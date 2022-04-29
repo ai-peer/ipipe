@@ -27,14 +27,18 @@ export default class Cipher {
       let cipher = new Cipher(secret, decodeSecret);
       return cipher;
    }
-
    /**
     * 创建随机默认版本号
     * 规则: version =0 为默认, 创建>=32768 <=65535
     */
-   public buildVersion(): number {
-      const max = 32768;
-      return Math.floor(Math.random() * max + max);
+   public buildVersion(size: number = 2): number {
+      size = Math.floor(size);
+      size = Math.min(size, 4);
+      let r = 0;
+      for (let i = size - 1; i >= 0; i--) {
+         r += Math.floor(Math.random() * 256) << (i * 8);
+      }
+      return r;
    }
    /**
     * 创建face
@@ -79,6 +83,7 @@ export default class Cipher {
       return "cipher=" + [...this.encodeSecret.slice(0, 10)] + "..." + [...this.encodeSecret.slice(this.encodeSecret.length - 10)];
    } */
 }
+
 /* 
 function makeSecretBySign(secret: string, sign: string): Buffer {
    let bsecret = Buffer.from(secret, "base64");

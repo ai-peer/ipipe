@@ -145,6 +145,29 @@ export function trimAddress(addr) {
       );
    return addr.replace(/^[^a-z0-9]+/gi, "");
 }
+
+export function validSocks5Target(socket: net.Socket, { host, port, atyp }): boolean {
+   /*    if (![1, 3, 4].includes(atyp)) {
+      socket.destroy(new Error("atype 错误"));
+      return false;
+   }
+   if (!(0 < port && Math.pow(2, 16) > port)) {
+      socket.destroy(new Error("port 错误"));
+      return false;
+   } */
+   let isUseV4 = atyp == 0x01 && isIpv4(host);
+   let isUseV6 = atyp == 0x04 && isIpv6(host);
+   let isUseDomain = atyp == 0x03 && (isIpv4(host) || isDomain(host));
+   if (!(isUseV4 || isUseV6 || isUseDomain)) {
+      //数据错误, 解析不到要访问的域名
+      socket.destroy(new Error("atype 错误"));
+      return false;
+   }
+   if (net.isIPv4(host) || net.isIPv6(host) || isDomain(host)) {
+      return true;
+   }
+   return false;
+}
 export function parseSocks5IpPort(chunk: Buffer): { host: string; port: number; atyp: number } {
    if (!chunk) return { host: "", port: 0, atyp: 0 };
    let buf = [...chunk];

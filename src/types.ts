@@ -1,6 +1,9 @@
 import net from "net";
 import LocalTestProxyServer from "transparent-proxy";
 
+export const DefaultSecret =
+   "lOfGpnn7nZ7KODmxUckw4GhMY95vA/LvlnMcbjNZ9hapILXX20KAClDxB8QjCUElRHfZhrgnf+2FR7kAv6P4TqTqDnLfIV1kanCsRYfVoMA+VhvhwRH0H4QENna0r6qoL/P9dQ27gQv56XE90MuXW4rYWj9pT+Oy6y7uOknH0whiUqGMlbboKn3RX40okGZD0o/DehOzXCTM+s9+98XOpwE0mWcY3CySHhUSpUbNK65IbOwy5mBLV0B8LcgF8IMaazd7bQ9UeGWO1rerKR0MnNpVF7qCIrDdAlhKnzuJ/rxNBnQUNRnkEJuIMf/1mjxemK29ovzivpFT5cKT1CaLYQ==";
+
 /**
  * 接收器配置参数
  */
@@ -8,10 +11,8 @@ export interface AcceptOptions {
    /** 密钥 */
    secret?: string;
    isAccept?: boolean;
-   auth?: {
-      username: string;
-      password: string;
-   };
+   auth?: AcceptAuth;
+   [key: string]: any;
 }
 /**
  * 连接器配置参数
@@ -19,19 +20,18 @@ export interface AcceptOptions {
 export interface ConnectOptions {
    /** 是否直接连接目标 */
    isDirect?: boolean;
+   [key: string]: any;
 }
 /**
  * 默认实例入口配置参数
  */
 export interface Options extends AcceptOptions, ConnectOptions {}
-/* export interface Options {
-   isDirect?: boolean;
-   isAccept?: boolean;
-   auth?: {
-      username: string;
-      password: string;
-   };
-} */
+
+/**
+ * accept用户信息验证
+ */
+export type AcceptAuth = (username: string, password: string) => Promise<boolean>;
+
 export interface Proxy {
    /** 协议 */
    protocol: string;

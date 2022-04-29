@@ -19,9 +19,8 @@ console.info("proxyList", proxyList); */
    };
    let ipipe = new IPipe({
       //isDirect: true,
-      auth: {
-         username: "admin",
-         password: "123456",
+      auth: async (username, password) => {
+         return username == "admin" && password == "123456";
       },
    });
 

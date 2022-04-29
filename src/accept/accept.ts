@@ -3,7 +3,7 @@ import ConnectFactor from "../connect";
 import Stream from "../core/stream";
 import Sessions from "../core/sessions";
 import { Transform } from "stream";
-import { AcceptOptions } from "../types";
+import { AcceptOptions, AcceptAuth } from "../types";
 
 /**
  * 接收应用端接入协议处理基类
@@ -13,16 +13,20 @@ export default abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
    public connectFactor: ConnectFactor;
    public options: AcceptOptions;
+   public acceptAuth: AcceptAuth;
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(9999);
       this.options = Object.assign({}, options);
       //this.protocol = options.protocol;
+      if (options?.auth) this.acceptAuth = options.auth;
    }
 
    clone2target(target: Accept) {
       target.connectFactor = this.connectFactor;
+      target.acceptAuth = target.acceptAuth || this.acceptAuth;
    }
+
    /**
     * 注册连接器, 连接目标服务协议
     * @param connectFactor
@@ -56,9 +60,13 @@ export default abstract class Accept extends Stream {
     * @param inputTransform 输入流解码
     */
    protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
-      this.connectFactor.pipe(host, port, localSocket, chunk, inputTransform).catch((err) => {
-         console.info("[ERROR] connect", err.message);
+      try {
+         this.connectFactor.pipe(host, port, localSocket, chunk, inputTransform).catch((err) => {
+            //console.info("[ERROR] connect", err.message);
+            localSocket.destroy(err);
+         });
+      } catch (err) {
          localSocket.destroy(err);
-      });
+      }
    }
 }

@@ -3,7 +3,7 @@ import net, { SocketAddress } from "net";
 import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
-import { CreateCallback, AcceptOptions } from "../types";
+import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
 import EventEmitter from "events";
 //import { Options } from "../types";
 import logger from "../core/logger";
@@ -15,6 +15,7 @@ export default class AcceptFactor extends EventEmitter {
    private accepts: Map<string, Accept> = new Map();
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
+   private server: net.Server;
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(99);
@@ -24,7 +25,9 @@ export default class AcceptFactor extends EventEmitter {
 
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
-
+   public close() {
+      this.server?.close();
+   }
    /**
     * 注册本地代理的可接入协议类
     * @param accept
@@ -70,6 +73,10 @@ export default class AcceptFactor extends EventEmitter {
     */
    createServer(port: number, host: string = "0.0.0.0", callback?: CreateCallback): Promise<net.Server> {
       return new Promise((resolve, reject) => {
+         if (this.server) {
+            resolve(this.server);
+            return;
+         }
          let server = net.createServer((socket: net.Socket) => {
             socket.on("error", (err) => {});
             this.accept(socket);
@@ -83,6 +90,7 @@ export default class AcceptFactor extends EventEmitter {
             callback && callback(server);
             resolve(server);
          });
+         this.server = server;
       });
    }
    /**
