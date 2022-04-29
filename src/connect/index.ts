@@ -36,35 +36,35 @@ export default class ConnectFactor extends EventEmitter {
 
       httpConnect.on("read", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       httpConnect.on("write", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
       socks5Connect.on("read", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       socks5Connect.on("write", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
       directConnect.on("read", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       directConnect.on("write", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
       forwardHttpProxyConnect.on("read", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       forwardHttpProxyConnect.on("write", ({ size, socket }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
 
       this.register(httpConnect).register(socks5Connect).register(directConnect).register(forwardHttpProxyConnect);

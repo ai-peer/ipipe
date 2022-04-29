@@ -1,5 +1,5 @@
 import Accept from "./accept";
-import net from "net";
+import net, { SocketAddress } from "net";
 import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
@@ -24,19 +24,19 @@ export default class AcceptFactor extends EventEmitter {
 
       httpAccept.on("read", ({ size, socket }) => {
          let session = httpAccept.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       httpAccept.on("write", ({ size, socket }) => {
          let session = httpAccept.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
       socks5Accept.on("read", ({ size, socket }) => {
          let session = socks5Accept.getSession(socket);
-         session && this.emit("read", { size, session });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
       });
       socks5Accept.on("write", ({ size, socket }) => {
          let session = socks5Accept.getSession(socket);
-         session && this.emit("write", { size, session });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }

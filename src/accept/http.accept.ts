@@ -34,7 +34,7 @@ export default class HttpAccept extends Accept {
       } else {
          this.sessions.add(socket);
       }
-      this.emit("read", { socket: socket, size: firstChunk.length });
+      this.emit("read", { socket: socket, size: firstChunk.length, clientIp: socket.remoteAddress });
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示
@@ -58,14 +58,15 @@ export default class HttpAccept extends Accept {
    }
 
    private isHttpProtocol(str: string) {
-      switch (str[0].toUpperCase()) {
-         case "G": //GET
-         case "H": //HEAD
-         case "P": //POST,PUT
-         case "D": //DELETE
-         case "O": //OPTIONS
-         case "T": //TRACE
-         case "C": //CONNECT
+      switch (str.slice(0, 3).toUpperCase()) {
+         case "GET": //GET
+         case "HEA": //HEAD
+         case "PUT": //POST,PUT
+         case "POST": //POST,PUT
+         case "DEL": //DELETE
+         case "OPT": //OPTIONS
+         case "TRA": //TRACE
+         case "CON": //CONNECT
             return true;
       }
       return false;

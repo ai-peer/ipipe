@@ -7,8 +7,7 @@ const path = require("path");
 const isProduction = process.env.NODE_ENV == "production";
 const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
-const CopyPlugin = require("copy-webpack-plugin");
-//const stylesHandler = "style-loader";
+//const CopyPlugin = require("copy-webpack-plugin");
 
 //const { createCompleted } = require("./src/utils/build.dist");
 //createCompleted();
@@ -115,7 +114,7 @@ const config = {
       }),
    ],
    optimization: {
-      minimize: false, //isProduction ? true : false,
+      minimize: true, //isProduction ? true : false,
       minimizer: [
          new TerserPlugin({
             extractComments: false, //不将注释提取到单独的文件中

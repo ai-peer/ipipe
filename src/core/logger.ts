@@ -20,6 +20,9 @@ class Logger {
    log(...args) {
       if (isDev) console.log(format("YYYY-MM-DD HH:mm:ss"), "[LOG]", ...args);
    }
+   debug(...args) {
+      this.log(...args);
+   }
 }
 
 export default new Logger();
