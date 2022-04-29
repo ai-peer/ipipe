@@ -34,13 +34,22 @@ export default class Socks5Accept extends Accept {
       if (isAuth) {
          let sysUserAuth = options.auth;
          let userChunk = await _this.read(socket); //读取将要建立连接的目标服务,
-         if (userChunk[0] != 1) return this.end(socket, Buffer.from([0x01, 0x01]));
-         if (!sysUserAuth || !sysUserAuth?.username || !sysUserAuth.password) return this.end(socket, Buffer.from([0x01, 0x01]));
+         if (userChunk[0] != 1) {
+            this.end(socket, Buffer.from([0x01, 0x01]));
+            return;
+         }
+         if (!sysUserAuth || !sysUserAuth?.username || !sysUserAuth.password) {
+            this.end(socket, Buffer.from([0x01, 0x01]));
+            return;
+         }
          //let authRes = this.auth(userChunk);
          let user = this.getUser(userChunk);
          let authRes = sysUserAuth.username == user.username && sysUserAuth.password == user.password;
          //console.info("auth res =", authRes);
-         if (!authRes) return this.end(socket, Buffer.from([0x01, 0x01]));
+         if (!authRes) {
+            this.end(socket, Buffer.from([0x01, 0x01]));
+            return;
+         }
          await this.write(socket, Buffer.from([0x01, 0x00]));
          this.sessions.add(socket, user.username);
          this.emit("read", { socket: socket, size: chunk.length + userChunk.length });
@@ -61,7 +70,7 @@ export default class Socks5Accept extends Accept {
          //数据错误, 解析不到要访问的域名
          console.error("解析访问的域名出错", atyp, host, [...targetInfoBuffer]);
          await _this.end(socket, Buffer.from([0x05, 0x04, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])); //返回告诉
-         return false;
+         return;
       }
       //await _this.write(socket, Buffer.from([0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])); //返回告诉
       await _this.write(socket, Buffer.from([0x05, 0x00, 0x00, ...targetInfoBuffer.slice(3)])); //返回告诉

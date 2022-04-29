@@ -22,7 +22,7 @@ export default class HttpAccept extends Accept {
       let hp = headers["host"]?.split(":");
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
-      if (!host) return false;
+      if (!host) return;
 
       let isAuth = !!headers["proxy-authorization"];
       // 需要鉴权
@@ -30,7 +30,8 @@ export default class HttpAccept extends Accept {
          let user = this.getUser(headers["proxy-authorization"]);
          let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          if (!authRes) {
-            return this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            return;
          }
          this.sessions.add(socket, user.username);
       } else {

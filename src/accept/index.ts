@@ -24,6 +24,7 @@ export default class AcceptFactor extends EventEmitter {
 
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
+
    /**
     * 注册本地代理的可接入协议类
     * @param accept
@@ -97,7 +98,16 @@ export default class AcceptFactor extends EventEmitter {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
             console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
-            accept.handle(socket, chunk);
+            try {
+               accept.handle(socket, chunk).catch((err) => {
+                  logger.info("===>accept handle error", err.message);
+                  socket.destroy();
+               });
+            } catch (err) {
+               logger.info("===>accept handle error", err.message);
+               socket.destroy();
+            }
+
             break;
          }
       }

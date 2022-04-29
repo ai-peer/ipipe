@@ -15,7 +15,7 @@ export default class Cipher {
     * @param secret 密钥
     * @param deviceId  设备码
     */
-   static createCipher(secret: string | Buffer, deviceId?: string) {
+   static createCipher(secret: string | Buffer) {
       if (typeof secret === "string") {
          secret = Buffer.from(secret, "base64");
       }

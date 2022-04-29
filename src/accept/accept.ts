@@ -45,7 +45,7 @@ export default abstract class Accept extends Stream {
     * @param socket
     * @param firstChunk
     */
-   public abstract handle(socket: net.Socket, firstChunk: Buffer);
+   public abstract handle(socket: net.Socket, firstChunk: Buffer): Promise<void>;
 
    /**
     * 连接目标

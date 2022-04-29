@@ -4,7 +4,10 @@ import logger from "../core/logger";
 import { bit2Int } from "../utils";
 import transform from "src/core/transform";
 import { AcceptOptions } from "../types";
+import Cipher from "../core/cipher";
 
+const DefaultSecret =
+   "lOfGpnn7nZ7KODmxUckw4GhMY95vA/LvlnMcbjNZ9hapILXX20KAClDxB8QjCUElRHfZhrgnf+2FR7kAv6P4TqTqDnLfIV1kanCsRYfVoMA+VhvhwRH0H4QENna0r6qoL/P9dQ27gQv56XE90MuXW4rYWj9pT+Oy6y7uOknH0whiUqGMlbboKn3RX40okGZD0o/DehOzXCTM+s9+98XOpwE0mWcY3CySHhUSpUbNK65IbOwy5mBLV0B8LcgF8IMaazd7bQ9UeGWO1rerKR0MnNpVF7qCIrDdAlhKnzuJ/rxNBnQUNRnkEJuIMf/1mjxemK29ovzivpFT5cKT1CaLYQ==";
 /**
  * Light协议接入类
  */
@@ -18,10 +21,12 @@ export default class LightAccept extends Accept {
       return this.isAcceptProtocol(chunk);
    }
    public async handle(socket: net.Socket, firstChunk: Buffer) {
+      let secret = this.options.secret || DefaultSecret;
       let versions = [...firstChunk.slice(7, 9)].map((v) => v ^ 0xf1);
       let face = versions[0];
+      let cipherAccept: Cipher = Cipher.createCipher(secret);
       /** 解析首次http请求协议获取反馈和主机信息 start */
-      //let err = await this.write(socket, cipherConnect.encode(Buffer.from([0x05, 0x00].concat(randomArray())), face), (size) => (outSize += size));
+      await this.write(socket, cipherAccept.encode(Buffer.from([0x05, 0x00].concat(randomArray())), face));
 
       let host = "",
          port = 0;

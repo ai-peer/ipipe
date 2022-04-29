@@ -16,8 +16,8 @@ const Event = {
  */
 export default class IPipe extends EventEmitter {
    static Event = Event;
-   private connectFactor: ConnectFactor;
-   private acceptFactor: AcceptFactor;
+   public connectFactor: ConnectFactor;
+   public acceptFactor: AcceptFactor;
    private localServer: LocalServer;
    constructor(options?: Options) {
       super();
