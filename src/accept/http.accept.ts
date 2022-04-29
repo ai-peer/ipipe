@@ -1,6 +1,6 @@
 import Accept from "./accept";
 import net from "net";
-import { AcceptOptions } from "./accept";
+import { AcceptOptions } from "../types";
 
 /**
  * Http协议接入类
@@ -23,7 +23,9 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return false;
+
       let isAuth = !!headers["proxy-authorization"];
+      // 需要鉴权
       if (isAuth) {
          let user = this.getUser(headers["proxy-authorization"]);
          let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;

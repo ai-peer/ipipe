@@ -4,7 +4,7 @@ import Connect, { Callback } from "./connect";
 /**
  * 透过中转服务转发连接http代理连接
  */
-export default class ForwardHttpProxyConnect extends Connect {
+export default class ForwardHttpConnect extends Connect {
    constructor() {
       super({
          protocol: "forward.http",

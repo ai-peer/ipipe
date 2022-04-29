@@ -3,41 +3,25 @@ import net, { SocketAddress } from "net";
 import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
-import { CreateCallback } from "../types";
-//import { AcceptOptions } from "./accept";
+import { CreateCallback, AcceptOptions } from "../types";
 import EventEmitter from "events";
-import { Options } from "../types";
+//import { Options } from "../types";
+import logger from "../core/logger";
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
 export default class AcceptFactor extends EventEmitter {
    /** 接入协议类列表 */
-   protected acceptList: Accept[] = [];
+   private accepts: Map<string, Accept> = new Map();
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
-   constructor(options?: Options) {
+   constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(99);
 
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
-      httpAccept.on("read", ({ size, socket }) => {
-         let session = httpAccept.getSession(socket);
-         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
-      });
-      httpAccept.on("write", ({ size, socket }) => {
-         let session = httpAccept.getSession(socket);
-         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
-      });
-      socks5Accept.on("read", ({ size, socket }) => {
-         let session = socks5Accept.getSession(socket);
-         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
-      });
-      socks5Accept.on("write", ({ size, socket }) => {
-         let session = socks5Accept.getSession(socket);
-         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
-      });
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
    /**
@@ -45,14 +29,24 @@ export default class AcceptFactor extends EventEmitter {
     * @param accept
     */
    public register(accept: Accept) {
-      let index = this.acceptList.findIndex((v) => v.protocol == accept.protocol);
-      if (index >= 0) {
-         let oldAccept = this.acceptList[index];
-         oldAccept.clone2target(accept);
-         this.acceptList[index] = accept;
-      } else {
-         this.acceptList.push(accept);
+      if (this.accepts.has(accept.protocol)) {
+         let exist = this.accepts.get(accept.protocol);
+         exist?.removeAllListeners("read");
+         exist?.removeAllListeners("write");
+         exist?.clone2target(accept);
       }
+
+      accept.registerConnect(this.connectFactor);
+      accept.on("read", ({ size, socket }) => {
+         let session = accept.getSession(socket);
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
+      });
+      accept.on("write", ({ size, socket }) => {
+         let session = accept.getSession(socket);
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
+      });
+
+      this.accepts.set(accept.protocol, accept);
       return this;
    }
 
@@ -62,9 +56,10 @@ export default class AcceptFactor extends EventEmitter {
     */
    public registerConnect(connectFactor: ConnectFactor) {
       this.connectFactor = connectFactor;
-      this.acceptList.forEach((accept: Accept) => {
+      this.accepts.forEach((accept) => {
          accept.registerConnect(connectFactor);
       });
+
       return this;
    }
    /**
@@ -96,8 +91,9 @@ export default class AcceptFactor extends EventEmitter {
    public async accept(socket: net.Socket) {
       let chunk: Buffer = await this.read(socket);
       let isAccept = false;
-      for (let i = 0; i < this.acceptList.length; i++) {
-         let accept = this.acceptList[i];
+      let accepts = this.accepts.values();
+
+      for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
             console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
@@ -105,8 +101,9 @@ export default class AcceptFactor extends EventEmitter {
             break;
          }
       }
+
       if (isAccept == false) {
-         console.warn("===>no support protocol to hanle");
+         logger.warn("===>no support protocol to hanle");
          socket.destroy(new Error("no support protocol to hanle"));
       }
    }

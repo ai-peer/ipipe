@@ -2,12 +2,12 @@ import net from "net";
 import Connect, { Callback } from "./connect";
 
 /**
- * http代理连接
+ * light协议连接
  */
-export default class HttpProxyConnect extends Connect {
+export default class LightConnect extends Connect {
    constructor() {
       super({
-         protocol: "http",
+         protocol: "light",
       });
    }
 

@@ -23,7 +23,7 @@ export async function getAllIPs(): Promise<Array<string>> {
    }
    const os = require("os");
    //const osType = os.type(); //系统类型
-   let s1 = await getPublicIpFromIPIP();
+   //let s1 = await getPublicIpFromIPIP();
    let pip = await anyPromise([getPublicIpFromIfconfigMe(), getPublicIpFromMyip(), getPublicIpFromIPIP()]);
    const netInfo = os.networkInterfaces(); //网络信息
    for (let key in netInfo) {
@@ -112,7 +112,7 @@ export async function getPublicIp(): Promise<string> {
    let ips = await getAllIPs();
    ips = ips.filter((ip: string) => isPublicIp(ip));
    G_PUBLIC_IP = ips.length > 0 ? ips[0] : "";
-   console.info("getPublicIp", G_PUBLIC_IP);
+   //console.info("getPublicIp", G_PUBLIC_IP);
    return G_PUBLIC_IP;
 }
 export async function getLocalIps(): Promise<string[]> {

@@ -6,7 +6,7 @@ import * as geoip from "../core/geoip";
 /**
  * 走socks5代理连接
  */
-export default class Socks5ProxyConnect extends Connect {
+export default class Socks5Connect extends Connect {
    constructor() {
       super({
          protocol: "socks5",

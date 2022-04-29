@@ -1,7 +1,7 @@
 import Accept from "./accept";
 import net from "net";
 import { parseSocks5IpPort, isIpv4, isIpv6, isDomain } from "../core/geoip";
-import { AcceptOptions } from "./accept";
+import { AcceptOptions } from "../types";
 
 /**
  * socks5协议接入类
@@ -29,6 +29,8 @@ export default class Socks5Accept extends Accept {
       }, 1000);
       /** 三步走 start */
       await _this.write(socket, Buffer.from([0x05, isAuth ? 0x02 : 0x00])); //响应客户端连接
+
+      // 需要鉴权
       if (isAuth) {
          let sysUserAuth = options.auth;
          let userChunk = await _this.read(socket); //读取将要建立连接的目标服务,

@@ -1,16 +1,37 @@
 import net from "net";
-import ProxyServer from "transparent-proxy";
+import LocalTestProxyServer from "transparent-proxy";
 
-export interface Options {
-   /** 是否直接连接目标 */
-   isDirect?: boolean;
-   /** 是否设置默认接入器 */
+/**
+ * 接收器配置参数
+ */
+export interface AcceptOptions {
+   /** 密钥 */
+   secret?: string;
    isAccept?: boolean;
    auth?: {
       username: string;
       password: string;
    };
 }
+/**
+ * 连接器配置参数
+ */
+export interface ConnectOptions {
+   /** 是否直接连接目标 */
+   isDirect?: boolean;
+}
+/**
+ * 默认实例入口配置参数
+ */
+export interface Options extends AcceptOptions, ConnectOptions {}
+/* export interface Options {
+   isDirect?: boolean;
+   isAccept?: boolean;
+   auth?: {
+      username: string;
+      password: string;
+   };
+} */
 export interface Proxy {
    /** 协议 */
    protocol: string;
@@ -32,4 +53,4 @@ export interface Proxy {
 export type CreateCallback = (server: net.Server) => void;
 
 /**创建本地服务回调 */
-export type LocalServerCallbacck = (server: ProxyServer) => void;
+export type LocalServerCallbacck = (server: LocalTestProxyServer) => void;

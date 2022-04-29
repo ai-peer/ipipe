@@ -4,6 +4,7 @@ import net from "net";
 import { Proxy } from "../types";
 import Stream from "../core/stream";
 import transform from "../core/transform";
+import { Transform } from "stream";
 
 export type Callback = (error: Error | undefined, socket: net.Socket) => void;
 
@@ -30,8 +31,14 @@ export default abstract class Connect extends Stream {
     */
    public abstract connect(host: string, port: number, callback: Callback): Promise<net.Socket>;
 
-   public pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer) {
+   public pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
+      inputTransform =
+         inputTransform ||
+         transform((chunk, encoding, callback) => {
+            callback(null, chunk);
+         });
       sourceSocket
+         .pipe(inputTransform)
          .pipe(
             transform((chunk, encoding, callback) => {
                this.emit("read", { size: chunk.length, socket: sourceSocket });
