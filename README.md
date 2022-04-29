@@ -1,9 +1,9 @@
-# 代理隧道 proxypipe
+# 代理隧道 ipipe
 
 ## 使用例子
 
 ```
-    import ProxyPipe from "@ai-lion/proxypipe";
+    import IPipe from "@ai-lion/ipipe";
     import axios from "axios";
 
     
@@ -38,13 +38,13 @@
     }
     (async()=>{
         
-        const proxyPi =pe new ProxyPipe(); //初始化实例
+        const ipipe = new IPipe(); //初始化实例
 
-        await proxyPipe.createTestProxyServer(proxy.port, "0.0.0.0");// 测试使用的目标代理
+        await ipipe.createTestProxyServer(proxy.port, "0.0.0.0");// 测试使用的目标代理服务器, 实际使用中替换真实的代理服务器,目前支持http和socks5, 新协议自定义开发
 
-        await proxyPipe.createAcceptServer(4321); //创建接入服务
+        await ipipe.createAcceptServer(4321); //创建接入服务
 
-        proxyServer.registerProxy(proxy);//注册代理服务器
+        ipipe.registerProxy(proxy);//注册代理服务器
 
         proxyIp({ host: proxy.host, port: 4321 });
 
