@@ -19,7 +19,7 @@ export default abstract class Stream extends EventEmitter {
             if (err) {
                resolve(err);
             } else {
-               this.emit("write", chunk.length);
+               this.emit("write", { size: chunk.length, socket: socket });
                resolve(undefined);
             }
          });
@@ -32,7 +32,7 @@ export default abstract class Stream extends EventEmitter {
          //setTimeout(() => {
          socket.end(chunk, () => {
             socket.resume();
-            this.emit("write", chunk.length);
+            this.emit("write", { size: chunk.length, socket: socket });
             resolve(undefined);
          });
          //}, 5);
@@ -54,12 +54,12 @@ export default abstract class Stream extends EventEmitter {
                resolve(Buffer.alloc(0));
             }, ttl);
          }
-         socket.once("data", (ss: Buffer) => {
+         socket.once("data", (chunk: Buffer) => {
             if (isRead) return;
             isRead = true;
             pid && clearTimeout(pid);
-            this.emit("read", ss.length);
-            resolve(ss);
+            this.emit("read", { size: chunk.length, socket: socket });
+            resolve(chunk);
             //ss?.length > 0 && callback && callback(ss.length);
             //callback && callback(ss?.length || 0);
          });

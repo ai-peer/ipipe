@@ -21,6 +21,7 @@ export default abstract class Connect extends Stream {
       this.on("error", (err) => console.error(`connect error ${err.stack || err.message}`));
       this.protocol = options.protocol;
    }
+
    /**
     * 连接远程代理主机
     * @param host 目标主机ip或域名
@@ -33,16 +34,14 @@ export default abstract class Connect extends Stream {
       sourceSocket
          .pipe(
             transform((chunk, encoding, callback) => {
-               this.emit("write", chunk.length);
-               //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
+               this.emit("read", { size: chunk.length, socket: sourceSocket });
                callback(null, chunk);
             }),
          )
          .pipe(targetSocket)
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
-               this.emit("read", chunk.length);
-               //console.info("\r\nchunk===2", chunk.toString(), [...chunk].slice(0, 128).join(","));
+               this.emit("write", { size: chunk.length, socket: sourceSocket });
                callback(null, chunk);
             }),
          )

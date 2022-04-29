@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import ProxyPipe from "../src";
+import IPipe from "../src";
 
 const program = new Command();
 let appParams: any = program //
@@ -25,31 +25,31 @@ async function createRelay() {
       username: appParams.username2,
       password: appParams.password2,
    };
-   let proxyPipe = new ProxyPipe({
+   let ipipe = new IPipe({
       isDirect: false,
       auth: {
          username: appParams.username,
          password: appParams.password,
       },
    });
-   await proxyPipe.createAcceptServer(appParams.port, appParams.host);
-   proxyPipe.registerProxy(proxy);
+   await ipipe.createAcceptServer(appParams.port, appParams.host);
+   ipipe.registerProxy(proxy);
 
-   proxyPipe.on("in", (size) => console.info("relay in", size));
-   proxyPipe.on("out", (size) => console.info("relay out", size));
+   ipipe.on("in", (size) => console.info("relay in", size));
+   ipipe.on("out", (size) => console.info("relay out", size));
 }
 async function createServer() {
    console.info("======createServer");
-   let proxyPipe = new ProxyPipe({
+   let ipipe = new IPipe({
       isDirect: true,
       auth: {
          username: appParams.username,
          password: appParams.password,
       },
    });
-   await proxyPipe.createAcceptServer(appParams.port, appParams.host);
-   proxyPipe.on("in", (size) => console.info("server in", size));
-   proxyPipe.on("out", (size) => console.info("server out", size));
+   await ipipe.createAcceptServer(appParams.port, appParams.host);
+   ipipe.on("in", (size) => console.info("server in", size));
+   ipipe.on("out", (size) => console.info("server out", size));
 }
 async function createClient() {
    console.info("======createClient");
@@ -60,16 +60,16 @@ async function createClient() {
       username: appParams.username,
       password: appParams.password,
    };
-   let proxyPipe = new ProxyPipe({});
+   let ipipe = new IPipe({});
 
    /*   await proxyPipe.createTestProxyServer(proxy.port, "0.0.0.0", {
       //username: "admin",
       //password: "123456",
    }); */
 
-   await proxyPipe.createAcceptServer(appParams.port, appParams.host);
+   await ipipe.createAcceptServer(appParams.port, appParams.host);
 
-   proxyPipe.registerProxy(proxy);
+   ipipe.registerProxy(proxy);
 
    //proxyPipe.on("in", (size) => console.info("client in", size));
    //proxyPipe.on("out", (size) => console.info("client out", size));

@@ -10,6 +10,8 @@ import assert from "assert";
 import ForwardHttpProxyConnect from "./forward.http.proxy.connect";
 import log from "../core/logger";
 import EventEmitter from "events";
+import Sessions from "../core/sessions";
+const sessions = Sessions.instance;
 /**
  * 连接代理的封装类
  */
@@ -32,14 +34,38 @@ export default class ConnectFactor extends EventEmitter {
       let directConnect = new DirectConnect();
       let forwardHttpProxyConnect = new ForwardHttpProxyConnect();
 
-      httpConnect.on("read", (size: number) => this.emit("read", size));
-      httpConnect.on("write", (size: number) => this.emit("write", size));
-      socks5Connect.on("read", (size: number) => this.emit("read", size));
-      socks5Connect.on("write", (size: number) => this.emit("write", size));
-      directConnect.on("read", (size: number) => this.emit("read", size));
-      directConnect.on("write", (size: number) => this.emit("write", size));
-      forwardHttpProxyConnect.on("read", (size: number) => this.emit("read", size));
-      forwardHttpProxyConnect.on("write", (size: number) => this.emit("write", size));
+      httpConnect.on("read", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      httpConnect.on("write", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
+      socks5Connect.on("read", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      socks5Connect.on("write", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
+      directConnect.on("read", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      directConnect.on("write", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
+      forwardHttpProxyConnect.on("read", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      forwardHttpProxyConnect.on("write", ({ size, socket }) => {
+         let session = sessions.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
 
       this.register(httpConnect).register(socks5Connect).register(directConnect).register(forwardHttpProxyConnect);
    }
@@ -95,6 +121,10 @@ export default class ConnectFactor extends EventEmitter {
       connect.proxy = proxy;
       connect.connect(host, port, (err, proxySocket: net.Socket) => {
          if (err) return localSocket.destroy(err);
+         //会话信息
+         //let session = sessions.getSession(localSocket);
+         //sessions.add(proxySocket, session);
+
          localSocket.on("error", (err) => {
             localSocket.destroy();
             proxySocket?.destroy(err);

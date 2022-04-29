@@ -22,12 +22,23 @@ export default class AcceptFactor extends EventEmitter {
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
-      httpAccept.on("read", (size: number) => this.emit("read", size));
-      httpAccept.on("write", (size: number) => this.emit("write", size));
-      socks5Accept.on("read", (size: number) => this.emit("read", size));
-      socks5Accept.on("write", (size: number) => this.emit("write", size));
-
-      if (options?.isAccept != false) this.register(httpAccept).register(socks5Accept);
+      httpAccept.on("read", ({ size, socket }) => {
+         let session = httpAccept.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      httpAccept.on("write", ({ size, socket }) => {
+         let session = httpAccept.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
+      socks5Accept.on("read", ({ size, socket }) => {
+         let session = socks5Accept.getSession(socket);
+         session && this.emit("read", { size, session });
+      });
+      socks5Accept.on("write", ({ size, socket }) => {
+         let session = socks5Accept.getSession(socket);
+         session && this.emit("write", { size, session });
+      });
+      if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
    /**
     * 注册本地代理的可接入协议类

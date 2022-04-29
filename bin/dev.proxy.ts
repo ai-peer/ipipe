@@ -1,4 +1,4 @@
-import ProxyServer from "../src";
+import IPipe from "../src";
 import axios from "axios";
 /* 
 let cFileConfig = path.resolve(__dirname, "../env/config.js");
@@ -17,7 +17,7 @@ console.info("proxyList", proxyList); */
       //forwardHost: "127.0.0.1",
       //forwardPort: 1082,
    };
-   let proxyServer = new ProxyServer({
+   let ipipe = new IPipe({
       //isDirect: true,
       auth: {
          username: "admin",
@@ -25,21 +25,21 @@ console.info("proxyList", proxyList); */
       },
    });
 
-   await proxyServer.createTestProxyServer(proxy.port, "0.0.0.0", {
+   await ipipe.createTestProxyServer(proxy.port, "0.0.0.0", {
       //username: "admin",
       //password: "123456",
    });
 
-   let acceptServer = await proxyServer.createAcceptServer(4321);
+   let acceptServer = await ipipe.createAcceptServer(4321);
    let address: any = acceptServer.address();
 
-   //proxyServer.registerProxy(proxy);
+   ipipe.registerProxy(proxy);
 
-   //proxyServer.on("in", (size) => console.info("in ", size));
-   //proxyServer.on("out", (size) => console.info("out ", size));
+   ipipe.on("in", (size) => console.info("in ", size));
+   ipipe.on("out", (size) => console.info("out ", size));
    //console.info("address", address);
    //myIp();
-   //proxyIp({ host: proxy.host, port: address.port });
+   proxyIp({ host: proxy.host, port: address.port });
 })();
 
 async function myIp() {

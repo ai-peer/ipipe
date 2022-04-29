@@ -1,6 +1,7 @@
 import net from "net";
 import ConnectFactor from "../connect";
 import Stream from "../core/stream";
+import Sessions from "../core/sessions";
 
 export interface AcceptOptions {
    auth?: {
@@ -12,6 +13,7 @@ export interface AcceptOptions {
  * 接收应用端接入协议处理基类
  */
 export default abstract class Accept extends Stream {
+   protected sessions: Sessions = Sessions.instance;
    public protocol: string; // "http" | "https" | "socks5" | "direct";
    public connectFactor: ConnectFactor;
    public options: AcceptOptions;
@@ -31,6 +33,9 @@ export default abstract class Accept extends Stream {
     */
    public registerConnect(connectFactor: ConnectFactor) {
       this.connectFactor = connectFactor;
+   }
+   public getSession(socket: net.Socket): string {
+      return this.sessions.getSession(socket);
    }
    /**;
     * 是否可以接入， 请求的协议是否可以接入处理

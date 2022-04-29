@@ -14,7 +14,7 @@ const Event = {
 /**
  * 本地代理服务
  */
-export default class ProxyServer extends EventEmitter {
+export default class IPipe extends EventEmitter {
    static Event = Event;
    private connectFactor: ConnectFactor;
    private acceptFactor: AcceptFactor;
@@ -27,10 +27,10 @@ export default class ProxyServer extends EventEmitter {
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
 
-      this.acceptFactor.on("read", (size) => this.emit(Event.in, size));
-      this.acceptFactor.on("write", (size) => this.emit(Event.out, size));
-      this.connectFactor.on("read", (size) => this.emit(Event.in, size));
-      this.connectFactor.on("write", (size) => this.emit(Event.out, size));
+      this.acceptFactor.on("read", (data) => this.emit(Event.in, data));
+      this.acceptFactor.on("write", (data) => this.emit(Event.out, data));
+      this.connectFactor.on("read", (data) => this.emit(Event.in, data));
+      this.connectFactor.on("write", (data) => this.emit(Event.out, data));
    }
    /**
     * 创建连接接入服务

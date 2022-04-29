@@ -18,7 +18,8 @@ export default class Socks5Accept extends Accept {
    }
    public async handle(socket: net.Socket, chunk: Buffer) {
       /** 解析首次 socks5 请求协议获取反馈和主机信息 start */
-      let usePassword = chunk[2] == 2;
+      let options = this.options;
+      let isAuth = chunk[2] == 2;
       let _this = this;
       let isReadTargetInfo = false;
       setTimeout(() => {
@@ -27,16 +28,28 @@ export default class Socks5Accept extends Accept {
          }
       }, 1000);
       /** 三步走 start */
-      await _this.write(socket, Buffer.from([0x05, usePassword ? 0x02 : 0x00])); //响应客户端连接
-      if (usePassword) {
+      await _this.write(socket, Buffer.from([0x05, isAuth ? 0x02 : 0x00])); //响应客户端连接
+      if (isAuth) {
+         let sysUserAuth = options.auth;
          let userChunk = await _this.read(socket); //读取将要建立连接的目标服务,
-         let authRes = this.auth(userChunk);
+         if (userChunk[0] != 1) return this.end(socket, Buffer.from([0x01, 0x01]));
+         if (!sysUserAuth || !sysUserAuth?.username || !sysUserAuth.password) return this.end(socket, Buffer.from([0x01, 0x01]));
+         //let authRes = this.auth(userChunk);
+         let user = this.getUser(userChunk);
+         let authRes = sysUserAuth.username == user.username && sysUserAuth.password == user.password;
          //console.info("auth res =", authRes);
          if (!authRes) return this.end(socket, Buffer.from([0x01, 0x01]));
          await this.write(socket, Buffer.from([0x01, 0x00]));
+         this.sessions.add(socket, user.username);
+         this.emit("read", { socket: socket, size: chunk.length + userChunk.length });
+         this.emit("write", { socket: socket, size: 2 + 2 });
+      } else {
+         this.sessions.add(socket);
+         this.emit("read", { socket: socket, size: chunk.length });
+         this.emit("write", { socket: socket, size: 2 });
       }
-      let targetInfoBuffer = await _this.read(socket); //读取将要建立连接的目标服务,
 
+      let targetInfoBuffer = await _this.read(socket); //读取将要建立连接的目标服务,
       isReadTargetInfo = true;
       let { host, port, atyp } = parseSocks5IpPort(targetInfoBuffer); //读取将要建立连接的目标服务
       let isUseV4 = atyp == 0x01 && isIpv4(host);
@@ -65,7 +78,17 @@ export default class Socks5Accept extends Accept {
       }
       return false;
    }
-
+   private getUser(chunk: Buffer) {
+      //let auth = this.options.auth;
+      let userLength = chunk[1];
+      let passLength = chunk[2 + userLength];
+      let username = chunk.slice(2, 2 + userLength);
+      let password = chunk.slice(3 + userLength, 3 + userLength + passLength);
+      return {
+         username: username.toString(),
+         password: password.toString(),
+      };
+   }
    private auth(chunk: Buffer): boolean {
       let auth = this.options.auth;
       if (chunk[0] != 1) return false;

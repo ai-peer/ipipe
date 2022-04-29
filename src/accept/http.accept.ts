@@ -25,11 +25,16 @@ export default class HttpAccept extends Accept {
       if (!host) return false;
       let isAuth = !!headers["proxy-authorization"];
       if (isAuth) {
-         let authRes = this.auth(headers["proxy-authorization"]);
+         let user = this.getUser(headers["proxy-authorization"]);
+         let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          if (!authRes) {
             return this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
          }
+         this.sessions.add(socket, user.username);
+      } else {
+         this.sessions.add(socket);
       }
+      this.emit("read", { socket: socket, size: firstChunk.length });
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示
@@ -40,14 +45,18 @@ export default class HttpAccept extends Accept {
 
       this.connect(host, port, socket, firstChunk);
    }
-   private auth(headerValue: string): boolean {
-      let kv = headerValue.split(" ")[1];
+   private getUser(authorization: string) {
+      let kv = authorization.split(" ")[1];
       let buf = Buffer.from(kv, "base64");
       let kvs = buf.toString().split(":");
       let username = kvs[0],
          password = kvs[1];
-      return this.options.auth?.username == username && this.options.auth?.password == password;
+      return {
+         username,
+         password,
+      };
    }
+
    private isHttpProtocol(str: string) {
       switch (str[0].toUpperCase()) {
          case "G": //GET
