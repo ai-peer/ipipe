@@ -2,6 +2,7 @@ import Accept from "./accept";
 import net from "net";
 import { parseSocks5IpPort, isIpv4, isIpv6, isDomain, validSocks5Target } from "../core/geoip";
 import { AcceptOptions } from "../types";
+import logger from "../core/logger";
 
 /**
  * socks5协议接入类
@@ -37,13 +38,12 @@ export default class Socks5Accept extends Accept {
             this.end(socket, Buffer.from([0x01, 0x01]));
             return;
          }
-         //let authRes = this.auth(userChunk);
          let user = this.getUser(userChunk);
-         // let authRes = sysUserAuth.username == user.username && sysUserAuth.password == user.password;
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
-         //console.info("auth res =", authRes);
+         this.emit("auth", { checked: authRes, socket });
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
+            logger.debug(`===>auth error socks5 username=${user.username} password=${user.password}`);
             return;
          }
          await this.write(socket, Buffer.from([0x01, 0x00]));

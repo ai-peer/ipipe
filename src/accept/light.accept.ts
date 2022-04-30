@@ -2,7 +2,7 @@ import Accept from "./accept";
 import net from "net";
 import logger from "../core/logger";
 import { bit2Int } from "../utils";
-import transform from "src/core/transform";
+import transform from "../core/transform";
 import { AcceptOptions, DefaultSecret } from "../types";
 import Cipher from "../core/cipher";
 import { generateRandomPassword } from "../core/password";
@@ -23,19 +23,23 @@ export default class LightAccept extends Accept {
       let secret = this.options.secret || DefaultSecret;
       let versions = [...firstChunk.slice(7, 10)].map((v) => v ^ 0xf1);
       let face = versions[1];
-
+      console.info("light s1", [...firstChunk], "face=", face);
       let cipherAccept: Cipher = Cipher.createCipher(secret); //接入密钥
       /** 解析首次http请求协议获取反馈和主机信息 start */
-      await this.write(socket, cipherAccept.encode(Buffer.from([0x05, 0x00].concat(randomArray())), face));
+      let step1Res = Buffer.from([0x05, 0x00].concat(randomArray()));
+      console.debug("step1Res", step1Res);
+      await this.write(socket, cipherAccept.encode(step1Res, face));
 
       //======= step2 鉴权 start
-      let userChunk = await this.read(socket); //读取将要建立连接的目标服务,
-      userChunk = cipherAccept.decode(userChunk, face);
-      let user = this.getUser(userChunk);
+      let step2Req = await this.read(socket); //读取将要建立连接的目标服务,
+      step2Req = cipherAccept.decode(step2Req, face);
+      let user = this.getUser(step2Req);
       let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
-      //console.info("auth res =", authRes);
+      console.info("auth res =", authRes, !!this.acceptAuth);
       if (!authRes) {
          this.end(socket, cipherAccept.encode(Buffer.from([0x01, 0x01]))); //鉴权失败
+         logger.debug(`===>auth error username=${user.username} password=${user.password}`);
+         this.emit("auth", { checked: authRes, socket });
          return;
       }
       //await this.write(socket, cipherAccept.encode(Buffer.from([0x01, 0x00])));
@@ -45,14 +49,14 @@ export default class LightAccept extends Accept {
       let dynamicSecret = generateRandomPassword(false);
       let cipherTransport = Cipher.createCipher(dynamicSecret);
       let dynamicSecret1 = dynamicSecret instanceof Buffer ? dynamicSecret : Buffer.from(dynamicSecret);
-      let sendOkAndSecret: Buffer = Buffer.concat([Buffer.from([0x01, 0x00]), dynamicSecret1]);
-      await this.write(socket, cipherAccept.encode(sendOkAndSecret, face));
+      let step3Res: Buffer = Buffer.concat([Buffer.from([0x01, 0x00]), dynamicSecret1]);
+      await this.write(socket, cipherAccept.encode(step3Res, face));
       //======= step3 下发动态密钥 end
 
       //======= step4 获取目标服务信息 start
-      let targetBuffer: Buffer = await this.read(socket);
-      let targetDecode: Buffer = cipherTransport.decode(targetBuffer, face);
-      let { host, port, atyp } = parseSocks5IpPort(targetDecode); //读取将要建立连接的目标服务
+      let step4Req: Buffer = await this.read(socket);
+      step4Req = cipherTransport.decode(step4Req, face);
+      let { host, port, atyp } = parseSocks5IpPort(step4Req); //读取将要建立连接的目标服务
       let validRes = validSocks5Target(socket, { host, port, atyp });
       if (!validRes) {
          socket.destroy();

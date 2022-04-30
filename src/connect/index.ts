@@ -102,6 +102,7 @@ export default class ConnectFactor extends EventEmitter {
       }
 
       connect.proxy = proxy;
+      //console.info("out", connect.protocol, chunk.toString())
       connect.connect(host, port, (err, proxySocket: net.Socket) => {
          if (err) return localSocket.destroy(err);
          //会话信息

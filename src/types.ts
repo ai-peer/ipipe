@@ -1,5 +1,4 @@
 import net from "net";
-import LocalTestProxyServer from "transparent-proxy";
 
 export const DefaultSecret =
    "lOfGpnn7nZ7KODmxUckw4GhMY95vA/LvlnMcbjNZ9hapILXX20KAClDxB8QjCUElRHfZhrgnf+2FR7kAv6P4TqTqDnLfIV1kanCsRYfVoMA+VhvhwRH0H4QENna0r6qoL/P9dQ27gQv56XE90MuXW4rYWj9pT+Oy6y7uOknH0whiUqGMlbboKn3RX40okGZD0o/DehOzXCTM+s9+98XOpwE0mWcY3CySHhUSpUbNK65IbOwy5mBLV0B8LcgF8IMaazd7bQ9UeGWO1rerKR0MnNpVF7qCIrDdAlhKnzuJ/rxNBnQUNRnkEJuIMf/1mjxemK29ovzivpFT5cKT1CaLYQ==";
@@ -25,7 +24,9 @@ export interface ConnectOptions {
 /**
  * 默认实例入口配置参数
  */
-export interface Options extends AcceptOptions, ConnectOptions {}
+export interface Options extends AcceptOptions, ConnectOptions {
+   [key: string]: any;
+}
 
 /**
  * accept用户信息验证
@@ -53,4 +54,4 @@ export interface Proxy {
 export type CreateCallback = (server: net.Server) => void;
 
 /**创建本地服务回调 */
-export type LocalServerCallbacck = (server: LocalTestProxyServer) => void;
+//export type LocalServerCallbacck = (server: LocalTestProxyServer) => void;

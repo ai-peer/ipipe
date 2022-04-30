@@ -3,14 +3,18 @@ import { EventEmitter } from "events";
 
 //export type Callback = (length: number) => void;
 
-export default abstract class Stream extends EventEmitter {
+export default class Stream extends EventEmitter {
+   constructor() {
+      super();
+      this.setMaxListeners(99);
+   }
    /**
     * 往网络里写数据
     * @param socket 网络连接socket
     * @param chunk 数据
     * @param callback 写完之后回调,并告知写子多少内容, (chunkSize: number)=>{}
     */
-   public async write(socket: net.Socket, chunk: Buffer): Promise<Error | undefined> {
+   public async write(socket: net.Socket, chunk: Buffer | string): Promise<Error | undefined> {
       return new Promise((resolve) => {
          socket.pause();
          //setTimeout(() => {
@@ -26,7 +30,7 @@ export default abstract class Stream extends EventEmitter {
          //}, 5);
       });
    }
-   public async end(socket: net.Socket, chunk: Buffer): Promise<Error | undefined> {
+   public async end(socket: net.Socket, chunk: Buffer | string): Promise<Error | undefined> {
       return new Promise((resolve) => {
          socket.pause();
          //setTimeout(() => {

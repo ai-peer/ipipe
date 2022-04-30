@@ -13,18 +13,20 @@ export default abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
    public connectFactor: ConnectFactor;
    public options: AcceptOptions;
-   public acceptAuth: AcceptAuth;
+   //public acceptAuth: AcceptAuth;
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(9999);
       this.options = Object.assign({}, options);
-      //this.protocol = options.protocol;
-      if (options?.auth) this.acceptAuth = options.auth;
+   }
+
+   public get acceptAuth() {
+      return this.options.auth;
    }
 
    clone2target(target: Accept) {
       target.connectFactor = this.connectFactor;
-      target.acceptAuth = target.acceptAuth || this.acceptAuth;
+      target.options = Object.assign({}, this.options, this.options);
    }
 
    /**

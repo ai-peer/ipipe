@@ -1,6 +1,7 @@
 import Accept from "./accept";
 import net from "net";
 import { AcceptOptions } from "../types";
+import logger from "../core/logger";
 
 /**
  * Http协议接入类
@@ -23,15 +24,16 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return;
-
       let isAuth = !!headers["proxy-authorization"];
       // 需要鉴权
       if (isAuth) {
          let user = this.getUser(headers["proxy-authorization"]);
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
+         this.emit("auth", { checked: authRes, socket });
          if (!authRes) {
             this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            logger.debug(`===>auth error http username=${user.username} password=${user.password}`);
             return;
          }
          this.sessions.add(socket, user.username);

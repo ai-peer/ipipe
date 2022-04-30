@@ -43,6 +43,8 @@ export default abstract class Connect extends Stream {
          .pipe(inputTransform)
          .pipe(
             transform((chunk, encoding, callback) => {
+               console.info("rrr===", chunk.toString());
+
                this.emit("read", { size: chunk.length, socket: sourceSocket });
                callback(null, chunk);
             }),

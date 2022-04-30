@@ -22,11 +22,8 @@
       "format": "run-s format:*",
       "format:js": " prettier --write   \"src/**/*.ts\"  "
    },
-   "dependencies": {
-      
-   },
+   "dependencies": {},
    "devDependencies": {
-      "transparent-proxy": "^1.8.10",
       "@types/mocha": "^9.0.0",
       "@types/node": "^16.4.2",
       "@webpack-cli/generators": "^2.2.0",

@@ -16,10 +16,12 @@ export default class AcceptFactor extends EventEmitter {
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
    private server: net.Server;
+   private options: AcceptOptions;
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(99);
-
+      options = options || {};
+      this.options = options;
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
@@ -38,8 +40,9 @@ export default class AcceptFactor extends EventEmitter {
          exist?.removeAllListeners("read");
          exist?.removeAllListeners("write");
          exist?.clone2target(accept);
+      } else {
+         accept.options = Object.assign({}, this.options, accept.options);
       }
-
       accept.registerConnect(this.connectFactor);
       accept.on("read", ({ size, socket }) => {
          let session = accept.getSession(socket);
@@ -49,7 +52,10 @@ export default class AcceptFactor extends EventEmitter {
          let session = accept.getSession(socket);
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
-
+      accept.on("auth", ({ checked, socket }) => {
+         let session = accept.getSession(socket);
+         session && this.emit("auth", { checked: checked, session, clientIp: socket.remoteAddress });
+      });
       this.accepts.set(accept.protocol, accept);
       return this;
    }
@@ -105,15 +111,19 @@ export default class AcceptFactor extends EventEmitter {
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
-            console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
+            //console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
             try {
+               this.emit("accept", socket, { protocol: accept.protocol });
+               socket.on("close", () => this.emit("close", socket));
                accept.handle(socket, chunk).catch((err) => {
-                  logger.info("===>accept handle error", err.message);
+                  //logger.info("===>accept handle error", err.message);
                   socket.destroy();
+                  this.emit("error", err);
                });
             } catch (err) {
-               logger.info("===>accept handle error", err.message);
+               //logger.info("===>accept handle error", err.message);
                socket.destroy();
+               this.emit("error", err);
             }
 
             break;

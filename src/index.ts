@@ -2,8 +2,7 @@ import AcceptFactor from "./accept";
 import Accept from "./accept/accept";
 import Connect from "./connect/connect";
 import ConnectFactor from "./connect";
-import { Proxy, CreateCallback, LocalServerCallbacck, Options, AcceptAuth } from "./types";
-import LocalServer, { Options as LocalOptions } from "./local.server";
+import { Proxy, CreateCallback, Options } from "./types";
 import net from "net";
 import EventEmitter from "events";
 
@@ -18,11 +17,10 @@ export default class IPipe extends EventEmitter {
    static Event = Event;
    public connectFactor: ConnectFactor;
    public acceptFactor: AcceptFactor;
-   private localServer: LocalServer;
    constructor(options?: Options) {
       super();
       this.setMaxListeners(99);
-      this.localServer = new LocalServer();
+      options = options || {};
       this.acceptFactor = new AcceptFactor(options);
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
@@ -34,7 +32,6 @@ export default class IPipe extends EventEmitter {
    }
    close() {
       this.acceptFactor?.close();
-      this.localServer?.close();
    }
    /**
     * 创建连接接入服务
@@ -43,20 +40,6 @@ export default class IPipe extends EventEmitter {
     */
    createAcceptServer(port: number = 4321, host: string = "0.0.0.0", callback?: CreateCallback): Promise<net.Server> {
       return this.acceptFactor.createServer(port, host, callback);
-   }
-   /**
-    * 创建测试代理服务, 用于测试使用
-    * @param port
-    * @param host
-    * @param callback
-    */
-   createTestProxyServer(port: number = 0, host: string = "0.0.0.0", options?: LocalOptions, callback?: LocalServerCallbacck): Promise<net.Server> {
-      return new Promise((resolve) => {
-         this.localServer.createServer(port, host, options, (server) => {
-            callback && callback(server);
-            resolve(server);
-         });
-      });
    }
 
    /**
@@ -96,3 +79,16 @@ export default class IPipe extends EventEmitter {
       return this;
    }
 }
+/* 
+const localProxy = new TestServer();
+export const TestProxy = {
+
+   createHttpProxyServer(port: number = 0, host: string = "0.0.0.0", options?: LocalOptions, callback?: LocalServerCallbacck): Promise<net.Server> {
+      return new Promise((resolve) => {
+         localProxy.createHttpServer(port, host, options, (server) => {
+            callback && callback(server);
+            resolve(server);
+         });
+      });
+   },
+}; */

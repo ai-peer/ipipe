@@ -1,5 +1,7 @@
 import IPipe from "../src";
+import TestServer from "../src/test.server";
 import axios from "axios";
+
 /* 
 let cFileConfig = path.resolve(__dirname, "../env/config.js");
 console.info("file", cFileConfig);
@@ -12,21 +14,21 @@ console.info("proxyList", proxyList); */
       host: "127.0.0.1",
       port: 1082,
       protocol: "http",
-      //username: "admin",
-      //password: "123456",
+      username: "admin",
+      password: "123456",
       //forwardHost: "127.0.0.1",
       //forwardPort: 1082,
    };
    let ipipe = new IPipe({
-      //isDirect: true,
       auth: async (username, password) => {
-         return username == "admin" && password == "123456";
+        // return username == "admin" && password == "123456";
+        return true;
       },
    });
-
-   await ipipe.createTestProxyServer(proxy.port, "0.0.0.0", {
-      //username: "admin",
-      //password: "123456",
+   let testServer = new TestServer();
+   await testServer.createServer(proxy.port, "0.0.0.0", {
+      username: "admin",
+      password: "123456",
    });
 
    let acceptServer = await ipipe.createAcceptServer(4321);

@@ -1,6 +1,7 @@
 import assert from "assert";
 import IPipe from "../src";
 import axios from "axios";
+import TestServer from "../src/test.server";
 
 let info;
 beforeEach(async function () {
@@ -19,10 +20,10 @@ beforeEach(async function () {
          return username == "admin" && password == "123456";
       },
    });
-
-   await ipipe.createTestProxyServer(proxy.port, "0.0.0.0", {
-      //username: "admin",
-      //password: "123456",
+   let testServer = new TestServer();
+   await testServer.createServer(proxy.port, "0.0.0.0", {
+      username: "admin",
+      password: "123456",
    });
 
    let acceptServer = await ipipe.createAcceptServer(4321);
