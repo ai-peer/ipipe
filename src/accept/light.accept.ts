@@ -11,19 +11,22 @@ import { parseSocks5IpPort, validSocks5Target } from "../core/geoip";
  * Light协议接入类
  */
 export default class LightAccept extends Accept {
+   private cipherAccept: Cipher;
    constructor(options?: AcceptOptions) {
       super(options);
       this.protocol = "light";
+      let secret = this.options.secret || DefaultSecret;
+      this.cipherAccept = Cipher.createCipher(secret); //接入密钥
    }
 
    public async isAccept(socket: net.Socket, chunk: Buffer): Promise<boolean> {
       return this.isAcceptProtocol(chunk);
    }
    public async handle(socket: net.Socket, firstChunk: Buffer) {
-      let secret = this.options.secret || DefaultSecret;
+      let cipherAccept = this.cipherAccept;
+      firstChunk = this.cipherAccept.decode(firstChunk, 49);
       let versions = [...firstChunk.slice(7, 10)].map((v) => v ^ 0xf1);
       let face = versions[1];
-      let cipherAccept: Cipher = Cipher.createCipher(secret); //接入密钥
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let step1Res = Buffer.from([0x05, 0x00].concat(randomArray()));
       await this.write(socket, cipherAccept.encode(step1Res, face));
@@ -40,6 +43,7 @@ export default class LightAccept extends Accept {
          this.emit("auth", { checked: authRes, socket });
          return;
       }
+      this.sessions.add(socket, user.username);
       //await this.write(socket, cipherAccept.encode(Buffer.from([0x01, 0x00])));
       //======= step2 鉴权 end
 
@@ -94,6 +98,7 @@ export default class LightAccept extends Accept {
    }
 
    private isAcceptProtocol(chunk: Buffer) {
+      chunk = this.cipherAccept.decode(chunk, 49);
       let versions = [...chunk.slice(7, 10)].map((v) => v ^ 0xf1);
       //let face = versions[0];
       let version = bit2Int(versions); //

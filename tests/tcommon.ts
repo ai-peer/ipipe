@@ -10,7 +10,7 @@ import Stream from "../src/core/stream";
 
 const tstream = new Stream();
 
-export function createProxyServer(port: number = 4321) {
+export async function createProxyServer(port: number = 4321) {
    let ipipe = new IPipe({
       isDirect: true,
       auth: async (username, password) => {
@@ -18,17 +18,20 @@ export function createProxyServer(port: number = 4321) {
          return username == "admin" && password == "123";
       },
    });
-   ipipe.createAcceptServer(port);
+   await ipipe.createAcceptServer(port);
    ipipe.registerAccept(new LightAccept());
+   ipipe.acceptFactor.on("accept", (socket, data)=>{
+      console.info("accept", socket.remotePort, data);
+   })
    return ipipe;
 }
 
 export function createHttpRequest(): string {
    let list: string[] = [
-      "GET http://ip-api.com/json HTTP/1.1",
+      "GET http://www.gov.cn/ HTTP/1.1",
       "Accept: application/json, text/plain, */*",
       "User-Agent: axios/0.25.0",
-      "host: ip-api.com",
+      "host: www.gov.cn",
       "Connection: close",
       "\r\n",
    ];

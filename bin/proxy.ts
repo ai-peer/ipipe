@@ -3,7 +3,7 @@ import IPipe from "../src";
 
 const program = new Command();
 let appParams: any = program //
-   .option("-p, --port [value]", "绑定端口", "6379") //
+   .option("-p, --port [value]", "绑定端口", "4321") //
    .option("-h, --host [value]", "绑定IP", "0.0.0.0") //
    .option("-p2, --port2 [value]", "代理端口", "") //
    .option("-h2, --host2 [value]", "代理IP", "127.0.0.1") //
@@ -72,7 +72,8 @@ async function createClient() {
    await ipipe.createAcceptServer(appParams.port, appParams.host);
 
    ipipe.registerProxy(proxy);
-
+   ipipe.on("in", (size) => console.info("client in", size));
+   ipipe.on("out", (size) => console.info("client out", size));
    //proxyPipe.on("in", (size) => console.info("client in", size));
    //proxyPipe.on("out", (size) => console.info("client out", size));
 }

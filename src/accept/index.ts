@@ -7,6 +7,7 @@ import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
 import EventEmitter from "events";
 //import { Options } from "../types";
 import logger from "../core/logger";
+import { Proxy } from "../types";
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
@@ -17,6 +18,7 @@ export default class AcceptFactor extends EventEmitter {
    protected connectFactor: ConnectFactor;
    private server: net.Server;
    private options: AcceptOptions;
+   private proxy: Proxy;
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(99);
@@ -43,6 +45,7 @@ export default class AcceptFactor extends EventEmitter {
       } else {
          accept.options = Object.assign({}, this.options, accept.options);
       }
+
       accept.registerConnect(this.connectFactor);
       accept.on("read", ({ size, socket }) => {
          let session = accept.getSession(socket);

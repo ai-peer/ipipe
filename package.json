@@ -16,7 +16,7 @@
       "serve": "webpack serve",
       "start": "cross-env NODE_ENV=development ts-node bin/start.ts -l debug -s true",
       "dev": "cross-env NODE_ENV=development ts-node bin/dev.proxy.ts",
-      "start-client": "cross-env NODE_ENV=development ts-node bin/proxy.ts -p 4321 -h2 127.0.0.1 -p2 4322 -m client -user admin -pass 123456",
+      "start-client": "cross-env NODE_ENV=development ts-node bin/proxy.ts -p 4321 -h2 127.0.0.1 -p2 6379 -m client -user admin -pass 123456",
       "start-server": "cross-env NODE_ENV=development ts-node bin/proxy.ts -p 6379 -m server -user admin -pass 123456",
       "start-relay": "cross-env NODE_ENV=development ts-node bin/proxy.ts -p 4322 -h2 127.0.0.1 -p2 6379 -m relay -user admin -pass 123456 -user2 admin -pass2 123456",
       "format": "run-s format:*",

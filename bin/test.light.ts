@@ -1,9 +1,7 @@
 import { Command } from "commander";
 import IPipe from "../src";
-
 import LightAccept from "../src/accept/light.accept";
 import LightConnect from "../src/connect/light.connect";
-import Socks5Connect from "../src/connect/socks5.connect";
 import Stream from "../src/core/stream";
 import net from "net";
 
@@ -38,6 +36,7 @@ async function createClient() {
       username: "admin",
       password: "123",
    };
+   
    connect.connect("127.0.0.1", 4321, async (err, socket: net.Socket) => {
       console.info("sss===connect");
       let list: string[] = [

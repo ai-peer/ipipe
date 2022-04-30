@@ -37,7 +37,7 @@ export default class LightConnect extends Connect {
                version,
                Buffer.from(buildSN(Math.ceil(Math.random() * 5))), //填充随机数
             ]);
-            await this.write(socket, step1Req);
+            await this.write(socket, cipherConnect.encode(step1Req, 49));
 
             let step1Res: Buffer = await this.read(socket);
             step1Res = cipherConnect.decode(step1Res, face);

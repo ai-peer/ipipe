@@ -12,7 +12,7 @@ let proxy = {
 
 let testServer;
 describe("测试IPipe", async function () {
-   testServer = com.createProxyServer(proxy.port);
+   testServer = await com.createProxyServer(proxy.port);
 
    it("测试http是否连接成功", () => {
       return new Promise(async (resolve) => {
@@ -41,13 +41,8 @@ describe("测试IPipe", async function () {
          resolve(undefined);
       });
    });
-   console.info("close");
-   await wait(3000);
+   await wait(5000);
    testServer?.close();
-});
-
-afterEach(function () {
-   //testServer?.close();
 });
 
 async function wait(ttl) {

@@ -105,9 +105,6 @@ export default class ConnectFactor extends EventEmitter {
       //console.info("out", connect.protocol, chunk.toString())
       connect.connect(host, port, (err, proxySocket: net.Socket) => {
          if (err) return localSocket.destroy(err);
-         //会话信息
-         //let session = sessions.getSession(localSocket);
-         //sessions.add(proxySocket, session);
 
          localSocket.on("error", (err) => {
             localSocket.destroy();

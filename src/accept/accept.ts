@@ -4,6 +4,7 @@ import Stream from "../core/stream";
 import Sessions from "../core/sessions";
 import { Transform } from "stream";
 import { AcceptOptions, AcceptAuth } from "../types";
+import { Proxy } from "../types";
 
 /**
  * 接收应用端接入协议处理基类
@@ -36,6 +37,7 @@ export default abstract class Accept extends Stream {
    public registerConnect(connectFactor: ConnectFactor) {
       this.connectFactor = connectFactor;
    }
+
    public getSession(socket: net.Socket): string {
       return this.sessions.getSession(socket);
    }
