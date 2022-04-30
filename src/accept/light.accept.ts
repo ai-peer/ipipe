@@ -23,11 +23,9 @@ export default class LightAccept extends Accept {
       let secret = this.options.secret || DefaultSecret;
       let versions = [...firstChunk.slice(7, 10)].map((v) => v ^ 0xf1);
       let face = versions[1];
-      console.info("light s1", [...firstChunk], "face=", face);
       let cipherAccept: Cipher = Cipher.createCipher(secret); //接入密钥
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let step1Res = Buffer.from([0x05, 0x00].concat(randomArray()));
-      console.debug("step1Res", step1Res);
       await this.write(socket, cipherAccept.encode(step1Res, face));
 
       //======= step2 鉴权 start
@@ -35,7 +33,7 @@ export default class LightAccept extends Accept {
       step2Req = cipherAccept.decode(step2Req, face);
       let user = this.getUser(step2Req);
       let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
-      console.info("auth res =", authRes, !!this.acceptAuth);
+      //console.info("auth res =", authRes, !!this.acceptAuth);
       if (!authRes) {
          this.end(socket, cipherAccept.encode(Buffer.from([0x01, 0x01]))); //鉴权失败
          logger.debug(`===>auth error username=${user.username} password=${user.password}`);

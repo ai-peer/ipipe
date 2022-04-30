@@ -8,7 +8,7 @@
    },
    "types": "dist/src/index.d.ts",
    "scripts": {
-      "test": "mocha 'tests/**/*.ts' ",
+      "test": "mocha 'tests/**/test.*.ts' ",
       "build": "webpack --mode=production --node-env=production",
       "build:dev": "webpack --mode=development",
       "build:prod": "webpack --mode=production --node-env=production",
@@ -52,7 +52,8 @@
       "require": [
          "ts-node/register"
       ],
-      "ui": "bdd"
+      "ui": "bdd",
+      "reporter": "spec"
    },
    "files": [
       "dist",

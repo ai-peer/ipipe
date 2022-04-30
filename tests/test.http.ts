@@ -1,48 +1,50 @@
 import assert from "assert";
-import IPipe from "../src";
 import axios from "axios";
-import TestServer from "../src/test.server";
+import * as com from "./tcommon";
 
-let info;
-beforeEach(async function () {
-   //await wait(1000);
-   let proxy = {
-      host: "127.0.0.1",
-      port: 1082,
-      protocol: "http",
-      //username: "admin",
-      //password: "123456",
-      //forwardHost: "127.0.0.1",
-      //forwardPort: 1082,
-   };
-   let ipipe = new IPipe({
-      auth: async (username, password) => {
-         return username == "admin" && password == "123456";
-      },
+let proxy = {
+   host: "127.0.0.1",
+   port: 1082,
+   protocol: "http",
+   username: "admin",
+   password: "123",
+};
+
+let testServer;
+describe("测试IPipe", async function () {
+   testServer = com.createProxyServer(proxy.port);
+
+   it("测试http是否连接成功", () => {
+      return new Promise(async (resolve) => {
+         let nproxy = Object.assign({}, proxy, { protocol: "http" });
+         let info = await com.requestByHttp(nproxy);
+         assert.ok(info && info.length > 100, "http res is null");
+         resolve(undefined);
+      });
    });
-   let testServer = new TestServer();
-   await testServer.createServer(proxy.port, "0.0.0.0", {
-      username: "admin",
-      password: "123456",
+   it("测试socks5是否连接成功", () => {
+      return new Promise(async (resolve) => {
+         let nproxy = Object.assign({}, proxy, { protocol: "socks5" });
+         let info = await com.requestBySocks5(nproxy);
+         assert.ok(info && info.length > 100, "socks5 res is null");
+         resolve(undefined);
+      });
    });
-
-   let acceptServer = await ipipe.createAcceptServer(4321);
-   let address: any = acceptServer.address();
-
-   ipipe.registerProxy(proxy);
-
-   ipipe.on("in", (size) => console.info("输入 ", size));
-   ipipe.on("out", (size) => console.info("输出 ", size));
-   //console.info("address", address);
-   //myIp();
-   info = await proxyIp({ host: proxy.host, port: address.port });
-   ipipe.close();
+   it("测试light是否连接成功", () => {
+      return new Promise(async (resolve) => {
+         let nproxy = Object.assign({}, proxy, { protocol: "light" });
+         let info = await com.requestByLight(nproxy);
+         assert.ok(info && info.length > 100, "light res is null");
+         resolve(undefined);
+      });
+   });
+   console.info("close");
+   await wait(3000);
+   testServer?.close();
 });
 
-describe("测试http连接", function () {
-   it("测试是否http连接成功", function () {
-      assert.ok(info.query, "is null");
-   });
+afterEach(function () {
+   //testServer?.close();
 });
 
 async function wait(ttl) {
@@ -50,7 +52,7 @@ async function wait(ttl) {
       setTimeout(() => resolve(undefined), ttl);
    });
 }
-
+/* 
 async function proxyIp(proxy: { host: string; port: number }) {
    let info = await axios({
       url: "http://ip-api.com/json",
@@ -70,3 +72,4 @@ async function proxyIp(proxy: { host: string; port: number }) {
    //console.info("proxy ip", info);
    return info;
 }
+ */

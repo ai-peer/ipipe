@@ -1,5 +1,4 @@
 import IPipe from "../src";
-import TestServer from "../src/test.server";
 import axios from "axios";
 
 /* 
@@ -21,15 +20,18 @@ console.info("proxyList", proxyList); */
    };
    let ipipe = new IPipe({
       auth: async (username, password) => {
-        // return username == "admin" && password == "123456";
-        return true;
+         // return username == "admin" && password == "123456";
+         return true;
       },
    });
-   let testServer = new TestServer();
-   await testServer.createServer(proxy.port, "0.0.0.0", {
-      username: "admin",
-      password: "123456",
-   });
+
+   //创建代理测试服务器
+   new IPipe({
+      isDirect: true,
+      auth: async (username, password) => {
+         return username == "admin" && password == "123456";
+      },
+   }).createAcceptServer(proxy.port);
 
    let acceptServer = await ipipe.createAcceptServer(4321);
    let address: any = acceptServer.address();

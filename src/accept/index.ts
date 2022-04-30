@@ -92,7 +92,7 @@ export default class AcceptFactor extends EventEmitter {
             reject(err);
          });
          server.listen(port, host, () => {
-            console.info(`create accept proxy server listen ${port}`, server.address());
+            //console.info(`create accept proxy server listen ${port}`, server.address());
             callback && callback(server);
             resolve(server);
          });
@@ -111,7 +111,7 @@ export default class AcceptFactor extends EventEmitter {
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
-            //console.info(`===>accept client ${socket.remoteAddress} ${accept.protocol}`);
+            //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol}`);
             try {
                this.emit("accept", socket, { protocol: accept.protocol });
                socket.on("close", () => this.emit("close", socket));

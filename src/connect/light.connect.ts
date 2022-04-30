@@ -13,7 +13,7 @@ import { buildSN } from "../core/password";
  * light协议连接
  */
 export default class LightConnect extends Connect {
-   constructor(options: ConnectOptions) {
+   constructor(options?: ConnectOptions) {
       super({
          ...options,
          protocol: "light",
@@ -37,12 +37,10 @@ export default class LightConnect extends Connect {
                version,
                Buffer.from(buildSN(Math.ceil(Math.random() * 5))), //填充随机数
             ]);
-            console.info("s1 write", [...step1Req], "face=", face);
             await this.write(socket, step1Req);
 
             let step1Res: Buffer = await this.read(socket);
             step1Res = cipherConnect.decode(step1Res, face);
-            console.info("step1Res", step1Res);
             assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "connect error");
 
             let username = Buffer.from(proxy.username || "");
@@ -69,7 +67,6 @@ export default class LightConnect extends Connect {
 
             let step3Res = await this.read(socket);
             step3Res = cipherTransport.decode(step3Res, face);
-            console.info("step3Res", [...step3Res]);
             assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
 
             //准备连接协议
