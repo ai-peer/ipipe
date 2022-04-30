@@ -16,7 +16,7 @@ export default class ForwardHttpConnect extends Connect {
          let proxy = this.proxy;
 
          let socket = net.connect(proxy.forwardPort || 0, proxy.forwardHost, async () => {
-            let usePassword = !!proxy.username && !!proxy.password;
+            let isAuth = !!proxy.username && !!proxy.password;
             let up = proxy.username + ":" + proxy.password;
             up = Buffer.from(up).toString("base64");
 
@@ -26,7 +26,7 @@ export default class ForwardHttpConnect extends Connect {
                Buffer.from(`Host: ${proxy.host}:${proxy.port}\r\n`), //
                Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
                //Buffer.from(`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.2612.71 Safari/537.36\r\n`), //
-               //Buffer.from(usePassword ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
+               //Buffer.from(isAuth ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                Buffer.from("\r\n"),
             ]);
             //console.info(`s1 send`, sendChunk.toString(), host, port);
@@ -47,7 +47,7 @@ export default class ForwardHttpConnect extends Connect {
                Buffer.from(`Host: ${host}:${port}\r\n`), //
                Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
                //Buffer.from(`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.2612.71 Safari/537.36\r\n`), //
-               Buffer.from(usePassword ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
+               Buffer.from(isAuth ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                Buffer.from("\r\n"),
             ]);
             // console.info(`s2 send`, sendChunk.toString(), host, port);
