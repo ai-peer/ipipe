@@ -25,14 +25,10 @@ export default class ForwardHttpConnect extends Connect {
                Buffer.from(`CONNECT ${proxy.host}:${proxy.port} HTTP/1.1\r\n`), //
                Buffer.from(`Host: ${proxy.host}:${proxy.port}\r\n`), //
                Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
-               //Buffer.from(`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.2612.71 Safari/537.36\r\n`), //
-               //Buffer.from(isAuth ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                Buffer.from("\r\n"),
             ]);
-            //console.info(`s1 send`, sendChunk.toString(), host, port);
             await this.write(socket, sendChunk);
             let receiveChunk = await this.read(socket);
-            //console.info(`s1 read`, receiveChunk, receiveChunk.toString());
             let statusCode = receiveChunk.toString().split(" ")[1];
             if (statusCode != "200") {
                socket.destroy(new Error(receiveChunk.toString()));
@@ -50,10 +46,8 @@ export default class ForwardHttpConnect extends Connect {
                Buffer.from(isAuth ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                Buffer.from("\r\n"),
             ]);
-            // console.info(`s2 send`, sendChunk.toString(), host, port);
             await this.write(socket, sendChunk);
             receiveChunk = await this.read(socket);
-            // console.info(`s2 read`, receiveChunk, receiveChunk.toString());
 
             statusCode = receiveChunk.toString().split(" ")[1];
             if (statusCode != "200") {
