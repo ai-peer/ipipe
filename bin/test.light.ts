@@ -32,7 +32,7 @@ async function createClient() {
    connect.proxy = {
       host: "127.0.0.1",
       port: 4321,
-      protocol: "socks5",
+      protocol: "light",
       username: "admin",
       password: "123",
    };
