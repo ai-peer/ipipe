@@ -20,9 +20,9 @@ export async function createProxyServer(port: number = 4321) {
    });
    await ipipe.createAcceptServer(port);
    ipipe.registerAccept(new LightAccept());
-   ipipe.acceptFactor.on("accept", (socket, data)=>{
-      console.info("accept", socket.remotePort, data);
-   })
+   ipipe.acceptFactor.on("accept", (socket, data) => {
+      console.info("=======test===>accept", socket.remotePort, data);
+   });
    return ipipe;
 }
 
@@ -77,7 +77,6 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         //console.info("=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
       });

@@ -87,11 +87,13 @@ export default class AcceptFactor extends EventEmitter {
             return;
          }
          let server = net.createServer((socket: net.Socket) => {
-            socket.on("error", (err) => {});
+            socket.on("error", (err) => {
+               socket.destroy(err);
+            });
             this.accept(socket);
          });
          server.on("error", (err) => {
-            console.error("server error ", err.message);
+            logger.error("server error ", err.message);
             reject(err);
          });
          server.listen(port, host, () => {
@@ -110,7 +112,7 @@ export default class AcceptFactor extends EventEmitter {
       let chunk: Buffer = await this.read(socket);
       let isAccept = false;
       let accepts = this.accepts.values();
-
+      //console.info("s apt ", chunk.toString())
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
@@ -127,9 +129,9 @@ export default class AcceptFactor extends EventEmitter {
                //logger.info("===>accept handle error", err.message);
                socket.destroy();
                this.emit("error", err);
+            } finally {
+               break;
             }
-
-            break;
          }
       }
 

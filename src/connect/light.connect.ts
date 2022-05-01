@@ -2,7 +2,7 @@ import net from "net";
 import Connect, { Callback } from "./connect";
 import { ConnectOptions, DefaultSecret } from "../types";
 import Cipher from "../core/cipher";
-import { int2Bit } from "../../../lion-proxy-client/src/core/util";
+import { int2Bit } from "../utils";
 import assert from "assert";
 import os from "os";
 import pkg from "../../package.json";

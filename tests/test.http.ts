@@ -1,5 +1,4 @@
 import assert from "assert";
-import axios from "axios";
 import * as com from "./tcommon";
 
 let proxy = {
