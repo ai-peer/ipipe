@@ -15,7 +15,6 @@ let appParams: any = program //
    .option("-m, --mode [value]", "模式 server, client, relay", "client") //
    .parse(process.argv)
    .opts();
-
 async function createRelay() {
    console.info("======createRelay");
    let proxy = {

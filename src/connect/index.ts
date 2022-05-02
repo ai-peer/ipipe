@@ -1,6 +1,7 @@
 import HttpConnect from "./http.connect";
 import Socks5Connect from "./socks5.connect";
 import DirectConnect from "./direct.connect";
+import LightConnect from "./light.connect";
 import Connect from "./connect";
 import net from "net";
 //import ping from "ping";
@@ -17,6 +18,10 @@ const sessions = Sessions.instance;
  * 连接代理的封装类
  */
 export default class ConnectFactor extends EventEmitter {
+   static HttpConnect = HttpConnect;
+   static Socks5Connect = Socks5Connect;
+   static DirectConnect = DirectConnect;
+   static LightConnect = LightConnect;
    private directConnectDomains: string[] = [];
    /** 连接器列表 */
    private connects: Map<string, Connect> = new Map();

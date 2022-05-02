@@ -3,6 +3,8 @@ import net, { SocketAddress } from "net";
 import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
+import LightAccept from "./light.accept";
+
 import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
 import EventEmitter from "events";
 //import { Options } from "../types";
@@ -12,6 +14,9 @@ import { Proxy } from "../types";
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
 export default class AcceptFactor extends EventEmitter {
+   static HttpAccept = HttpAccept;
+   static Socks5Accept = Socks5Accept;
+   static LightAccept = LightAccept;
    /** 接入协议类列表 */
    private accepts: Map<string, Accept> = new Map();
    /** 连接远程代理的连接封装类 */

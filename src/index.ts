@@ -14,6 +14,17 @@ const Event = {
  * 本地代理服务
  */
 export default class IPipe extends EventEmitter {
+   static Accept = {
+      LightAccept: AcceptFactor.LightAccept,
+      Socks5Accept: AcceptFactor.Socks5Accept,
+      HttpAccept: AcceptFactor.HttpAccept,
+   };
+   static Connect = {
+      LightConnect: ConnectFactor.LightConnect,
+      Socks5Connect: ConnectFactor.Socks5Connect,
+      HttpConnect: ConnectFactor.HttpConnect,
+      DirectConnect: ConnectFactor.DirectConnect,
+   };
    static Event = Event;
    public connectFactor: ConnectFactor;
    public acceptFactor: AcceptFactor;
@@ -79,16 +90,3 @@ export default class IPipe extends EventEmitter {
       return this;
    }
 }
-/* 
-const localProxy = new TestServer();
-export const TestProxy = {
-
-   createHttpProxyServer(port: number = 0, host: string = "0.0.0.0", options?: LocalOptions, callback?: LocalServerCallbacck): Promise<net.Server> {
-      return new Promise((resolve) => {
-         localProxy.createHttpServer(port, host, options, (server) => {
-            callback && callback(server);
-            resolve(server);
-         });
-      });
-   },
-}; */
