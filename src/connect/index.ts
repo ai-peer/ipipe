@@ -212,4 +212,4 @@ function parseHeader(str: string) {
    });
    return headers;
 }
-export { Connect, HttpConnect, Socks5Connect, DirectConnect };
+export { Connect as Connect, HttpConnect, Socks5Connect, DirectConnect };

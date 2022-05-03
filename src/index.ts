@@ -1,15 +1,37 @@
-import AcceptFactor from "./accept";
 import Accept from "./accept/accept";
+import LightAccept from "./accept/light.accept";
+import Socks5Accept from "./accept/socks5.accept";
+import HttpAccept from "./accept/http.accept";
 import Connect from "./connect/connect";
+import LightConnect from "./connect/light.connect";
+import Socks5Connect from "./connect/socks5.connect";
+import HttpConnect from "./connect/http.connect";
+import DirectConnect from "./connect/direct.connect";
+
+import AcceptFactor from "./accept";
 import ConnectFactor from "./connect";
 import { Proxy, CreateCallback, Options } from "./types";
 import net from "net";
 import EventEmitter from "events";
+import * as Type from "./types";
 
-const Event = {
+export const Event = {
    out: "out",
    in: "in",
 };
+
+export {
+   Accept,
+   Connect,
+   LightAccept,
+   Socks5Accept,
+   HttpAccept, //
+   LightConnect,
+   Socks5Connect,
+   HttpConnect,
+   DirectConnect,
+};
+
 /**
  * 本地代理服务
  */
