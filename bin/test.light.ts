@@ -21,7 +21,7 @@ async function createServer() {
          return username == "admin" && password == "123";
       },
    });
-   ipipe.createAcceptServer(4321);
+   await ipipe.createAcceptServer(4321);
    ipipe.registerAccept(new LightAccept());
 }
 
@@ -55,9 +55,11 @@ async function createClient() {
 }
 
 (async () => {
-   if (appParams.mode == "client") {
+/*    if (appParams.mode == "client") {
       createClient();
    } else {
       createServer();
-   }
+   } */
+   await createServer();
+   createClient();
 })();
