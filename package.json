@@ -1,12 +1,12 @@
 {
    "name": "@ai-lion/ipipe",
-   "version": "1.0.6",
+   "version": "1.0.7",
    "main": "dist/lib.js",
    "license": "MIT",
    "bin": {
       "ipipe": "dist/cli.js"
    },
-   "types": "dist/ipipe/src/index.d.ts",
+   "types": "dist/src/index.d.ts",
    "scripts": {
       "test": "mocha 'tests/**/test.*.ts' ",
       "build": "webpack --mode=production --node-env=production",
