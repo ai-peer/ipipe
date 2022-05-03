@@ -18,12 +18,14 @@ export default class IPipe extends EventEmitter {
       LightAccept: AcceptFactor.LightAccept,
       Socks5Accept: AcceptFactor.Socks5Accept,
       HttpAccept: AcceptFactor.HttpAccept,
+      Accept: AcceptFactor.Accept,
    };
    static Connect = {
       LightConnect: ConnectFactor.LightConnect,
       Socks5Connect: ConnectFactor.Socks5Connect,
       HttpConnect: ConnectFactor.HttpConnect,
       DirectConnect: ConnectFactor.DirectConnect,
+      Connect: ConnectFactor.Connect,
    };
    static Event = Event;
    public connectFactor: ConnectFactor;

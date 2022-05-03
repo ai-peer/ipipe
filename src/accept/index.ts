@@ -10,6 +10,7 @@ import EventEmitter from "events";
 //import { Options } from "../types";
 import logger from "../core/logger";
 import { Proxy } from "../types";
+import { Transform } from "stream";
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
@@ -17,13 +18,14 @@ export default class AcceptFactor extends EventEmitter {
    static HttpAccept = HttpAccept;
    static Socks5Accept = Socks5Accept;
    static LightAccept = LightAccept;
+   static Accept = Accept;
    /** 接入协议类列表 */
    private accepts: Map<string, Accept> = new Map();
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
    private server: net.Server;
    private options: AcceptOptions;
-   private proxy: Proxy;
+
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(99);
@@ -77,7 +79,6 @@ export default class AcceptFactor extends EventEmitter {
       this.accepts.forEach((accept) => {
          accept.registerConnect(connectFactor);
       });
-
       return this;
    }
    /**

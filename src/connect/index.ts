@@ -22,6 +22,7 @@ export default class ConnectFactor extends EventEmitter {
    static Socks5Connect = Socks5Connect;
    static DirectConnect = DirectConnect;
    static LightConnect = LightConnect;
+   static Connect = Connect;
    private directConnectDomains: string[] = [];
    /** 连接器列表 */
    private connects: Map<string, Connect> = new Map();

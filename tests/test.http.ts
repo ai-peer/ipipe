@@ -25,6 +25,7 @@ describe("测试IPipe", async function () {
    it("测试socks5是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "socks5" });
+         //let nproxy = {protocol: "socks5", host: "127.0.0.1", port: 9150, single: 129};
          let info = await com.requestBySocks5(nproxy);
          assert.ok(info && info.length > 100, "socks5 res is null");
          console.info("===socks5 receive", info.slice(0, 16).toString());

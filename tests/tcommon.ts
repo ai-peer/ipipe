@@ -7,6 +7,8 @@ import LightConnect from "../src/connect/light.connect";
 import { Proxy } from "../src/types";
 import net from "net";
 import Stream from "../src/core/stream";
+import { Transform } from "stream";
+import transform from "../src/core/transform";
 
 const tstream = new Stream();
 
@@ -23,6 +25,7 @@ export async function createProxyServer(port: number = 4321) {
    ipipe.acceptFactor.on("accept", (socket, data) => {
       console.info("=======test===>accept", socket.remotePort, data);
    });
+
    return ipipe;
 }
 

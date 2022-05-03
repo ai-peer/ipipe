@@ -14,7 +14,7 @@ export default abstract class Accept extends Stream {
    public protocol: string; // "http" | "https" | "socks5" | "direct";
    public connectFactor: ConnectFactor;
    public options: AcceptOptions;
-   //public acceptAuth: AcceptAuth;
+
    constructor(options?: AcceptOptions) {
       super();
       this.setMaxListeners(9999);
@@ -27,7 +27,7 @@ export default abstract class Accept extends Stream {
 
    clone2target(target: Accept) {
       target.connectFactor = this.connectFactor;
-      target.options = Object.assign({}, this.options, this.options);
+      target.options = Object.assign({}, this.options, target.options);
    }
 
    /**
@@ -63,9 +63,9 @@ export default abstract class Accept extends Stream {
     * @param chunk 首次请求的原始数据
     * @param inputTransform 输入流解码
     */
-   protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
+   protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer, transform?: Transform) {
       try {
-         this.connectFactor.pipe(host, port, localSocket, chunk, inputTransform).catch((err) => {
+         this.connectFactor.pipe(host, port, localSocket, chunk, transform).catch((err) => {
             //console.info("[ERROR] connect", err.message);
             localSocket.destroy(err);
          });
