@@ -64,7 +64,7 @@ export default class HttpAccept extends Accept {
    }
 
    private isHttpProtocol(str: string) {
-      switch (str.slice(0, 3).toUpperCase()) {
+      /* switch (str.slice(0, 3).toUpperCase()) {
          case "GET": //GET
          case "HEA": //HEAD
          case "PUT": //POST,PUT
@@ -74,8 +74,9 @@ export default class HttpAccept extends Accept {
          case "TRA": //TRACE
          case "CON": //CONNECT
             return true;
-      }
-      return false;
+      } */
+      //console.info("test", str.slice(0, 8).toUpperCase(), /^CONNECT/i.test(str.slice(0, 10).toUpperCase()))
+      return /^CONNECT/i.test(str.slice(0, 8).toUpperCase()); //  str.toUpperCase() == "CONNECT";
    }
 }
 function parseHeader(str: string) {

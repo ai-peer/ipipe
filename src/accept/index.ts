@@ -103,7 +103,7 @@ export default class AcceptFactor extends EventEmitter {
             reject(err);
          });
          server.listen(port, host, () => {
-            //console.info(`create accept proxy server listen ${port}`, server.address());
+            logger.debug(`create accept proxy server listen ${port}`, server.address());
             callback && callback(server);
             resolve(server);
          });
@@ -142,9 +142,21 @@ export default class AcceptFactor extends EventEmitter {
       }
 
       if (isAccept == false) {
-         logger.warn("===>no support protocol to hanle");
-         socket.destroy(new Error("no support protocol to hanle"));
+         logger.debug("===>no support protocol to hanle");
+         this.emit("risk", { ip: socket.remoteAddress || "", port: socket.remotePort, message: "no support protocol" }); //触发来源警告风险
+         let html = this.notiryNoSupportAccept();
+         socket.write(html, "utf-8");
+         socket.end();
       }
+   }
+   private notiryNoSupportAccept() {
+      let htmls: string[] = [];
+      let headers = ["HTTP/1.0 200 OK", "Content-Type: text/html;charset=utf8", "\r\n"];
+      htmls.push(headers.join("\r\n"));
+      htmls.push(`<html><header><style> body{text-align: center;}</style></header><body>
+         <p>private site, please contact the administrator!</p>
+         </body></html>`);
+      return htmls.join("");
    }
    private read(socket: net.Socket, ttl: number = 0): Promise<Buffer> {
       return new Promise((resolve) => {
