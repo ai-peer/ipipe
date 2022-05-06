@@ -16,10 +16,11 @@ export async function createProxyServer(port: number = 4321) {
    let dport = 8989;
    let ipipe = new IPipe({
       isDirect: true,
-      auth: async (username, password) => {
+     /*  auth: async (username, password) => {
          //console.info("check user", username, password);
-         return username == "admin" && password == "123";
-      },
+         //return username == "admin" && password == "123";
+         return true;
+      }, */
    });
    let server: any = await ipipe.createAcceptServer(dport);
    ipipe.registerAccept(new LightAccept());
@@ -32,6 +33,7 @@ export async function createProxyServer(port: number = 4321) {
       isDirect: false,
       auth: async (username, password) => {
          //console.info("check user", username, password);
+         console.info("ipipe1 accept check====", username, password);
          return username == "admin" && password == "123";
       },
    });
@@ -40,9 +42,9 @@ export async function createProxyServer(port: number = 4321) {
    ipipe1.acceptFactor.on("accept", (socket, data) => {
       console.info("=======test===>accept1", socket.remotePort, data);
    });
-   ipipe1.acceptFactor.on("auth", (a)=>{
-      console.info("auth", a.checked, a.session, a.username, a.password);
-   })
+   ipipe1.acceptFactor.on("auth", (a) => {
+      console.info("ipipe1==>auth", a.checked, a.session, a.username, a.password);
+   });
    let server1: any = await ipipe1.createAcceptServer(port);
    console.info("server=====1", port, server1.address());
 
@@ -67,12 +69,23 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
       connect.proxy = proxy;
       connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
+         if (err) {
+            if (err instanceof Error) {
+               resolve(Buffer.from(err.message));
+            } else {
+               resolve(err);
+            }
+            return;
+         }
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
          console.info("=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
+      });
+      connect.on("auth", (data) => {
+         console.info("http auth===>", data.checked, data.username, data.password, data.args);
       });
    });
 }
@@ -82,12 +95,23 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
       connect.proxy = proxy;
       connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
+         if (err) {
+            if (err instanceof Error) {
+               resolve(Buffer.from(err.message));
+            } else {
+               resolve(err);
+            }
+            return;
+         }
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
          //console.info("=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
+      });
+      connect.on("auth", (data) => {
+         console.info("socks5 auth===>", data.checked, data.username, data.password, data.args);
       });
    });
 }
@@ -97,11 +121,22 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
       connect.proxy = proxy;
       connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
+         if (err) {
+            if (err instanceof Error) {
+               resolve(Buffer.from(err.message));
+            } else {
+               resolve(err);
+            }
+            return;
+         }
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
          socket.destroy();
          resolve(chunk);
+      });
+      connect.on("auth", (data) => {
+         console.info("light auth===>", data.checked, data.username, data.password, data.args);
       });
    });
 }

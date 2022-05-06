@@ -18,7 +18,7 @@
     };
 
     
-    async function proxyIp(proxy: { host: string; port: number }) {
+    async function testProxy(proxy: { host: string; port: number }) {
         let info = await axios({
             url: "http://ip-api.com/json",
             timeout: 15000,
@@ -38,15 +38,24 @@
     }
     (async()=>{
         
+        //step1
+        //===== 创建接入客户端， 默认可以通过http和socks5协议接入代理
         const ipipe = new IPipe(); //初始化实例
-
-        await ipipe.createTestProxyServer(proxy.port, "0.0.0.0");// 测试使用的目标代理服务器, 实际使用中替换真实的代理服务器,目前支持http和socks5, 新协议自定义开发
-
-        await ipipe.createAcceptServer(4321); //创建接入服务
-
+        await ipipe.createAcceptServer(4321); //创建接入服务kk, 4321 端口是本地接入的端口 
         ipipe.registerProxy(proxy);//注册代理服务器
+        
 
-        proxyIp({ host: proxy.host, port: 4321 });
+
+        //step2 可以跳过, 这里是模拟目标代理服务器
+        const ipipe2 = new IPipe({
+            isDirect: true, //不能少这个参数
+        }); //初始化实例
+        await ipipe2.createAcceptServer(proxy.port); //创建接入服务
+
+
+
+        //测试代理
+        testProxy({ host: "127.0.0.1", port: 4321 });
 
 
     })();

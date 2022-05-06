@@ -1,5 +1,6 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
+import assert from "assert";
 
 /**
  * http代理连接
@@ -27,8 +28,17 @@ export default class HttpConnect extends Connect {
                Buffer.from("\r\n"),
             ]);
             await this.write(socket, sendChunk);
-            //let receiveChunk = await this.read(socket);
-            //let statusCode = receiveChunk.toString().split(" ")[1];
+            if (usePassword) {
+               let receiveChunk = await this.read(socket);
+               let statusCode = receiveChunk.toString().split(" ")[1];
+               let checked = statusCode != "407";
+               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               if (!checked) {
+                  callback(receiveChunk, socket);
+                  resolve(socket);
+                  return;
+               }
+            }
             callback(undefined, socket);
             resolve(socket);
          });

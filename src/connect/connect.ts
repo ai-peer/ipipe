@@ -6,7 +6,7 @@ import Stream from "../core/stream";
 import transform from "../core/transform";
 import { Transform } from "stream";
 
-export type Callback = (error: Error | undefined, socket: net.Socket) => void;
+export type Callback = (error: Error | Buffer | undefined, socket: net.Socket) => void;
 
 /**
  * 连接远程代理服务器的抽象类

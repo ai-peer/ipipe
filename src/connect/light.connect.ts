@@ -56,7 +56,16 @@ export default class LightConnect extends Connect {
 
             let step2Res = await this.read(socket);
             step2Res = cipherConnect.decode(step2Res, face);
-            assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
+
+            let checked = step2Res[0] == 0x01 && step2Res[1] == 0x00;
+            //this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password||"").split("_").slice(1).join("_")});
+            //assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
+            this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+            if (!checked) {
+               callback(step2Res, socket);
+               resolve(socket);
+               return;
+            }
 
             let dynamicSecret = step2Res.slice(2, 258);
             let cipherTransport = Cipher.createCipher(dynamicSecret);

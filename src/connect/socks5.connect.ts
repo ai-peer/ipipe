@@ -39,7 +39,13 @@ export default class Socks5Connect extends Connect {
                ]);
                await this.write(socket, sendChunk);
                chunkReceive = await this.read(socket);
-               assert.ok(chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00, "auth username/password error");
+               let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
+               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               if (!checked) {
+                  callback(chunkReceive, socket);
+                  resolve(socket);
+                  return;
+               }
             } else {
                assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0, "connect socks5 server error " + [...chunkReceive]);
             }

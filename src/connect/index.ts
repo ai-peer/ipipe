@@ -64,6 +64,10 @@ export default class ConnectFactor extends EventEmitter {
          let session = sessions.getSession(socket);
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
+      connect.on("auth", (data) => {
+         let session = sessions.getSession(data.socket);
+         session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
+      });
       this.connects.set(connect.protocol, connect);
       return this;
    }
@@ -118,7 +122,14 @@ export default class ConnectFactor extends EventEmitter {
       connect.proxy = proxy;
       //console.info("===>ccc")
       connect.connect(host, port, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
-         if (err) return localSocket.destroy(err);
+         if (err) {
+            if (err instanceof Error) {
+               localSocket.destroy(err);
+            } else {
+               localSocket.end(err);
+            }
+            return;
+         }
          localSocket.on("error", (err) => {
             localSocket.destroy();
             proxySocket?.destroy(err);
