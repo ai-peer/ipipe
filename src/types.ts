@@ -50,6 +50,15 @@ export interface Proxy {
    forwardPort?: number;
 }
 
+/**
+ * 连接用户信息
+ */
+export interface ConnectUser {
+   username: string; //用户信息
+   password: string; //密码
+   args: string[]; //参数 放在密码后 password_xxx_xxx参数
+}
+
 /** 创建服务回调 */
 export type CreateCallback = (server: net.Server) => void;
 

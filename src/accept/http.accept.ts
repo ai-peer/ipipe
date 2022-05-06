@@ -1,6 +1,6 @@
 import Accept from "./accept";
 import net from "net";
-import { AcceptOptions } from "../types";
+import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
 
 /**
@@ -25,18 +25,20 @@ export default class HttpAccept extends Accept {
          port = parseInt(hp[1]) || 80;
       if (!host) return;
       let isAuth = !!headers["proxy-authorization"];
+      let user: ConnectUser | undefined;
       // 需要鉴权
       if (isAuth) {
-         let user = this.getUser(headers["proxy-authorization"]);
+         user = this.getUser(headers["proxy-authorization"]);
+         this.sessions.add(socket, user.username);
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
-         this.emit("auth", { checked: authRes, socket });
+         this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
          if (!authRes) {
-            this.end(socket, Buffer.from(["HTTP/1.1 407", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
             logger.debug(`===>auth error http username=${user.username} password=${user.password}`);
             return;
          }
-         this.sessions.add(socket, user.username);
+         //user =
       } else {
          this.sessions.add(socket);
       }
@@ -49,17 +51,19 @@ export default class HttpAccept extends Accept {
       }
       /** 解析首次http请求协议获取反馈和主机信息 end */
 
-      this.connect(host, port, socket, firstChunk);
+      this.connect(host, port, socket, firstChunk, user);
    }
-   private getUser(authorization: string) {
+   private getUser(authorization: string): ConnectUser {
       let kv = authorization.split(" ")[1];
       let buf = Buffer.from(kv, "base64");
       let kvs = buf.toString().split(":");
       let username = kvs[0],
          password = kvs[1];
+      let pps = this.splitPasswodArgs(password);
       return {
          username,
-         password,
+         password: pps.password,
+         args: pps.args,
       };
    }
 

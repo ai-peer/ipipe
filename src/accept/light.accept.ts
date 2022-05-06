@@ -3,7 +3,7 @@ import net from "net";
 import logger from "../core/logger";
 import { bit2Int } from "../utils";
 import transform from "../core/transform";
-import { AcceptOptions, DefaultSecret } from "../types";
+import { AcceptOptions, DefaultSecret, ConnectUser } from "../types";
 import Cipher from "../core/cipher";
 import { generateRandomPassword } from "../core/password";
 import { parseSocks5IpPort, validSocks5Target } from "../core/geoip";
@@ -37,13 +37,14 @@ export default class LightAccept extends Accept {
       let user = this.getUser(step2Req);
       let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
       //console.info("auth res =", authRes, !!this.acceptAuth);
+      this.sessions.add(socket, user.username);
       if (!authRes) {
          this.end(socket, cipherAccept.encode(Buffer.from([0x01, 0x01]))); //鉴权失败
          logger.debug(`===>auth error username=${user.username} password=${user.password}`);
-         this.emit("auth", { checked: authRes, socket });
+         this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
          return;
       }
-      this.sessions.add(socket, user.username);
+
       //await this.write(socket, cipherAccept.encode(Buffer.from([0x01, 0x00])));
       //======= step2 鉴权 end
 
@@ -76,6 +77,7 @@ export default class LightAccept extends Accept {
          port,
          socket,
          sendData,
+         user,
          transform((chunk, encoding, callback) => {
             chunk = cipherTransport.decode(chunk, face);
             callback(null, chunk);
@@ -86,15 +88,21 @@ export default class LightAccept extends Accept {
     * 获取鉴权用户信息
     * @param chunk
     */
-   private getUser(chunk: Buffer) {
+   private getUser(chunk: Buffer): ConnectUser {
       let userLength = chunk[1];
       let passLength = chunk[2 + userLength];
       let username = chunk.slice(2, 2 + userLength);
       let password = chunk.slice(3 + userLength, 3 + userLength + passLength);
+      let pps = this.splitPasswodArgs(password.toString());
       return {
          username: username.toString(),
-         password: password.toString(),
+         password: pps.password,
+         args: pps.args,
       };
+      /*  return {
+         username: username.toString(),
+         password: password.toString(),
+      }; */
    }
 
    private isAcceptProtocol(chunk: Buffer) {

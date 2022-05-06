@@ -13,6 +13,7 @@ import transform from "../src/core/transform";
 const tstream = new Stream();
 
 export async function createProxyServer(port: number = 4321) {
+   let dport = 8989;
    let ipipe = new IPipe({
       isDirect: true,
       auth: async (username, password) => {
@@ -20,11 +21,30 @@ export async function createProxyServer(port: number = 4321) {
          return username == "admin" && password == "123";
       },
    });
-   await ipipe.createAcceptServer(port);
+   let server: any = await ipipe.createAcceptServer(dport);
    ipipe.registerAccept(new LightAccept());
    ipipe.acceptFactor.on("accept", (socket, data) => {
-      console.info("=======test===>accept", socket.remotePort, data);
+      console.info("=======test===>accept0", socket.remotePort, data);
    });
+   console.info("server=====", server.address(), dport);
+
+   let ipipe1 = new IPipe({
+      isDirect: false,
+      auth: async (username, password) => {
+         //console.info("check user", username, password);
+         return username == "admin" && password == "123";
+      },
+   });
+   ipipe1.registerProxy({ host: "127.0.0.1", port: server.address().port, protocol: "http" });
+   ipipe1.registerAccept(new LightAccept());
+   ipipe1.acceptFactor.on("accept", (socket, data) => {
+      console.info("=======test===>accept1", socket.remotePort, data);
+   });
+   ipipe1.acceptFactor.on("auth", (a)=>{
+      console.info("auth", a.checked, a.session, a.username, a.password);
+   })
+   let server1: any = await ipipe1.createAcceptServer(port);
+   console.info("server=====1", port, server1.address());
 
    return ipipe;
 }
@@ -50,7 +70,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         //console.info("=========receive\r\n", chunk.toString());
+         console.info("=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
       });

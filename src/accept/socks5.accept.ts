@@ -1,7 +1,7 @@
 import Accept from "./accept";
 import net from "net";
 import { parseSocks5IpPort, isIpv4, isIpv6, isDomain, validSocks5Target } from "../core/geoip";
-import { AcceptOptions } from "../types";
+import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
 
 /**
@@ -31,6 +31,7 @@ export default class Socks5Accept extends Accept {
       /** 三步走 start */
       await _this.write(socket, Buffer.from([0x05, isAuth ? 0x02 : 0x00])); //响应客户端连接
 
+      let user: ConnectUser | undefined;
       // 需要鉴权
       if (isAuth) {
          let userChunk = await _this.read(socket); //读取将要建立连接的目标服务,
@@ -38,16 +39,16 @@ export default class Socks5Accept extends Accept {
             this.end(socket, Buffer.from([0x01, 0x01]));
             return;
          }
-         let user = this.getUser(userChunk);
+         user = this.getUser(userChunk);
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
-         this.emit("auth", { checked: authRes, socket });
+         this.sessions.add(socket, user.username);
+         this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
             logger.debug(`===>auth error socks5 username=${user.username} password=${user.password}`);
             return;
          }
          await this.write(socket, Buffer.from([0x01, 0x00]));
-         this.sessions.add(socket, user.username);
          this.emit("read", { socket: socket, size: chunk.length + userChunk.length });
          this.emit("write", { socket: socket, size: 2 + 2 });
       } else {
@@ -72,7 +73,7 @@ export default class Socks5Accept extends Accept {
 
       /** 解析首次 socks5 请求协议获取反馈和主机信息 end */
 
-      this.connect(host, port, socket, sendData);
+      this.connect(host, port, socket, sendData, user);
    }
 
    private isSocks5(buffer: Buffer): boolean {
@@ -81,15 +82,21 @@ export default class Socks5Accept extends Accept {
       }
       return false;
    }
-   private getUser(chunk: Buffer) {
+   private getUser(chunk: Buffer): ConnectUser {
       //let auth = this.options.auth;
       let userLength = chunk[1];
       let passLength = chunk[2 + userLength];
       let username = chunk.slice(2, 2 + userLength);
       let password = chunk.slice(3 + userLength, 3 + userLength + passLength);
-      return {
+      /*  return {
          username: username.toString(),
          password: password.toString(),
+      }; */
+      let pps = this.splitPasswodArgs(password.toString());
+      return {
+         username: username.toString(),
+         password: pps.password,
+         args: pps.args,
       };
    }
 }

@@ -62,9 +62,9 @@ export default class AcceptFactor extends EventEmitter {
          let session = accept.getSession(socket);
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
       });
-      accept.on("auth", ({ checked, socket }) => {
-         let session = accept.getSession(socket);
-         session && this.emit("auth", { checked: checked, session, clientIp: socket.remoteAddress });
+      accept.on("auth", (data) => {
+         let session = accept.getSession(data.socket);
+         session && this.emit("auth", { ...data, session, clientIp: data.socket.remoteAddress });
       });
       this.accepts.set(accept.protocol, accept);
       return this;

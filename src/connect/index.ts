@@ -6,13 +6,16 @@ import Connect from "./connect";
 import net from "net";
 //import ping from "ping";
 import { isLocalNetwork } from "../core/geoip";
-import { Proxy, ConnectOptions } from "../types";
+import { Proxy, ConnectOptions, ConnectUser } from "../types";
 import assert from "assert";
 import ForwardHttpConnect from "./forward.http.connect";
 import log from "../core/logger";
 import EventEmitter from "events";
 import Sessions from "../core/sessions";
 import { Transform } from "stream";
+
+const isDev = process.env.NODE_ENV == "development";
+
 const sessions = Sessions.instance;
 /**
  * 连接代理的封装类
@@ -28,7 +31,7 @@ export default class ConnectFactor extends EventEmitter {
    private connects: Map<string, Connect> = new Map();
    private options: ConnectOptions;
    /** 代理服务器信息 */
-   private proxy: Proxy;
+   private proxys: Proxy[] = [];
    constructor(options?: ConnectOptions) {
       super();
       this.setMaxListeners(99);
@@ -69,7 +72,8 @@ export default class ConnectFactor extends EventEmitter {
     * @param proxy
     */
    public registerProxy(proxy: Proxy) {
-      this.proxy = proxy;
+      //this.proxy = proxy;
+      this.proxys.push(proxy);
    }
 
    /**
@@ -78,14 +82,18 @@ export default class ConnectFactor extends EventEmitter {
     * @param localSocket
     * @param chunk
     */
-   public async pipe(host: string, port: number, localSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
-      let proxy = this.proxy;
-
+   public async pipe(host: string, port: number, localSocket: net.Socket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
+      let proxy: Proxy = this.proxys[0]; // = this.proxy;
       let connect: Connect | undefined;
+
+      if (user) {
+         let idx = hashId(user) % (this.proxys.length || 1);
+         proxy = this.proxys[idx];
+      }
 
       if (this.options.isDirect) connect = this.connects.get("direct");
       else {
-         let isLocal = await isLocalNetwork(host);
+         let isLocal = isDev ? false : await isLocalNetwork(host);
          //本地网络直连
          if (isLocal || this.options.isDirect) connect = this.connects.get("direct");
          else {
@@ -93,7 +101,7 @@ export default class ConnectFactor extends EventEmitter {
             connect = this.connects.get(proxy.protocol);
          }
       }
-
+      //console.info("connect s1");
       if (connect?.protocol != "direct") {
          let domain = getDomainFromBytes(chunk);
          if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
@@ -108,10 +116,9 @@ export default class ConnectFactor extends EventEmitter {
       }
 
       connect.proxy = proxy;
-      //console.info("out", connect.protocol, chunk.toString())
-      connect.connect(host, port, (err, proxySocket: net.Socket) => {
+      //console.info("===>ccc")
+      connect.connect(host, port, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
          if (err) return localSocket.destroy(err);
-
          localSocket.on("error", (err) => {
             localSocket.destroy();
             proxySocket?.destroy(err);
@@ -122,6 +129,7 @@ export default class ConnectFactor extends EventEmitter {
             localSocket.destroy(err);
          });
          proxySocket.on("close", () => localSocket.destroy());
+         if (recChunk) localSocket.write(recChunk);
          /*  localSocket
             .pipe(
                transform((chunk, encoding, callback) => {
@@ -211,5 +219,15 @@ function parseHeader(str: string) {
       headers[key.trim().toLowerCase()] = value.trim();
    });
    return headers;
+}
+
+function hashId(user: ConnectUser) {
+   let val = user.username + "_" + user.password + "_" + user.args.join("_");
+   let res = 0;
+   for (let v of val) {
+      res += v.charCodeAt(0) ^ 255;
+   }
+   res = res % 666666;
+   return res;
 }
 export { Connect as Connect, HttpConnect, Socks5Connect, DirectConnect };

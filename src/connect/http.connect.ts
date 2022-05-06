@@ -27,11 +27,10 @@ export default class HttpConnect extends Connect {
                Buffer.from("\r\n"),
             ]);
             await this.write(socket, sendChunk);
-            let receiveChunk = await this.read(socket);
-            let statusCode = receiveChunk.toString().split(" ")[1];
+            //let receiveChunk = await this.read(socket);
+            //let statusCode = receiveChunk.toString().split(" ")[1];
             callback(undefined, socket);
             resolve(socket);
-            if (statusCode != "200") socket.destroy(new Error(receiveChunk.toString()));
          });
          socket.setTimeout(15000);
          socket.on("error", (err) => {
