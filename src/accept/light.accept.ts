@@ -16,6 +16,7 @@ export default class LightAccept extends Accept {
       super(options);
       this.protocol = "light";
       let secret = this.options.secret || DefaultSecret;
+      //console.info("optios===", this.options, DefaultSecret);
       this.cipherAccept = Cipher.createCipher(secret); //接入密钥
    }
 

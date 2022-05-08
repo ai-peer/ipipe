@@ -9,8 +9,11 @@ import net from "net";
 import Stream from "../src/core/stream";
 import { Transform } from "stream";
 import transform from "../src/core/transform";
+import * as password from "../src/core/password";
 
 const tstream = new Stream();
+const nsecret = password.generateRandomPassword();
+console.info("nsecret", nsecret);
 
 export async function createProxyServer(port: number = 4321) {
    let dport = 8989;
@@ -23,7 +26,7 @@ export async function createProxyServer(port: number = 4321) {
       }, */
    });
    let server: any = await ipipe.createAcceptServer(dport);
-   ipipe.registerAccept(new LightAccept());
+   ipipe.registerAccept(new LightAccept({secret: nsecret.toString()}));
    ipipe.acceptFactor.on("accept", (socket, data) => {
       console.info("=======test===>accept0", socket.remotePort, data);
    });
@@ -38,7 +41,7 @@ export async function createProxyServer(port: number = 4321) {
       },
    });
    ipipe1.registerProxy({ host: "127.0.0.1", port: server.address().port, protocol: "http" });
-   ipipe1.registerAccept(new LightAccept());
+   ipipe1.registerAccept(new LightAccept({secret: nsecret.toString()}));
    ipipe1.acceptFactor.on("accept", (socket, data) => {
       console.info("=======test===>accept1", socket.remotePort, data);
    });
@@ -117,7 +120,8 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
 }
 export async function requestByLight(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
-      let connect = new LightConnect();
+      
+      let connect = new LightConnect({secret: nsecret.toString()});
       connect.proxy = proxy;
       connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
@@ -136,7 +140,7 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
          resolve(chunk);
       });
       connect.on("auth", (data) => {
-         console.info("light auth===>", data.checked, data.username, data.password, data.args);
+         console.info("test connect light auth===>", data.checked, data.username, data.password, data.args);
       });
    });
 }

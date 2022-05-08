@@ -10,6 +10,7 @@ export interface AcceptOptions {
    /** 密钥 */
    secret?: string;
    isAccept?: boolean;
+   /** 验证用户信息，用户名和密码 */
    auth?: AcceptAuth;
    [key: string]: any;
 }

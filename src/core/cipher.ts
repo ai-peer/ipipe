@@ -49,34 +49,35 @@ export default class Cipher {
 
    decode(chunk: Buffer, face: number = 99): Buffer {
       face = face % 256;
-      /*  return buffer.map((value) => {
+      let cs = chunk.map((value) => {
          let nv = this.decodeSecret[value];
          nv = face <= 0 ? nv : nv ^ face;
          return nv;
-      }); */
-
+      });
+      /*    let res: Buffer = Buffer.alloc(chunk.length);
       chunk.forEach((v, i) => {
          let nv = this.decodeSecret[v];
          nv = face <= 0 ? nv : nv ^ face;
-         chunk[i] = v;
-      });
+         res[i] = v;
+      }); */
 
-      return chunk;
+      return Buffer.from(cs);
    }
    encode(chunk: Buffer, face: number = 99): Buffer {
       face = face % 256;
-      /*       return buffer.map((value, i) => {
+      let cs = chunk.map((value, i) => {
          value = face <= 0 ? value : value ^ face;
          let nv = this.encodeSecret[value];
          return nv;
-      }); */
-      chunk.forEach((v, i) => {
-         let nv = this.decodeSecret[v];
-         nv = face <= 0 ? nv : nv ^ face;
-         chunk[i] = v;
       });
-
-      return chunk;
+      /* let res: Buffer = Buffer.alloc(chunk.length);
+      chunk.forEach((v, i) => {
+         let nv = this.encodeSecret[v];
+         nv = face <= 0 ? nv : nv ^ face;
+         res[i] = v;
+      });
+ */
+      return Buffer.from(cs);
    }
 
    /*   toString() {

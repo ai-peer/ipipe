@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import IPipe from "../src";
+import * as password from "../src/core/password";
 
 const program = new Command();
 let appParams: any = program //
@@ -13,10 +14,18 @@ let appParams: any = program //
    .option("-pass2, --password2 [value]", "密码", "") //
    .option("-protocol, --protocol [value]", "协议", "http") //
    .option("-m, --mode [value]", "模式 server, client, relay", "client") //
+   .option("-protocol, --protocol", "接入协议", "http,socks5,light")
+   .option("-secret, --secret", "自定义密钥", "")
+   .option("-buildSecret, --buildSecret", "创建密钥", false)
    .parse(process.argv)
    .opts();
+
+
+
+/**
+ * 创建中继
+ */
 async function createRelay() {
-   console.info("======createRelay");
    let proxy = {
       host: appParams.host2,
       port: appParams.port2,
@@ -36,6 +45,9 @@ async function createRelay() {
    ipipe.on("in", (size) => console.info("relay in", size));
    ipipe.on("out", (size) => console.info("relay out", size));
 }
+/**
+ * 创建服务
+ */
 async function createServer() {
    console.info("======createServer");
    let ipipe = new IPipe({
@@ -48,6 +60,9 @@ async function createServer() {
    ipipe.on("in", (size) => console.info("server in", size));
    ipipe.on("out", (size) => console.info("server out", size));
 }
+/**
+ * 创建客户端
+ */
 async function createClient() {
    console.info("======createClient");
    let proxy = {
@@ -78,6 +93,13 @@ async function createClient() {
 }
 
 (async () => {
+   if(appParams.buildSecret){//打印输出新密钥
+      let secret = password.generateRandomPassword(true);
+      console.info("secret:", secret);
+      return;
+   }
+
+
    let mode = appParams.mode;
    if (mode == "server") {
       createServer();
