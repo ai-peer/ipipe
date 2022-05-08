@@ -82,6 +82,21 @@ export default class AcceptFactor extends EventEmitter {
       return this;
    }
    /**
+    * 注册已经创建的本地服务， 注册这个就可以不用另行创建本地代理服务
+    * @param server
+    */
+   registerServer(server: net.Server) {
+      server.on("connection", (socket: net.Socket) => {
+         socket.on("error", (err) => {
+            socket.destroy(err);
+         });
+         this.accept(socket);
+      });
+      server.on("error", (err) => {
+         //logger.warn("server error ", err.message);
+      });
+   }
+   /**
     * 创建本地代理服务
     * @param port
     * @param host
@@ -99,7 +114,7 @@ export default class AcceptFactor extends EventEmitter {
             this.accept(socket);
          });
          server.on("error", (err) => {
-            logger.error("server error ", err.message);
+            logger.warn("server error ", err.message);
             reject(err);
          });
          server.listen(port, host, () => {

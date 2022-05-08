@@ -77,6 +77,8 @@ export default class IPipe extends EventEmitter {
       return this.acceptFactor.createServer(port, host, callback);
    }
 
+   registerServer(server: net.Server) {}
+
    /**
     * 注册本地接自定义接入协议， 原生支持http和socks5代理协议
     * 协议继承类Accept
