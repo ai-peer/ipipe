@@ -121,7 +121,7 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
 export async function requestByLight(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       
-      let connect = new LightConnect({secret: nsecret.toString()});
+      let connect = new LightConnect({});
       connect.proxy = proxy;
       connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);

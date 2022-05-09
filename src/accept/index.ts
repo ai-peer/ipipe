@@ -158,6 +158,7 @@ export default class AcceptFactor extends EventEmitter {
 
       if (isAccept == false) {
          logger.debug("===>no support protocol to hanle");
+         this.emit("accept", socket, { protocol: "no" });
          this.emit("risk", { ip: socket.remoteAddress || "", port: socket.remotePort, message: "no support protocol" }); //触发来源警告风险
          let html = this.notiryNoSupportAccept();
          socket.write(html, "utf-8");

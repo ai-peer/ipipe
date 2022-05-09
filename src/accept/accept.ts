@@ -65,7 +65,7 @@ export default abstract class Accept extends Stream {
     */
    protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer, user?: ConnectUser, transform?: Transform) {
       try {
-         this.connectFactor.pipe(host, port, localSocket, chunk, user).catch((err) => {
+         this.connectFactor.pipe(host, port, localSocket, chunk, user, transform).catch((err) => {
             //console.info("[ERROR] connect", err.message);
             localSocket.destroy(err);
          });

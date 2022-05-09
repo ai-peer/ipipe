@@ -13,7 +13,7 @@ let testServer;
 describe("测试IPipe", async function () {
    testServer = await com.createProxyServer(proxy.port);
 
-  /*  it("测试http是否连接成功", () => {
+   it("测试http是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "http" });
          let info = await com.requestByHttp(nproxy);
@@ -31,7 +31,7 @@ describe("测试IPipe", async function () {
          console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
-   }); */
+   });
    it("测试light是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "light" });
