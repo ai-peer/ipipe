@@ -14,6 +14,7 @@ import { Proxy, CreateCallback, Options } from "./types";
 import net from "net";
 import EventEmitter from "events";
 import * as Type from "./types";
+import Cipher from "./core/cipher";
 
 export const Event = {
    out: "out",
@@ -30,6 +31,7 @@ export {
    Socks5Connect,
    HttpConnect,
    DirectConnect,
+   Cipher,
 };
 
 /**
