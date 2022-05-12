@@ -20,9 +20,6 @@ export default class LightConnect extends Connect {
       });
    }
 
-   public registerSecret(secret: string | Buffer) {
-      if (secret) this.options.secret = secret;
-   }
    /**
     * 连接远程代理主机
     * @param host 目标主机ip或域名

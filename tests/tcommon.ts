@@ -40,7 +40,7 @@ export async function createProxyServer(port: number = 4321) {
          return username == "admin" && password == "123";
       },
    });
-   ipipe1.registerProxy({ host: "127.0.0.1", port: server.address().port, protocol: "http" });
+   ipipe1.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
    ipipe1.registerAccept(new LightAccept({secret: nsecret.toString()}));
    ipipe1.acceptFactor.on("accept", (socket, data) => {
       console.info("=======test===>accept1", socket.remotePort, data);
@@ -69,6 +69,7 @@ export function createHttpRequest(): string {
 export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new HttpConnect();
+      console.info("proxy", proxy)
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
