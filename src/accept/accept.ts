@@ -5,6 +5,7 @@ import Sessions from "../core/sessions";
 import { Transform } from "stream";
 import { AcceptOptions, AcceptAuth, ConnectUser } from "../types";
 import { Proxy } from "../types";
+import SSocket from "../core/ssocket";
 
 /**
  * 接收应用端接入协议处理基类

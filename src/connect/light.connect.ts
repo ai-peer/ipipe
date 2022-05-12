@@ -79,7 +79,6 @@ export default class LightConnect extends Connect {
             let step3Req = Socks5.buildClientInfo(host, port);
             step3Req = cipherTransport.encode(step3Req, face);
             await this.write(socket, step3Req);
-
             let step3Res = await this.read(socket);
             step3Res = cipherTransport.decode(step3Res, face);
             assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");

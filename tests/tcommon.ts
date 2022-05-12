@@ -17,41 +17,41 @@ console.info("nsecret", nsecret);
 
 export async function createProxyServer(port: number = 4321) {
    let dport = 8989;
-   let ipipe = new IPipe({
+   let targetProxy = new IPipe({
       isDirect: true,
-     /*  auth: async (username, password) => {
+      /*  auth: async (username, password) => {
          //console.info("check user", username, password);
          //return username == "admin" && password == "123";
          return true;
       }, */
    });
-   let server: any = await ipipe.createAcceptServer(dport);
-   ipipe.registerAccept(new LightAccept({secret: nsecret.toString()}));
-   ipipe.acceptFactor.on("accept", (socket, data) => {
-      console.info("=======test===>accept0", socket.remotePort, data);
+   let server: any = await targetProxy.createAcceptServer(dport);
+   targetProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
+   targetProxy.acceptFactor.on("accept", (socket, data) => {
+      console.info("=======targetProxy===>accept0", socket.remotePort, data);
    });
    console.info("server=====", server.address(), dport);
 
-   let ipipe1 = new IPipe({
+   let relayProxy = new IPipe({
       isDirect: false,
       auth: async (username, password) => {
          //console.info("check user", username, password);
-         console.info("ipipe1 accept check====", username, password);
+         console.info("relayProxy accept check====", username, password);
          return username == "admin" && password == "123";
       },
    });
-   ipipe1.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
-   ipipe1.registerAccept(new LightAccept({secret: nsecret.toString()}));
-   ipipe1.acceptFactor.on("accept", (socket, data) => {
-      console.info("=======test===>accept1", socket.remotePort, data);
+   relayProxy.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
+   relayProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
+   relayProxy.acceptFactor.on("accept", (socket, data) => {
+      console.info("=======relayProxy===>accept1", socket.remotePort, data);
    });
-   ipipe1.acceptFactor.on("auth", (a) => {
-      console.info("ipipe1==>auth", a.checked, a.session, a.username, a.password);
+   relayProxy.acceptFactor.on("auth", (a) => {
+      console.info("relayProxy==>auth", a.checked, a.session, a.username, a.password);
    });
-   let server1: any = await ipipe1.createAcceptServer(port);
+   let server1: any = await relayProxy.createAcceptServer(port);
    console.info("server=====1", port, server1.address());
 
-   return ipipe;
+   return targetProxy;
 }
 
 export function createHttpRequest(): string {
@@ -69,7 +69,7 @@ export function createHttpRequest(): string {
 export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new HttpConnect();
-      console.info("proxy", proxy)
+      console.info("proxy", proxy);
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
@@ -81,9 +81,10 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
             return;
          }
          let req = createHttpRequest();
+      
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         console.info("http=========receive\r\n", chunk.toString());
+         console.info("http=========receive\r\n", chunk.toString().slice(0, 256));
          socket.destroy();
          resolve(chunk);
       });
@@ -108,7 +109,7 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         console.info("socks5=========receive\r\n", chunk.toString());
+         console.info("socks5=========receive\r\n", chunk.toString().slice(0, 256));
          socket.destroy();
          resolve(chunk);
       });
@@ -119,11 +120,11 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
 }
 export async function requestByLight(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
-      
-      let connect = new LightConnect({secret: nsecret});
+      let connect = new LightConnect();
       proxy.secret = nsecret;
+      let req = createHttpRequest();
+      
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
-         //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
                resolve(Buffer.from(err.message));
@@ -132,15 +133,17 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
             }
             return;
          }
-         let req = createHttpRequest();
+         console.info("light connect ok");
+         console.info("light req===", req.toString());
          await tstream.write(socket, req);
+         //connect.pipe(localSocket, socket, Buffer.from(req), inputTransform);
          let chunk = await tstream.read(socket);
-         console.info("light=========receive\r\n", chunk.toString());
+         console.info("light=========receive\r\n", chunk.toString().slice(0, 256));
          socket.destroy();
          resolve(chunk);
       });
       connect.on("auth", (data) => {
-         console.info("test connect light auth===>", data.checked, data.username, data.password, data.args);
+         console.info("light connect auth===>", data.checked, data.username, data.password, data.args);
       });
    });
 }

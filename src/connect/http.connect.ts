@@ -23,7 +23,7 @@ export default class HttpConnect extends Connect {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
             let usePassword = !!proxy.username && !!proxy.password;
-            let up = proxy.username + ":" + proxy.password;
+            let up = (proxy.username || "").trim() + ":" + (proxy.password || "").trim();
             up = Buffer.from(up).toString("base64");
             let sendChunk = Buffer.concat([
                Buffer.from(`CONNECT ${host}:${port} HTTP/1.1\r\n`), //
@@ -34,11 +34,18 @@ export default class HttpConnect extends Connect {
                Buffer.from("\r\n"),
             ]);
             await this.write(socket, sendChunk);
+            let receiveChunk = await this.read(socket);
+            let statusCode = receiveChunk.toString().split(" ")[1];
             if (usePassword) {
-               let receiveChunk = await this.read(socket);
-               let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode != "407";
                this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               if (!checked) {
+                  callback(receiveChunk, socket);
+                  resolve(socket);
+                  return;
+               }
+            } else {
+               let checked = statusCode == "200";
                if (!checked) {
                   callback(receiveChunk, socket);
                   resolve(socket);

@@ -26,36 +26,47 @@ async function createServer() {
 }
 
 async function createClient() {
-   let ipipe = new IPipe({});
+   //let ipipe = new IPipe({});
    //ipipe.createAcceptServer(4321);
-   let connect = new LightConnect({});
-   connect.proxy = {
+   let connect = new LightConnect();
+   /*    connect.proxy = {
       host: "127.0.0.1",
       port: 4321,
       protocol: "light",
       username: "admin",
       password: "123",
-   };
-   
-   connect.connect("127.0.0.1", 4321, async (err, socket: net.Socket) => {
-      console.info("sss===connect");
-      let list: string[] = [
-         "GET http://ip-api.com/json HTTP/1.1",
-         "Accept: application/json, text/plain, */*",
-         "User-Agent: axios/0.25.0",
-         "host: ip-api.com",
-         "Connection: close",
-         "\r\n",
-      ];
-      await tstream.write(socket, list.join("\r\n"));
-      let chunk = await tstream.read(socket);
-      console.info("chunk", chunk.toString());
-      socket.destroy();
-   });
+   }; */
+
+   connect.connect(
+      "ip-api.com",
+      80,
+      {
+         host: "127.0.0.1",
+         port: 4321,
+         protocol: "light",
+         username: "admin",
+         password: "123",
+      },
+      async (err, socket: net.Socket) => {
+         console.info("sss===connect");
+         let list: string[] = [
+            "GET http://ip-api.com/json HTTP/1.1",
+            "Accept: application/json, text/plain, */*",
+            "User-Agent: axios/0.25.0",
+            "host: ip-api.com",
+            "Connection: close",
+            "\r\n",
+         ];
+         await tstream.write(socket, list.join("\r\n"));
+         let chunk = await tstream.read(socket);
+         console.info("chunk", chunk.toString());
+         socket.destroy();
+      },
+   );
 }
 
 (async () => {
-/*    if (appParams.mode == "client") {
+   /*    if (appParams.mode == "client") {
       createClient();
    } else {
       createServer();

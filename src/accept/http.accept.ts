@@ -24,7 +24,8 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return;
-      let isAuth = !!headers["proxy-authorization"];
+      //let isAuth = !!headers["proxy-authorization"];// && !!this.acceptAuth;
+      let isAuth = !!this.acceptAuth;
       let user: ConnectUser | undefined;
       // 需要鉴权
       if (isAuth) {
@@ -43,6 +44,7 @@ export default class HttpAccept extends Accept {
          this.sessions.add(socket);
       }
       this.emit("read", { socket: socket, size: firstChunk.length, clientIp: socket.remoteAddress });
+      //console.info("req headers", str, isAuth, /^CONNECT/i.test(str));
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示
@@ -61,9 +63,9 @@ export default class HttpAccept extends Accept {
          password = kvs[1];
       let pps = this.splitPasswodArgs(password);
       return {
-         username,
-         password: pps.password,
-         args: pps.args,
+         username: username || "",
+         password: pps.password || "",
+         args: pps.args || [],
       };
    }
 

@@ -11,38 +11,39 @@ console.info("proxyList", proxyList); */
 (async () => {
    let proxy = {
       host: "127.0.0.1",
-      port: 1082,
+      port: 11082,
       protocol: "http",
       username: "admin",
       password: "123456",
-      //forwardHost: "127.0.0.1",
-      //forwardPort: 1082,
    };
-   let ipipe = new IPipe({
-      auth: async (username, password) => {
-         // return username == "admin" && password == "123456";
-         return true;
-      },
-   });
 
    //创建代理测试服务器
    new IPipe({
       isDirect: true,
-      auth: async (username, password) => {
-         return username == "admin" && password == "123456";
-      },
+ /*      auth: async (username, password) => {
+         //return username == "admin" && password == "123456";
+      }, */
    }).createAcceptServer(proxy.port);
 
-   let acceptServer = await ipipe.createAcceptServer(4321);
+   let acceptProxy = new IPipe({
+ /*      auth: async (username, password) => {
+         console.info("auth accept proxy", username);
+         // return username == "admin" && password == "123456";
+         return true;
+      }, */
+   });
+
+   let acceptServer = await acceptProxy.createAcceptServer(4321);
    let address: any = acceptServer.address();
 
-   ipipe.registerProxy(proxy);
-
-   ipipe.on("in", (size) => console.info("in ", size));
-   ipipe.on("out", (size) => console.info("out ", size));
+   acceptProxy.registerProxy(proxy);
+   console.info("check proxy");
+   //ipipe.on("in", (size) => console.info("in ", size));
+   //ipipe.on("out", (size) => console.info("out ", size));
    //console.info("address", address);
    //myIp();
-   proxyIp({ host: proxy.host, port: address.port });
+   
+   proxyIp({ host: proxy.host, port: 4321 });
 })();
 
 async function myIp() {
@@ -64,13 +65,13 @@ async function proxyIp(proxy: { host: string; port: number }) {
       proxy: {
          host: proxy.host,
          port: proxy.port,
-         auth: {
+/*          auth: {
             username: "admin",
             password: "123456",
-         },
+         }, */
       },
    })
       .then((res) => res.data)
       .catch((err) => console.error("get proxy ip error", err.stack, err.message));
-   console.info("proxy ip", info);
+   console.info("proxy ip", info.query);
 }

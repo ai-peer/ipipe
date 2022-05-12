@@ -19,8 +19,8 @@ export default class Socks5Accept extends Accept {
    }
    public async handle(socket: net.Socket, chunk: Buffer) {
       /** 解析首次 socks5 请求协议获取反馈和主机信息 start */
-      let options = this.options;
-      let isAuth = chunk[2] == 2;
+      //let options = this.options;
+      let isAuth = chunk[2] == 2 || !!this.acceptAuth;
       let _this = this;
       let isReadTargetInfo = false;
       setTimeout(() => {

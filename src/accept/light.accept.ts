@@ -7,6 +7,7 @@ import { AcceptOptions, DefaultSecret, ConnectUser } from "../types";
 import Cipher from "../core/cipher";
 import { generateRandomPassword } from "../core/password";
 import { parseSocks5IpPort, validSocks5Target } from "../core/geoip";
+import SSocket from "../core/ssocket";
 /**
  * Light协议接入类
  */
@@ -67,10 +68,13 @@ export default class LightAccept extends Accept {
          return;
       }
       //======= step4 获取目标服务信息 end
+      let ssocket = new SSocket(socket, cipherTransport, face);
       //通知成功
-      await this.write(socket, cipherTransport.encode(Buffer.from([0x01, 0x00]), face)); //返回告诉
+      //await this.write(socket, cipherTransport.encode(Buffer.from([0x01, 0x00]), face)); //返回告诉
+      await ssocket.write(Buffer.from([0x01, 0x00]));
 
-      let sendData = cipherTransport.decode(await this.read(socket, 500), face);
+      //let sendData = cipherTransport.decode(await this.read(socket, 500), face);
+      let sendData = await ssocket.read(500);
 
       /** 解析首次http请求协议获取反馈和主机信息 end */
       this.connect(
