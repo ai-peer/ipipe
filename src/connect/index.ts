@@ -93,7 +93,11 @@ export default class ConnectFactor extends EventEmitter {
       if (user) {
          let idx = hashId(user) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
+      } else {
+         let idx = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (this.proxys.length || 1);
+         proxy = this.proxys[idx];
       }
+      proxy = proxy || this.proxys[0];
 
       if (this.options.isDirect) connect = this.connects.get("direct");
       else {
