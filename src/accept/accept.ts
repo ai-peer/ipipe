@@ -64,7 +64,7 @@ export default abstract class Accept extends Stream {
     * @param chunk 首次请求的原始数据
     * @param inputTransform 输入流解码
     */
-   protected async connect(host: string, port: number, localSocket: net.Socket, chunk: Buffer, user?: ConnectUser, transform?: Transform) {
+   protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, transform?: Transform) {
       try {
          this.connectFactor.pipe(host, port, localSocket, chunk, user, transform).catch((err) => {
             //console.info("[ERROR] connect", err.message);
@@ -77,8 +77,8 @@ export default abstract class Accept extends Stream {
    protected splitPasswodArgs(str: string): { password: string; args: string[] } {
       let ss = str.split("_");
       return {
-         password: ss[0],
-         args: ss.slice(1),
+         password: ss[0] || "",
+         args: ss.slice(1) || [],
       };
    }
 }

@@ -2,6 +2,7 @@ import Accept from "./accept";
 import net from "net";
 import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
+import SSocket from "../core/ssocket";
 
 /**
  * Http协议接入类
@@ -16,7 +17,8 @@ export default class HttpAccept extends Accept {
       let str = chunk.toString();
       return this.isHttpProtocol(str);
    }
-   public async handle(socket: net.Socket, firstChunk: Buffer) {
+   public async handle(socket0: net.Socket, firstChunk: Buffer) {
+      let socket = new SSocket(socket0);
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let str = firstChunk.toString();
       let headers = parseHeader(str);
@@ -30,43 +32,56 @@ export default class HttpAccept extends Accept {
       // 需要鉴权
       if (isAuth) {
          user = this.getUser(headers["proxy-authorization"]);
-         this.sessions.add(socket, user.username);
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
+         this.sessions.add(socket0, user.username);
          this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
          if (!authRes) {
-            this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            //this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
+            await socket.end(Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
             logger.debug(`===>auth error http username=${user.username} password=${user.password}`);
             return;
          }
          //user =
       } else {
-         this.sessions.add(socket);
+         this.sessions.add(socket0);
       }
       this.emit("read", { socket: socket, size: firstChunk.length, clientIp: socket.remoteAddress });
+
       //console.info("req headers", str, isAuth, /^CONNECT/i.test(str));
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示
-         await this.write(socket, Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
-         firstChunk = await this.read(socket, 500);
+         // await this.write(socket, Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
+         await socket.write(Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
+         //firstChunk = await this.read(socket, 500);
+         firstChunk = await socket.read(500);
       }
       /** 解析首次http请求协议获取反馈和主机信息 end */
 
       this.connect(host, port, socket, firstChunk, user);
    }
    private getUser(authorization: string): ConnectUser {
-      let kv = authorization.split(" ")[1];
-      let buf = Buffer.from(kv, "base64");
-      let kvs = buf.toString().split(":");
-      let username = kvs[0],
-         password = kvs[1];
-      let pps = this.splitPasswodArgs(password);
-      return {
-         username: username || "",
-         password: pps.password || "",
-         args: pps.args || [],
-      };
+      try {
+         authorization = authorization || "";
+         let kv = authorization.trim().split(" ")[1] || "";
+         let buf = Buffer.from(kv, "base64");
+         let kvs = buf.toString().split(":");
+         let username = kvs[0] || "",
+            password = kvs[1] || "";
+         let pps = this.splitPasswodArgs(password);
+         return {
+            username: username || "",
+            password: pps.password || "",
+            args: pps.args || [],
+         };
+      } catch (err) {
+         return {
+            username: "",
+            password: "",
+            args: [],
+         };
+      }
    }
 
    private isHttpProtocol(str: string) {

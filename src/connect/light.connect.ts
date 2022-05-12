@@ -8,6 +8,7 @@ import os from "os";
 import pkg from "../../package.json";
 import { Socks5 } from "../core/protocol";
 import { buildSN } from "../core/password";
+import SSocket from "../core/ssocket";
 
 /**
  * light协议连接
@@ -27,7 +28,7 @@ export default class LightConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
@@ -68,14 +69,15 @@ export default class LightConnect extends Connect {
             //assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
             this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
             if (!checked) {
-               callback(step2Res, socket);
-               resolve(socket);
+               let ssocket = new SSocket(socket);
+               callback(step2Res, ssocket);
+               resolve(ssocket);
                return;
             }
 
             let dynamicSecret = step2Res.slice(2, 258);
             let cipherTransport = Cipher.createCipher(dynamicSecret);
-
+            let ssocket = new SSocket(socket, cipherTransport, face);
             let step3Req = Socks5.buildClientInfo(host, port);
             step3Req = cipherTransport.encode(step3Req, face);
             await this.write(socket, step3Req);
@@ -84,13 +86,13 @@ export default class LightConnect extends Connect {
             assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
 
             //准备连接协议
-            callback(undefined, socket);
-            resolve(socket);
+            callback(undefined, ssocket);
+            resolve(ssocket);
          });
          socket.setTimeout(15000);
          socket.on("error", (err) => {
             socket.destroy(err);
-            callback(err, socket);
+            callback(err, new SSocket(socket));
          });
       });
    }

@@ -13,6 +13,7 @@ import log from "../core/logger";
 import EventEmitter from "events";
 import Sessions from "../core/sessions";
 import { Transform } from "stream";
+import SSocket from "../core/ssocket";
 
 const isDev = process.env.NODE_ENV == "development";
 
@@ -91,7 +92,7 @@ export default class ConnectFactor extends EventEmitter {
     * @param localSocket
     * @param chunk
     */
-   public async pipe(host: string, port: number, localSocket: net.Socket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
+   public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
       let proxy: Proxy = this.proxys[0]; // = this.proxy;
       let connect: Connect | undefined;
 
@@ -129,8 +130,8 @@ export default class ConnectFactor extends EventEmitter {
       }
 
       //connect.proxy = proxy;
-      //console.info("===>ccc")
-      connect.connect(host, port, proxy, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
+      console.info("===>connect", connect.protocol);
+      connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
          if (err) {
             if (err instanceof Error) {
                localSocket.destroy(err);
@@ -188,7 +189,7 @@ export default class ConnectFactor extends EventEmitter {
     * 检测目标代理是否正常
     * @param proxy
     */
-   public async checkProxy(proxy: Proxy): Promise<boolean> {
+   /*   public async checkProxy(proxy: Proxy): Promise<boolean> {
       let connect = this.connects.get(proxy.protocol);
 
       return new Promise((resolve) => {
@@ -198,7 +199,7 @@ export default class ConnectFactor extends EventEmitter {
          });
          //connect.on()
       });
-   }
+   } */
 }
 
 function getDomainFromBytes(chunk: Buffer): string {

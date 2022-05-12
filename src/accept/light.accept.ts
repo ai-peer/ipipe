@@ -53,6 +53,7 @@ export default class LightAccept extends Accept {
       //======= step3 下发动态密钥 start
       let dynamicSecret = generateRandomPassword(false);
       let cipherTransport = Cipher.createCipher(dynamicSecret);
+      let ssocket = new SSocket(socket, cipherTransport, face);
       let dynamicSecret1 = dynamicSecret instanceof Buffer ? dynamicSecret : Buffer.from(dynamicSecret);
       let step3Res: Buffer = Buffer.concat([Buffer.from([0x01, 0x00]), dynamicSecret1]);
       await this.write(socket, cipherAccept.encode(step3Res, face));
@@ -68,7 +69,6 @@ export default class LightAccept extends Accept {
          return;
       }
       //======= step4 获取目标服务信息 end
-      let ssocket = new SSocket(socket, cipherTransport, face);
       //通知成功
       //await this.write(socket, cipherTransport.encode(Buffer.from([0x01, 0x00]), face)); //返回告诉
       await ssocket.write(Buffer.from([0x01, 0x00]));
@@ -80,13 +80,13 @@ export default class LightAccept extends Accept {
       this.connect(
          host,
          port,
-         socket,
+         ssocket,
          sendData,
          user,
-         transform((chunk, encoding, callback) => {
+         /*  transform((chunk, encoding, callback) => {
             chunk = cipherTransport.decode(chunk, face);
             callback(null, chunk);
-         }),
+         }), */
       );
    }
    /**

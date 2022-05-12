@@ -17,6 +17,7 @@ describe("测试IPipe", async function () {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "http" });
          let info = await com.requestByHttp(nproxy);
+         console.info("info===", info.length, info && info.length > 1);
          assert.ok(info && info.length > 1, "http res is null");
          //console.info("===http receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
@@ -28,10 +29,11 @@ describe("测试IPipe", async function () {
          //let nproxy = {protocol: "socks5", host: "127.0.0.1", port: 9150, single: 129};
          let info = await com.requestBySocks5(nproxy);
          assert.ok(info && info.length > 1, "socks5 res is null");
-        // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
+         // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
    });
+
    it("测试light是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "light" });
@@ -42,7 +44,7 @@ describe("测试IPipe", async function () {
       });
    });
    await wait(5000);
-   testServer?.close();
+   //testServer?.close();
 });
 
 async function wait(ttl) {

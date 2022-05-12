@@ -2,6 +2,7 @@ import net from "net";
 import Connect, { Callback } from "./connect";
 import assert from "assert";
 import { Proxy } from "..//types";
+import SSocket from "../core/ssocket";
 
 /**
  * http代理连接
@@ -19,9 +20,10 @@ export default class HttpConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
-         let socket = net.connect(proxy.port, proxy.host, async () => {
+         let socket0 = net.connect(proxy.port, proxy.host, async () => {
+            let socket = new SSocket(socket0);
             let usePassword = !!proxy.username && !!proxy.password;
             let up = (proxy.username || "").trim() + ":" + (proxy.password || "").trim();
             up = Buffer.from(up).toString("base64");
@@ -33,12 +35,14 @@ export default class HttpConnect extends Connect {
                Buffer.from(usePassword ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                Buffer.from("\r\n"),
             ]);
-            await this.write(socket, sendChunk);
-            let receiveChunk = await this.read(socket);
+            //await this.write(socket, sendChunk);
+            await socket.write(sendChunk);
+            //let receiveChunk = await this.read(socket, 500);
+            let receiveChunk = await socket.read(5 * 1000);
             let statusCode = receiveChunk.toString().split(" ")[1];
             if (usePassword) {
                let checked = statusCode != "407";
-               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               this.emit("auth", { checked: checked, socket: socket0, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
                if (!checked) {
                   callback(receiveChunk, socket);
                   resolve(socket);
@@ -55,10 +59,10 @@ export default class HttpConnect extends Connect {
             callback(undefined, socket);
             resolve(socket);
          });
-         socket.setTimeout(15000);
-         socket.on("error", (err) => {
-            socket.destroy(err);
-            callback(err, socket);
+         socket0.setTimeout(15000);
+         socket0.on("error", (err) => {
+            socket0.destroy(err);
+            callback(err, new SSocket(socket0));
          });
       });
    }

@@ -3,6 +3,7 @@ import net from "net";
 import { parseSocks5IpPort, isIpv4, isIpv6, isDomain, validSocks5Target } from "../core/geoip";
 import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
+import SSocket from "../core/ssocket";
 
 /**
  * socks5协议接入类
@@ -18,6 +19,7 @@ export default class Socks5Accept extends Accept {
       return res;
    }
    public async handle(socket: net.Socket, chunk: Buffer) {
+      let ssocket = new SSocket(socket);
       /** 解析首次 socks5 请求协议获取反馈和主机信息 start */
       //let options = this.options;
       let isAuth = chunk[2] == 2 || !!this.acceptAuth;
@@ -73,7 +75,7 @@ export default class Socks5Accept extends Accept {
 
       /** 解析首次 socks5 请求协议获取反馈和主机信息 end */
 
-      this.connect(host, port, socket, sendData, user);
+      this.connect(host, port, ssocket, sendData, user);
    }
 
    private isSocks5(buffer: Buffer): boolean {

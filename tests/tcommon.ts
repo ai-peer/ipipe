@@ -10,14 +10,14 @@ import Stream from "../src/core/stream";
 import { Transform } from "stream";
 import transform from "../src/core/transform";
 import * as password from "../src/core/password";
-
+import SSocket from "../src/core/ssocket";
 const tstream = new Stream();
 const nsecret = password.generateRandomPassword();
 console.info("nsecret", nsecret);
 
 export async function createProxyServer(port: number = 4321) {
    let dport = 8989;
-   let targetProxy = new IPipe({
+   let directProxy = new IPipe({
       isDirect: true,
       /*  auth: async (username, password) => {
          //console.info("check user", username, password);
@@ -25,33 +25,33 @@ export async function createProxyServer(port: number = 4321) {
          return true;
       }, */
    });
-   let server: any = await targetProxy.createAcceptServer(dport);
-   targetProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
-   targetProxy.acceptFactor.on("accept", (socket, data) => {
+   let server: any = await directProxy.createAcceptServer(dport);
+   directProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
+   directProxy.acceptFactor.on("accept", (socket, data) => {
       console.info("=======targetProxy===>accept0", socket.remotePort, data);
    });
-   console.info("server=====", server.address(), dport);
+   console.info("directProxy=====", server.address(), dport);
 
    let relayProxy = new IPipe({
       isDirect: false,
       auth: async (username, password) => {
          //console.info("check user", username, password);
-         console.info("relayProxy accept check====", username, password);
+         console.info("relayProxy accept auth====", username, password);
          return username == "admin" && password == "123";
       },
    });
    relayProxy.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
    relayProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
    relayProxy.acceptFactor.on("accept", (socket, data) => {
-      console.info("=======relayProxy===>accept1", socket.remotePort, data);
+      //console.info("=======relayProxy===>accept1", socket.remotePort, data);
    });
    relayProxy.acceptFactor.on("auth", (a) => {
       console.info("relayProxy==>auth", a.checked, a.session, a.username, a.password);
    });
    let server1: any = await relayProxy.createAcceptServer(port);
-   console.info("server=====1", port, server1.address());
+   console.info("relayProxy=====", port, server1.address());
 
-   return targetProxy;
+   return directProxy;
 }
 
 export function createHttpRequest(): string {
@@ -69,8 +69,8 @@ export function createHttpRequest(): string {
 export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new HttpConnect();
-      console.info("proxy", proxy);
-      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
+      //console.info("proxy", proxy);
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
@@ -81,12 +81,21 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
             return;
          }
          let req = createHttpRequest();
-      
-         await tstream.write(socket, req);
-         let chunk = await tstream.read(socket);
-         console.info("http=========receive\r\n", chunk.toString().slice(0, 256));
+
+         //await tstream.write(socket, req);
+         //let chunk = await tstream.read(socket);
+         await socket.write(Buffer.from(req));
+         let resList:Buffer[] = [];
+         while (true) {
+            if (socket.destroyed) break;
+            let chunk = await socket.read(1300);
+            resList.push(chunk);
+         }
+         let resChunk = Buffer.concat(resList);
+         console.info("http=========receive\r\n", resChunk.length,resChunk.slice(resChunk.length - 16).toString(), "<<");
+
          socket.destroy();
-         resolve(chunk);
+         resolve(resChunk);
       });
       connect.on("auth", (data) => {
          console.info("http auth===>", data.checked, data.username, data.password, data.args);
@@ -96,7 +105,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
 export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new Socks5Connect();
-      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
@@ -107,11 +116,19 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
             return;
          }
          let req = createHttpRequest();
-         await tstream.write(socket, req);
-         let chunk = await tstream.read(socket);
-         console.info("socks5=========receive\r\n", chunk.toString().slice(0, 256));
+         //await tstream.write(socket, req);
+         //let chunk = await tstream.read(socket);
+         await socket.write(Buffer.from(req));
+         let resList:Buffer[] = [];
+         while (true) {
+            if (socket.destroyed) break;
+            let chunk = await socket.read(500);
+            resList.push(chunk);
+         }
+         let resChunk = Buffer.concat(resList);
+         console.info("socks5=========receive\r\n", resChunk.length, resChunk.slice(resChunk.length - 16).toString(), "<<");
          socket.destroy();
-         resolve(chunk);
+         resolve(resChunk);
       });
       connect.on("auth", (data) => {
          console.info("socks5 auth===>", data.checked, data.username, data.password, data.args);
@@ -119,12 +136,13 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
    });
 }
 export async function requestByLight(proxy: Proxy): Promise<Buffer> {
+   console.info("requestByLight proxy", proxy);
    return new Promise((resolve) => {
       let connect = new LightConnect();
       proxy.secret = nsecret;
       let req = createHttpRequest();
-      
-      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
+
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          if (err) {
             if (err instanceof Error) {
                resolve(Buffer.from(err.message));
@@ -133,14 +151,21 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
             }
             return;
          }
-         console.info("light connect ok");
+         console.info("light connect ok", !!socket.cipher);
          console.info("light req===", req.toString());
-         await tstream.write(socket, req);
-         //connect.pipe(localSocket, socket, Buffer.from(req), inputTransform);
-         let chunk = await tstream.read(socket);
-         console.info("light=========receive\r\n", chunk.toString().slice(0, 256));
+         //await tstream.write(socket, req);
+         //let chunk = await tstream.read(socket);
+         await socket.write(Buffer.from(req));
+         let resList:Buffer[] = [];
+         while (true) {
+            if (socket.destroyed) break;
+            let chunk = await socket.read(500);
+            resList.push(chunk);
+         }
+         let resChunk = Buffer.concat(resList);
+         console.info("light=========receive\r\n", resChunk.length, resChunk.slice(resChunk.length - 16).toString(), "<<");
          socket.destroy();
-         resolve(chunk);
+         resolve(resChunk);
       });
       connect.on("auth", (data) => {
          console.info("light connect auth===>", data.checked, data.username, data.password, data.args);

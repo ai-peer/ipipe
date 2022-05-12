@@ -139,6 +139,7 @@ export default class AcceptFactor extends EventEmitter {
          if (isAccept) {
             //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol}`);
             try {
+               console.info("====accept", accept.protocol);
                this.emit("accept", socket, { protocol: accept.protocol });
                socket.on("close", () => this.emit("close", socket));
                accept.handle(socket, chunk).catch((err) => {

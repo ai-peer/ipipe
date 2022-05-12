@@ -3,6 +3,7 @@ import Connect, { Callback } from "./connect";
 import assert from "assert";
 import { Socks5 } from "../core/protocol";
 import { Proxy } from "../types";
+import ISocket from "../core/ssocket";
 
 /**
  * 走socks5代理连接
@@ -20,9 +21,10 @@ export default class Socks5Connect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<ISocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
+            let ssocket = new ISocket(socket);
             /**     socks5协议连接 start      */
             let usePassword = !!proxy.username && !!proxy.password;
             let sendChunk = Buffer.from([0x05, 0x01, usePassword ? 0x02 : 0x00]); //0X01
@@ -48,8 +50,8 @@ export default class Socks5Connect extends Connect {
                let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
                this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
                if (!checked) {
-                  callback(chunkReceive, socket);
-                  resolve(socket);
+                  callback(chunkReceive, ssocket);
+                  resolve(ssocket);
                   return;
                }
             } else {
@@ -64,12 +66,12 @@ export default class Socks5Connect extends Connect {
             /**     socks5协议连接 end      */
 
             //准备连接协议
-            callback(undefined, socket);
-            resolve(socket);
+            callback(undefined, ssocket);
+            resolve(ssocket);
          });
          socket.on("error", (err) => {
             socket.destroy(err);
-            callback(err, socket);
+            callback(err, new ISocket(socket));
          });
       });
    }

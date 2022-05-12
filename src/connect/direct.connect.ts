@@ -1,6 +1,7 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
 import { Proxy } from "../types";
+import SSocket from "../core/ssocket";
 
 /**
  * 直接连接
@@ -18,15 +19,16 @@ export default class DirectConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(port, host, () => {
-            callback(undefined, socket);
-            resolve(socket);
+            let ssocket = new SSocket(socket);
+            callback(undefined, ssocket);
+            resolve(ssocket);
          });
          socket.on("error", (err) => {
             socket.destroy(err);
-            callback(err, socket);
+            callback(err, new SSocket(socket));
          });
       });
    }

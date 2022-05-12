@@ -1,6 +1,7 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
 import { Proxy } from "../types";
+import SSocket from "../core/ssocket";
 
 /**
  * 透过中转服务转发连接http代理连接
@@ -18,9 +19,10 @@ export default class ForwardHttpConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.forwardPort || 0, proxy.forwardHost, async () => {
+            let ssocket = new SSocket(socket);
             let isAuth = !!proxy.username && !!proxy.password;
             let up = proxy.username + ":" + proxy.password;
             up = Buffer.from(up).toString("base64");
@@ -37,8 +39,8 @@ export default class ForwardHttpConnect extends Connect {
             let statusCode = receiveChunk.toString().split(" ")[1];
             if (statusCode != "200") {
                socket.destroy(new Error(receiveChunk.toString()));
-               callback(undefined, socket);
-               resolve(socket);
+               callback(undefined, ssocket);
+               resolve(ssocket);
                return;
             }
 
@@ -59,12 +61,12 @@ export default class ForwardHttpConnect extends Connect {
                socket.destroy(new Error(receiveChunk.toString()));
             }
 
-            callback(undefined, socket);
-            resolve(socket);
+            callback(undefined, ssocket);
+            resolve(ssocket);
          });
          socket.on("error", (err) => {
             socket.destroy(err);
-            callback(err, socket);
+            callback(err, new SSocket(socket));
          });
       });
    }

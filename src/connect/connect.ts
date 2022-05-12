@@ -5,8 +5,9 @@ import { Proxy, ConnectOptions } from "../types";
 import Stream from "../core/stream";
 import transform from "../core/transform";
 import { Transform } from "stream";
+import SSocket from "../core/ssocket";
 
-export type Callback = (error: Error | Buffer | undefined, socket: net.Socket) => void;
+export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => void;
 
 /**
  * 连接远程代理服务器的抽象类
@@ -30,10 +31,12 @@ export default abstract class Connect extends Stream {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public abstract connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket>;
+   public abstract connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket>;
 
-   public pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
-      inputTransform =
+   public pipe(sourceSocket: SSocket, targetSocket: SSocket, chunk: Buffer, inputTransform?: Transform) {
+      sourceSocket.pipe(targetSocket).pipe(sourceSocket);
+      targetSocket.write(chunk);
+      /*  inputTransform =
          inputTransform ||
          transform((chunk, encoding, callback) => {
             callback(null, chunk);
@@ -54,6 +57,6 @@ export default abstract class Connect extends Stream {
             }),
          )
          .pipe(sourceSocket);
-      targetSocket.write(chunk);
+      targetSocket.write(chunk); */
    }
 }
