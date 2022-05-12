@@ -14,8 +14,6 @@ export type Callback = (error: Error | Buffer | undefined, socket: net.Socket) =
 export default abstract class Connect extends Stream {
    /** 协议 */
    public protocol: string;
-   /** 代理服务器信息 */
-   public proxy: Proxy;
    protected options: ConnectOptions;
    constructor(options: ConnectOptions) {
       super();
@@ -29,9 +27,10 @@ export default abstract class Connect extends Stream {
     * 连接远程代理主机
     * @param host 目标主机ip或域名
     * @param port 目标主机端口
+    * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public abstract connect(host: string, port: number, callback: Callback): Promise<net.Socket>;
+   public abstract connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket>;
 
    public pipe(sourceSocket: net.Socket, targetSocket: net.Socket, chunk: Buffer, inputTransform?: Transform) {
       inputTransform =

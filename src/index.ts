@@ -117,4 +117,5 @@ export default class IPipe extends EventEmitter {
       this.connectFactor.registerDirectDomain(domain);
       return this;
    }
+   async checkProxy(proxy: Proxy) {}
 }

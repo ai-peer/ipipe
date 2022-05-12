@@ -49,6 +49,8 @@ export interface Proxy {
    forwardHost?: string;
    /** 转发主机端口 */
    forwardPort?: number;
+   /** 代理密钥 */
+   secret?: string | Buffer;
 }
 
 /**

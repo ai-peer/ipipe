@@ -1,5 +1,6 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
+import { Proxy } from "../types";
 
 /**
  * 透过中转服务转发连接http代理连接
@@ -10,11 +11,15 @@ export default class ForwardHttpConnect extends Connect {
          protocol: "forward.http",
       });
    }
-
-   public async connect(host: string, port: number, callback: Callback): Promise<net.Socket> {
+   /**
+    * 连接远程代理主机
+    * @param host 目标主机ip或域名
+    * @param port 目标主机端口
+    * @param proxy 代理服务器信息
+    * @param callback 连接成功后的回调方法
+    */
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
       return new Promise((resolve, reject) => {
-         let proxy = this.proxy;
-
          let socket = net.connect(proxy.forwardPort || 0, proxy.forwardHost, async () => {
             let isAuth = !!proxy.username && !!proxy.password;
             let up = proxy.username + ":" + proxy.password;

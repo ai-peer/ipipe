@@ -69,8 +69,7 @@ export function createHttpRequest(): string {
 export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new HttpConnect();
-      connect.proxy = proxy;
-      connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
@@ -83,7 +82,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         console.info("=========receive\r\n", chunk.toString());
+         console.info("http=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
       });
@@ -95,8 +94,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
 export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new Socks5Connect();
-      connect.proxy = proxy;
-      connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
@@ -109,7 +107,7 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
-         //console.info("=========receive\r\n", chunk.toString());
+         console.info("socks5=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
       });
@@ -122,8 +120,8 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       
       let connect = new LightConnect({secret: nsecret});
-      connect.proxy = proxy;
-      connect.connect(proxy.host, proxy.port, async (err, socket: net.Socket) => {
+      proxy.secret = nsecret;
+      connect.connect("www.gov.cn", 80, proxy, async (err, socket: net.Socket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
             if (err instanceof Error) {
@@ -136,6 +134,7 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
          let req = createHttpRequest();
          await tstream.write(socket, req);
          let chunk = await tstream.read(socket);
+         console.info("light=========receive\r\n", chunk.toString());
          socket.destroy();
          resolve(chunk);
       });

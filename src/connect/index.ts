@@ -43,8 +43,13 @@ export default class ConnectFactor extends EventEmitter {
       let socks5Connect = new Socks5Connect();
       let directConnect = new DirectConnect();
       let forwardHttpProxyConnect = new ForwardHttpConnect();
+      let lightConnect = new LightConnect();
 
-      this.register(httpConnect).register(socks5Connect).register(directConnect).register(forwardHttpProxyConnect);
+      this.register(httpConnect) //
+         .register(socks5Connect) //
+         .register(directConnect)
+         .register(forwardHttpProxyConnect)
+         .register(lightConnect);
    }
    /**
     * 注册连接方式
@@ -123,9 +128,9 @@ export default class ConnectFactor extends EventEmitter {
          assert.ok(connect, "no handle protocol " + proxy.protocol);
       }
 
-      connect.proxy = proxy;
+      //connect.proxy = proxy;
       //console.info("===>ccc")
-      connect.connect(host, port, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
+      connect.connect(host, port, proxy, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
          if (err) {
             if (err instanceof Error) {
                localSocket.destroy(err);
@@ -178,6 +183,21 @@ export default class ConnectFactor extends EventEmitter {
       if (this.directConnectDomains.includes(domain)) return;
       log.log("===>registerDirectDomain", domain);
       this.directConnectDomains.push(domain);
+   }
+   /**
+    * 检测目标代理是否正常
+    * @param proxy
+    */
+   public async checkProxy(proxy: Proxy): Promise<boolean> {
+      let connect = this.connects.get(proxy.protocol);
+
+      return new Promise((resolve) => {
+         if (!connect) return resolve(false);
+         connect.connect(proxy.host, proxy.port, proxy, (err, proxySocket: net.Socket, recChunk?: Buffer) => {
+            resolve(true);
+         });
+         //connect.on()
+      });
    }
 }
 

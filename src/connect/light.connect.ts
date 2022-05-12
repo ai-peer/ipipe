@@ -1,6 +1,6 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
-import { ConnectOptions, DefaultSecret } from "../types";
+import { ConnectOptions, DefaultSecret, Proxy } from "../types";
 import Cipher from "../core/cipher";
 import { int2Bit } from "../utils";
 import assert from "assert";
@@ -20,11 +20,20 @@ export default class LightConnect extends Connect {
       });
    }
 
-   public async connect(host: string, port: number, callback: Callback): Promise<net.Socket> {
-      let secret = this.options.secret || DefaultSecret;
+   public registerSecret(secret: string | Buffer) {
+      if (secret) this.options.secret = secret;
+   }
+   /**
+    * 连接远程代理主机
+    * @param host 目标主机ip或域名
+    * @param port 目标主机端口
+    * @param proxy 代理服务器信息
+    * @param callback 连接成功后的回调方法
+    */
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<net.Socket> {
+      let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
-         let proxy = this.proxy;
          let socket = net.connect(proxy.port, proxy.host, async () => {
             //====step1 connect
             let versions: number[] = int2Bit(cipherConnect.buildVersion(3), 3);
