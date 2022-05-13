@@ -1,3 +1,5 @@
+import SSocket from "./core/ssocket";
+
 import Accept from "./accept/accept";
 import LightAccept from "./accept/light.accept";
 import Socks5Accept from "./accept/socks5.accept";
@@ -22,6 +24,7 @@ export const Event = {
 };
 
 export {
+   SSocket,
    Accept,
    Connect,
    LightAccept,
@@ -64,8 +67,8 @@ export default class IPipe extends EventEmitter {
 
       this.acceptFactor.on("read", (data) => this.emit(Event.in, data));
       this.acceptFactor.on("write", (data) => this.emit(Event.out, data));
-      this.connectFactor.on("read", (data) => this.emit(Event.in, data));
-      this.connectFactor.on("write", (data) => this.emit(Event.out, data));
+      //this.connectFactor.on("read", (data) => this.emit(Event.in, data));
+      //this.connectFactor.on("write", (data) => this.emit(Event.out, data));
    }
    close() {
       this.acceptFactor?.close();

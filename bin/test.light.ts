@@ -2,10 +2,7 @@ import { Command } from "commander";
 import IPipe from "../src";
 import LightAccept from "../src/accept/light.accept";
 import LightConnect from "../src/connect/light.connect";
-import Stream from "../src/core/stream";
-import net from "net";
-
-const tstream = new Stream();
+import SSocket from "../src/core/ssocket";
 
 const program = new Command();
 let appParams: any = program //
@@ -36,7 +33,9 @@ async function createClient() {
       username: "admin",
       password: "123",
    }; */
-
+   connect.on("auth", (data) => {
+      console.info("auth", data.checked);
+   });
    connect.connect(
       "ip-api.com",
       80,
@@ -47,7 +46,7 @@ async function createClient() {
          username: "admin",
          password: "123",
       },
-      async (err, socket: net.Socket) => {
+      async (err, socket: SSocket) => {
          console.info("sss===connect");
          let list: string[] = [
             "GET http://ip-api.com/json HTTP/1.1",
@@ -57,9 +56,12 @@ async function createClient() {
             "Connection: close",
             "\r\n",
          ];
-         await tstream.write(socket, list.join("\r\n"));
-         let chunk = await tstream.read(socket);
-         console.info("chunk", chunk.toString());
+         //await tstream.write(socket, list.join("\r\n"));
+         await socket.write(list.join("\r\n"));
+         //let chunk = await tstream.read(socket);
+         let chunk = await socket.read();
+         console.info("chunk", chunk.length, [...chunk], chunk.toString());
+         console.info("end===");
          socket.destroy();
       },
    );

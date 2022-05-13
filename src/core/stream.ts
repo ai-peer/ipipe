@@ -7,7 +7,7 @@ export default class Stream extends EventEmitter {
    public protocol: string;
    constructor() {
       super();
-      this.setMaxListeners(22);
+      this.setMaxListeners(99);
    }
    /**
     * 往网络里写数据
@@ -59,6 +59,12 @@ export default class Stream extends EventEmitter {
                resolve(Buffer.alloc(0));
             }, ttl);
          }
+         socket.on("close", () => {
+            if (isRead) return;
+            isRead = true;
+            pid && clearTimeout(pid);
+            resolve(Buffer.alloc(0));
+         });
          socket.once("data", (chunk: Buffer) => {
             if (isRead) return;
             isRead = true;

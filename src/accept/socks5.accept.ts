@@ -54,12 +54,8 @@ export default class Socks5Accept extends Accept {
             return;
          }
          await this.write(socket, Buffer.from([0x01, 0x00]));
-         this.emit("read", { socket: socket, size: chunk.length + userChunk.length });
-         this.emit("write", { socket: socket, size: 2 + 2 });
       } else {
          this.sessions.add(socket);
-         this.emit("read", { socket: socket, size: chunk.length });
-         this.emit("write", { socket: socket, size: 2 });
       }
 
       let targetInfoBuffer = await _this.read(socket); //读取将要建立连接的目标服务,

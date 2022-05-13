@@ -129,8 +129,6 @@ export default class ConnectFactor extends EventEmitter {
          assert.ok(connect, "no handle protocol " + proxy.protocol);
       }
 
-      //connect.proxy = proxy;
-      console.info("===>connect", connect.protocol);
       connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
          if (err) {
             if (err instanceof Error) {

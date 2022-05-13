@@ -29,12 +29,10 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return;
-      //let isAuth = !!headers["proxy-authorization"];// && !!this.acceptAuth;
+      let user: ConnectUser | undefined = this.getUser(headers["proxy-authorization"]);
       let isAuth = !!this.acceptAuth;
-      let user: ConnectUser | undefined;
       // 需要鉴权
       if (isAuth) {
-         user = this.getUser(headers["proxy-authorization"]);
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
          this.sessions.add(socket, user.username);
@@ -47,7 +45,7 @@ export default class HttpAccept extends Accept {
          }
          //user =
       } else {
-         this.sessions.add(socket);
+         this.sessions.add(socket, user?.username);
       }
 
       //console.info("req headers", str, isAuth, /^CONNECT/i.test(str));

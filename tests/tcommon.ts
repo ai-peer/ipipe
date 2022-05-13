@@ -157,6 +157,7 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
       connect.on("read", (data) => {
          totalSize += data.size;
       });
+
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          if (err) {
             if (err instanceof Error) {

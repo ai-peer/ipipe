@@ -17,9 +17,13 @@ export default class SSocket {
       this.socket = socket;
       this.cipher = cipher;
       this.face = face;
+      socket.setMaxListeners(99);
    }
    set protocol(protocol: string) {
       this.stream.protocol = protocol;
+   }
+   get protocol() {
+      return this.stream.protocol;
    }
    get remoteAddress(): string {
       return this.socket.remoteAddress || "";
@@ -32,24 +36,26 @@ export default class SSocket {
    }
    on(name: string, listener: (...args: any[]) => void) {
       if (name == "read") {
-         this.stream.on(name, listener);
+         this.socket.on("data", (chunk) => {
+            listener({ size: chunk.byteLength, socket: this.socket, protocol: this.protocol || "" });
+         });
       } else if (name == "write") {
          this.stream.on(name, listener);
       } else {
          this.socket.on(name, listener);
       }
    }
-   async write(chunk: Buffer): Promise<void> {
+   async write(chunk: Buffer | string): Promise<void> {
       //console.info("write1",!!this.cipher, [...chunk], chunk.toString());
       if (this.cipher) {
-         chunk = this.cipher.encode(chunk, this.face);
+         chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       }
       //console.info("write2",!!this.cipher, [...chunk], chunk.toString());
       await this.stream.write(this.socket, chunk);
    }
-   async end(chunk: Buffer): Promise<void> {
+   async end(chunk: Buffer | string): Promise<void> {
       if (this.cipher) {
-         chunk = this.cipher.encode(chunk, this.face);
+         chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       }
       await this.stream.end(this.socket, chunk);
    }
