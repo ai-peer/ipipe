@@ -20,24 +20,24 @@ console.info("proxyList", proxyList); */
    //创建代理测试服务器
    let relayProxy = new IPipe({
       isDirect: true,
-    /*   auth: async (username, password) => {
+      /*   auth: async (username, password) => {
          return username == "admin" && password == "123456";
       },  */
    });
    relayProxy.createAcceptServer(proxy.port);
-   relayProxy.on("in", (data) => {
+/*    relayProxy.on("in", (data) => {
       console.info("in", data);
    });
    relayProxy.on("out", (data) => {
       console.info("out", data);
    });
-
+ */
    let acceptProxy = new IPipe({
-      /*      auth: async (username, password) => {
-         console.info("auth accept proxy", username);
+      auth: async (username, password) => {
+         console.info("auth accept proxy", username, password);
          // return username == "admin" && password == "123456";
          return true;
-      }, */
+      },
    });
 
    let acceptServer = await acceptProxy.createAcceptServer(4321);

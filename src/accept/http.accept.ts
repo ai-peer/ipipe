@@ -1,5 +1,5 @@
 import Accept from "./accept";
-import net from "net";
+import net, { SocketAddress } from "net";
 import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
 import SSocket from "../core/ssocket";
@@ -58,7 +58,6 @@ export default class HttpAccept extends Accept {
          firstChunk = await ssocket.read(500);
       }
       /** 解析首次http请求协议获取反馈和主机信息 end */
-
       this.connect(host, port, ssocket, firstChunk, user);
    }
    private getUser(authorization: string): ConnectUser {

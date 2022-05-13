@@ -113,6 +113,13 @@ export default class IPipe extends EventEmitter {
       return this;
    }
    /**
+    * 获取所有代理列表
+    */
+   getProxys(): Proxy[] {
+      return this.connectFactor.proxys;
+   }
+
+   /**
     * 注册直接连接的域名, 无需走代理
     * @param domain
     */

@@ -64,9 +64,9 @@ export default abstract class Accept extends Stream {
     * @param chunk 首次请求的原始数据
     * @param inputTransform 输入流解码
     */
-   protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, transform?: Transform) {
+   protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       try {
-         this.connectFactor.pipe(host, port, localSocket, chunk, user, transform).catch((err) => {
+         this.connectFactor.pipe(host, port, localSocket, chunk, user).catch((err) => {
             //console.info("[ERROR] connect", err.message);
             localSocket.destroy(err);
          });

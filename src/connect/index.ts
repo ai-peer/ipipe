@@ -32,7 +32,7 @@ export default class ConnectFactor extends EventEmitter {
    private connects: Map<string, Connect> = new Map();
    private options: ConnectOptions;
    /** 代理服务器信息 */
-   private proxys: Proxy[] = [];
+   public proxys: Proxy[] = [];
    constructor(options?: ConnectOptions) {
       super();
       this.setMaxListeners(99);
@@ -95,7 +95,13 @@ export default class ConnectFactor extends EventEmitter {
    public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
       let proxy: Proxy = this.proxys[0]; // = this.proxy;
       let connect: Connect | undefined;
-
+      if (!user || !user.username) {
+         user = {
+            username: "ip-" + localSocket.remoteAddress,
+            password: "",
+            args: [],
+         };
+      }
       if (user) {
          let idx = hashId(user) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
