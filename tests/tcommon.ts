@@ -27,9 +27,9 @@ export async function createProxyServer(port: number = 4321) {
    });
    let server: any = await directProxy.createAcceptServer(dport);
    directProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
-   directProxy.acceptFactor.on("accept", (socket, data) => {
+   /*    directProxy.acceptFactor.on("accept", (socket, data) => {
       console.info("=======targetProxy===>accept0", socket.remotePort, data);
-   });
+   }); */
    console.info("directProxy=====", server.address(), dport);
 
    let relayProxy = new IPipe({
@@ -50,7 +50,12 @@ export async function createProxyServer(port: number = 4321) {
    });
    let server1: any = await relayProxy.createAcceptServer(port);
    console.info("relayProxy=====", port, server1.address());
-
+   relayProxy.on("in", (data) => {
+      console.info("in", data);
+   });
+   relayProxy.on("out", (data) => {
+      console.info("out", data);
+   });
    return directProxy;
 }
 
@@ -70,6 +75,10 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new HttpConnect();
       //console.info("proxy", proxy);
+      let totalSize = 0;
+      connect.on("read", (data) => {
+         totalSize += data.size;
+      });
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
@@ -85,14 +94,14 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
          //await tstream.write(socket, req);
          //let chunk = await tstream.read(socket);
          await socket.write(Buffer.from(req));
-         let resList:Buffer[] = [];
+         let resList: Buffer[] = [];
          while (true) {
             if (socket.destroyed) break;
             let chunk = await socket.read(1300);
             resList.push(chunk);
          }
          let resChunk = Buffer.concat(resList);
-         console.info("http=========receive\r\n", resChunk.length,resChunk.slice(resChunk.length - 16).toString(), "<<");
+         console.info("http=========receive\r\n", totalSize, resChunk.length, resChunk.slice(0, 128).toString(), "<<");
 
          socket.destroy();
          resolve(resChunk);
@@ -105,6 +114,10 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
 export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
    return new Promise((resolve) => {
       let connect = new Socks5Connect();
+      let totalSize = 0;
+      connect.on("read", (data) => {
+         totalSize += data.size;
+      });
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          //console.info("=========request http\r\n", proxy.host, proxy.port);
          if (err) {
@@ -119,14 +132,14 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
          //await tstream.write(socket, req);
          //let chunk = await tstream.read(socket);
          await socket.write(Buffer.from(req));
-         let resList:Buffer[] = [];
+         let resList: Buffer[] = [];
          while (true) {
             if (socket.destroyed) break;
             let chunk = await socket.read(500);
             resList.push(chunk);
          }
          let resChunk = Buffer.concat(resList);
-         console.info("socks5=========receive\r\n", resChunk.length, resChunk.slice(resChunk.length - 16).toString(), "<<");
+         console.info("socks5=========receive\r\n",totalSize, resChunk.length, resChunk.slice(0, 128).toString(), "<<");
          socket.destroy();
          resolve(resChunk);
       });
@@ -136,12 +149,14 @@ export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
    });
 }
 export async function requestByLight(proxy: Proxy): Promise<Buffer> {
-   console.info("requestByLight proxy", proxy);
    return new Promise((resolve) => {
       let connect = new LightConnect();
       proxy.secret = nsecret;
       let req = createHttpRequest();
-
+      let totalSize = 0;
+      connect.on("read", (data) => {
+         totalSize += data.size;
+      });
       connect.connect("www.gov.cn", 80, proxy, async (err, socket: SSocket) => {
          if (err) {
             if (err instanceof Error) {
@@ -156,14 +171,14 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
          //await tstream.write(socket, req);
          //let chunk = await tstream.read(socket);
          await socket.write(Buffer.from(req));
-         let resList:Buffer[] = [];
+         let resList: Buffer[] = [];
          while (true) {
             if (socket.destroyed) break;
             let chunk = await socket.read(500);
             resList.push(chunk);
          }
          let resChunk = Buffer.concat(resList);
-         console.info("light=========receive\r\n", resChunk.length, resChunk.slice(resChunk.length - 16).toString(), "<<");
+         console.info("light=========receive\r\n", totalSize, resChunk.length, resChunk.slice(0, 128).toString(), "<<");
          socket.destroy();
          resolve(resChunk);
       });

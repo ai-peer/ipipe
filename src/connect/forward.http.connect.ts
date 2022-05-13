@@ -23,6 +23,9 @@ export default class ForwardHttpConnect extends Connect {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.forwardPort || 0, proxy.forwardHost, async () => {
             let ssocket = new SSocket(socket);
+            ssocket.protocol = this.protocol;
+            ssocket.on("read", (data) => this.emit("read", data));
+            ssocket.on("write", (data) => this.emit("write", data));
             let isAuth = !!proxy.username && !!proxy.password;
             let up = proxy.username + ":" + proxy.password;
             up = Buffer.from(up).toString("base64");

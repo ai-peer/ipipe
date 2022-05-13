@@ -23,6 +23,9 @@ export default class DirectConnect extends Connect {
       return new Promise((resolve, reject) => {
          let socket = net.connect(port, host, () => {
             let ssocket = new SSocket(socket);
+            ssocket.protocol = this.protocol;
+            ssocket.on("read", (data) => this.emit("read", data));
+            ssocket.on("write", (data) => this.emit("write", data));
             callback(undefined, ssocket);
             resolve(ssocket);
          });

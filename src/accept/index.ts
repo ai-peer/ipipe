@@ -54,13 +54,13 @@ export default class AcceptFactor extends EventEmitter {
       }
 
       accept.registerConnect(this.connectFactor);
-      accept.on("read", ({ size, socket }) => {
+      accept.on("read", ({ size, socket, protocol }) => {
          let session = accept.getSession(socket);
-         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress, protocol });
       });
-      accept.on("write", ({ size, socket }) => {
+      accept.on("write", ({ size, socket, protocol }) => {
          let session = accept.getSession(socket);
-         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
       });
       accept.on("auth", (data) => {
          let session = accept.getSession(data.socket);
@@ -133,6 +133,7 @@ export default class AcceptFactor extends EventEmitter {
       let chunk: Buffer = await this.read(socket);
       let isAccept = false;
       let accepts = this.accepts.values();
+      const byteLength = chunk.byteLength;
       //console.info("s apt ", chunk.toString())
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
@@ -141,7 +142,12 @@ export default class AcceptFactor extends EventEmitter {
             try {
                console.info("====accept", accept.protocol);
                this.emit("accept", socket, { protocol: accept.protocol });
-               socket.on("close", () => this.emit("close", socket));
+               let clientIp = socket.remoteAddress;
+               socket.on("close", () => {
+                  let session = accept.getSession(socket);
+                  session && this.emit("read", { size: byteLength, session, clientIp: clientIp, protocol: accept.protocol });
+                  this.emit("close", socket);
+               });
                accept.handle(socket, chunk).catch((err) => {
                   //logger.info("===>accept handle error", err.message);
                   socket.destroy();

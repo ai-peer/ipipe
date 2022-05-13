@@ -77,7 +77,12 @@ export default class LightConnect extends Connect {
 
             let dynamicSecret = step2Res.slice(2, 258);
             let cipherTransport = Cipher.createCipher(dynamicSecret);
+            //创建加密连接
             let ssocket = new SSocket(socket, cipherTransport, face);
+            ssocket.protocol = this.protocol;
+            ssocket.on("read", (data) => this.emit("read", data));
+            ssocket.on("write", (data) => this.emit("write", data));
+
             let step3Req = Socks5.buildClientInfo(host, port);
             step3Req = cipherTransport.encode(step3Req, face);
             await this.write(socket, step3Req);

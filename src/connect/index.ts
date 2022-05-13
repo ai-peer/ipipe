@@ -62,13 +62,13 @@ export default class ConnectFactor extends EventEmitter {
          exist?.removeAllListeners("read");
          exist?.removeAllListeners("write");
       }
-      connect.on("read", ({ size, socket }) => {
+      connect.on("read", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("read", { size, session, clientIp: socket.remoteAddress });
+         session && this.emit("read", { size, session, clientIp: socket.remoteAddress, protocol });
       });
-      connect.on("write", ({ size, socket }) => {
+      connect.on("write", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
-         session && this.emit("write", { size, session, clientIp: socket.remoteAddress });
+         session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
       });
       connect.on("auth", (data) => {
          let session = sessions.getSession(data.socket);

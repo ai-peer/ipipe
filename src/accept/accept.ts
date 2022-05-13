@@ -12,7 +12,7 @@ import SSocket from "../core/ssocket";
  */
 export default abstract class Accept extends Stream {
    public sessions: Sessions = Sessions.instance;
-   public protocol: string; // "http" | "https" | "socks5" | "direct";
+   //public protocol: string; // "http" | "https" | "socks5" | "direct";
    public connectFactor: ConnectFactor;
    public options: AcceptOptions;
 

@@ -4,9 +4,10 @@ import { EventEmitter } from "events";
 //export type Callback = (length: number) => void;
 
 export default class Stream extends EventEmitter {
+   public protocol: string;
    constructor() {
       super();
-      this.setMaxListeners(99);
+      this.setMaxListeners(22);
    }
    /**
     * 往网络里写数据
@@ -23,7 +24,7 @@ export default class Stream extends EventEmitter {
             if (err) {
                resolve(err);
             } else {
-               this.emit("write", { size: chunk.length, socket: socket });
+               this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
                resolve(undefined);
             }
          });
@@ -36,7 +37,7 @@ export default class Stream extends EventEmitter {
          //setTimeout(() => {
          socket.end(chunk, () => {
             socket.resume();
-            this.emit("write", { size: chunk.length, socket: socket });
+            this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
             resolve(undefined);
          });
          //}, 5);
@@ -62,7 +63,7 @@ export default class Stream extends EventEmitter {
             if (isRead) return;
             isRead = true;
             pid && clearTimeout(pid);
-            this.emit("read", { size: chunk.length, socket: socket });
+            this.emit("read", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
             resolve(chunk);
             //ss?.length > 0 && callback && callback(ss.length);
             //callback && callback(ss?.length || 0);

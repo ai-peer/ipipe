@@ -53,15 +53,21 @@ export default class LightAccept extends Accept {
       //======= step3 下发动态密钥 start
       let dynamicSecret = generateRandomPassword(false);
       let cipherTransport = Cipher.createCipher(dynamicSecret);
-      let ssocket = new SSocket(socket, cipherTransport, face);
+
       let dynamicSecret1 = dynamicSecret instanceof Buffer ? dynamicSecret : Buffer.from(dynamicSecret);
       let step3Res: Buffer = Buffer.concat([Buffer.from([0x01, 0x00]), dynamicSecret1]);
       await this.write(socket, cipherAccept.encode(step3Res, face));
       //======= step3 下发动态密钥 end
 
+      let ssocket = new SSocket(socket, cipherTransport, face);
+      ssocket.protocol = this.protocol;
+      ssocket.on("read", (data) => this.emit("read", data));
+      ssocket.on("write", (data) => this.emit("write", data));
+
       //======= step4 获取目标服务信息 start
-      let step4Req: Buffer = await this.read(socket);
-      step4Req = cipherTransport.decode(step4Req, face);
+      //let step4Req: Buffer = await this.read(socket);
+      //step4Req = cipherTransport.decode(step4Req, face);
+      let step4Req: Buffer = await ssocket.read();
       let { host, port, atyp } = parseSocks5IpPort(step4Req); //读取将要建立连接的目标服务
       let validRes = validSocks5Target(socket, { host, port, atyp });
       if (!validRes) {

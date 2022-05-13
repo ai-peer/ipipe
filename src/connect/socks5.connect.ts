@@ -25,6 +25,9 @@ export default class Socks5Connect extends Connect {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
             let ssocket = new ISocket(socket);
+            ssocket.protocol = this.protocol;
+            ssocket.on("read", (data) => this.emit("read", data));
+            ssocket.on("write", (data) => this.emit("write", data));
             /**     socks5协议连接 start      */
             let usePassword = !!proxy.username && !!proxy.password;
             let sendChunk = Buffer.from([0x05, 0x01, usePassword ? 0x02 : 0x00]); //0X01

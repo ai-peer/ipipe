@@ -4,7 +4,6 @@ import transform from "../core/transform";
 
 import Stream from "./stream";
 
-const stream = new Stream();
 /**
  * 安全连接
  */
@@ -12,10 +11,15 @@ export default class SSocket {
    public socket: net.Socket;
    public cipher: Cipher | undefined;
    private face: number = 99;
+   private stream = new Stream();
+
    constructor(socket: net.Socket, cipher?: Cipher, face: number = 99) {
       this.socket = socket;
       this.cipher = cipher;
       this.face = face;
+   }
+   set protocol(protocol: string) {
+      this.stream.protocol = protocol;
    }
    get remoteAddress(): string {
       return this.socket.remoteAddress || "";
@@ -27,7 +31,13 @@ export default class SSocket {
       this.socket.destroy(err);
    }
    on(name: string, listener: (...args: any[]) => void) {
-      this.socket.on(name, listener);
+      if (name == "read") {
+         this.stream.on(name, listener);
+      } else if (name == "write") {
+         this.stream.on(name, listener);
+      } else {
+         this.socket.on(name, listener);
+      }
    }
    async write(chunk: Buffer): Promise<void> {
       //console.info("write1",!!this.cipher, [...chunk], chunk.toString());
@@ -35,16 +45,16 @@ export default class SSocket {
          chunk = this.cipher.encode(chunk, this.face);
       }
       //console.info("write2",!!this.cipher, [...chunk], chunk.toString());
-      await stream.write(this.socket, chunk);
+      await this.stream.write(this.socket, chunk);
    }
    async end(chunk: Buffer): Promise<void> {
       if (this.cipher) {
          chunk = this.cipher.encode(chunk, this.face);
       }
-      await stream.end(this.socket, chunk);
+      await this.stream.end(this.socket, chunk);
    }
    async read(timeout: number = 0): Promise<Buffer> {
-      let chunk = await stream.read(this.socket, timeout);
+      let chunk = await this.stream.read(this.socket, timeout);
       if (this.cipher) {
          chunk = this.cipher.decode(chunk, this.face);
       }

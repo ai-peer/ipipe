@@ -20,6 +20,9 @@ export default class Socks5Accept extends Accept {
    }
    public async handle(socket: net.Socket, chunk: Buffer) {
       let ssocket = new SSocket(socket);
+      ssocket.protocol = this.protocol;
+      ssocket.on("read", (data) => this.emit("read", data));
+      ssocket.on("write", (data) => this.emit("write", data));
       /** 解析首次 socks5 请求协议获取反馈和主机信息 start */
       //let options = this.options;
       let isAuth = chunk[2] == 2 || !!this.acceptAuth;

@@ -22,8 +22,11 @@ export default class HttpConnect extends Connect {
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
-         let socket0 = net.connect(proxy.port, proxy.host, async () => {
-            let socket = new SSocket(socket0);
+         let socket = net.connect(proxy.port, proxy.host, async () => {
+            let ssocket = new SSocket(socket);
+            ssocket.protocol = this.protocol;
+            ssocket.on("read", (data) => this.emit("read", data));
+            ssocket.on("write", (data) => this.emit("write", data));
             let usePassword = !!proxy.username && !!proxy.password;
             let up = (proxy.username || "").trim() + ":" + (proxy.password || "").trim();
             up = Buffer.from(up).toString("base64");
@@ -36,33 +39,33 @@ export default class HttpConnect extends Connect {
                Buffer.from("\r\n"),
             ]);
             //await this.write(socket, sendChunk);
-            await socket.write(sendChunk);
+            await ssocket.write(sendChunk);
             //let receiveChunk = await this.read(socket, 500);
-            let receiveChunk = await socket.read(5 * 1000);
+            let receiveChunk = await ssocket.read(5 * 1000);
             let statusCode = receiveChunk.toString().split(" ")[1];
             if (usePassword) {
                let checked = statusCode != "407";
-               this.emit("auth", { checked: checked, socket: socket0, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               this.emit("auth", { checked: checked, socket: socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
                if (!checked) {
-                  callback(receiveChunk, socket);
-                  resolve(socket);
+                  callback(receiveChunk, ssocket);
+                  resolve(ssocket);
                   return;
                }
             } else {
                let checked = statusCode == "200";
                if (!checked) {
-                  callback(receiveChunk, socket);
-                  resolve(socket);
+                  callback(receiveChunk, ssocket);
+                  resolve(ssocket);
                   return;
                }
             }
-            callback(undefined, socket);
-            resolve(socket);
+            callback(undefined, ssocket);
+            resolve(ssocket);
          });
-         socket0.setTimeout(15000);
-         socket0.on("error", (err) => {
-            socket0.destroy(err);
-            callback(err, new SSocket(socket0));
+         socket.setTimeout(15000);
+         socket.on("error", (err) => {
+            socket.destroy(err);
+            callback(err, new SSocket(socket));
          });
       });
    }

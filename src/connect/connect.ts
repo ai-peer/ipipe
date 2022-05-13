@@ -14,7 +14,7 @@ export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => v
  */
 export default abstract class Connect extends Stream {
    /** 协议 */
-   public protocol: string;
+   //public protocol: string;
    protected options: ConnectOptions;
    constructor(options: ConnectOptions) {
       super();
