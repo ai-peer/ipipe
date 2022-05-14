@@ -94,7 +94,6 @@ export default class ConnectFactor extends EventEmitter {
     */
    public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
       let proxy: Proxy = this.proxys[0]; // = this.proxy;
-      let connect: Connect | undefined;
       if (!user || !user.username) {
          user = {
             username: "ip-" + localSocket.remoteAddress,
@@ -110,9 +109,9 @@ export default class ConnectFactor extends EventEmitter {
          proxy = this.proxys[idx];
       }
       proxy = proxy || this.proxys[0];
-
-      if (this.options.isDirect) connect = this.connects.get("direct");
-      else {
+      let connect: Connect | undefined = this.options.isDirect == true ? this.connects.get("direct") : this.connects.get(proxy.protocol);
+      /*if (this.options.isDirect) connect = this.connects.get("direct");
+       else {
          let isLocal = isDev ? false : await isLocalNetwork(host);
          //本地网络直连
          if (isLocal || this.options.isDirect) connect = this.connects.get("direct");
@@ -120,7 +119,7 @@ export default class ConnectFactor extends EventEmitter {
             assert.ok(proxy && proxy.host && proxy.port, "proxy host no exist");
             connect = this.connects.get(proxy.protocol);
          }
-      }
+      } */
       //console.info("connect s1");
       if (connect?.protocol != "direct") {
          let domain = getDomainFromBytes(chunk);
