@@ -41,29 +41,36 @@ export default class SSocket {
          });
       } else if (name == "write") {
          this.stream.on(name, listener);
+      } else if (name == "data") {
+         this.socket.on(name, (chunk: Buffer) => {
+            chunk = this.decode(chunk);
+            listener(chunk);
+         });
       } else {
          this.socket.on(name, listener);
       }
    }
    async write(chunk: Buffer | string): Promise<void> {
       //console.info("write1",!!this.cipher, [...chunk], chunk.toString());
-      if (this.cipher) {
+/*       if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
-      }
-      //console.info("write2",!!this.cipher, [...chunk], chunk.toString());
+      } */
+      chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
       await this.stream.write(this.socket, chunk);
    }
    async end(chunk: Buffer | string): Promise<void> {
-      if (this.cipher) {
+   /*    if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
-      }
+      } */
+      chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
       await this.stream.end(this.socket, chunk);
    }
    async read(timeout: number = 0): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);
-      if (this.cipher) {
+  /*     if (this.cipher) {
          chunk = this.cipher.decode(chunk, this.face);
-      }
+      } */
+      chunk = this.decode(chunk);
       return chunk;
    }
    encode(chunk: Buffer): Buffer {
