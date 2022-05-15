@@ -48,7 +48,7 @@ export default class LightConnect extends Connect {
 
             let step1Res: Buffer = await this.read(socket);
             step1Res = cipherConnect.decode(step1Res, face);
-            assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "connect error");
+            assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "light connect error, maybe secret error");
 
             let username = Buffer.from(proxy.username || "");
             let password = Buffer.from(proxy.password || "");
