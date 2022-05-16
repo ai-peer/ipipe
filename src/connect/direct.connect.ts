@@ -29,7 +29,7 @@ export default class DirectConnect extends Connect {
             callback(undefined, ssocket);
             resolve(ssocket);
          });
-         socket.setTimeout(15000);
+         socket.setTimeout(this.timeout);
          socket.on("timeout", ()=>this.emit("timeout"));
          socket.on("error", (err) => {
             socket.destroy(err);
