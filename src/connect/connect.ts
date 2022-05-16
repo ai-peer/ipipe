@@ -24,6 +24,16 @@ export default abstract class Connect extends Stream {
       this.protocol = options.protocol;
    }
 
+   public setTimeout(ttl: number = 10 * 1000, handle?: () => {}) {
+      let isHandle = true;
+      this.on("timeout", () => {
+         isHandle = false;
+      });
+      setTimeout(() => {
+         if (!isHandle) handle && handle();
+      }, ttl);
+   }
+
    /**
     * 连接远程代理主机
     * @param host 目标主机ip或域名

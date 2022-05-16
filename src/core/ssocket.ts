@@ -31,8 +31,14 @@ export default class SSocket {
    get destroyed() {
       return this.socket.destroyed;
    }
-   destroy(err?: Error) {
+   async destroy(err?: Error) {
+      if (err) {
+         await this.end(err.message).catch((err) => {});
+      }
       this.socket.destroy(err);
+   }
+   setTimeout(ttl: number = 0) {
+      this.socket.setTimeout(ttl);
    }
    on(name: string, listener: (...args: any[]) => void) {
       if (name == "read") {
@@ -52,14 +58,14 @@ export default class SSocket {
    }
    async write(chunk: Buffer | string): Promise<void> {
       //console.info("write1",!!this.cipher, [...chunk], chunk.toString());
-/*       if (this.cipher) {
+      /*       if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       } */
       chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
       await this.stream.write(this.socket, chunk);
    }
    async end(chunk: Buffer | string): Promise<void> {
-   /*    if (this.cipher) {
+      /*    if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       } */
       chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
@@ -67,7 +73,7 @@ export default class SSocket {
    }
    async read(timeout: number = 0): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);
-  /*     if (this.cipher) {
+      /*     if (this.cipher) {
          chunk = this.cipher.decode(chunk, this.face);
       } */
       chunk = this.decode(chunk);

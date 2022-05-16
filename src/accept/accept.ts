@@ -2,9 +2,7 @@ import net from "net";
 import ConnectFactor from "../connect";
 import Stream from "../core/stream";
 import Sessions from "../core/sessions";
-import { Transform } from "stream";
-import { AcceptOptions, AcceptAuth, ConnectUser } from "../types";
-import { Proxy } from "../types";
+import { AcceptOptions, ConnectUser } from "../types";
 import SSocket from "../core/ssocket";
 
 /**
@@ -67,7 +65,6 @@ export default abstract class Accept extends Stream {
    protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       try {
          this.connectFactor.pipe(host, port, localSocket, chunk, user).catch((err) => {
-            //console.info("[ERROR] connect", err.message);
             localSocket.destroy(err);
          });
       } catch (err) {

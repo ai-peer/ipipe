@@ -95,6 +95,7 @@ export default class LightConnect extends Connect {
             resolve(ssocket);
          });
          socket.setTimeout(15000);
+         socket.on("timeout", ()=>this.emit("timeout"));
          socket.on("error", (err) => {
             socket.destroy(err);
             callback(err, new SSocket(socket));

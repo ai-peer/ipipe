@@ -3,7 +3,7 @@ import Connect, { Callback } from "./connect";
 import assert from "assert";
 import { Socks5 } from "../core/protocol";
 import { Proxy } from "../types";
-import ISocket from "../core/ssocket";
+import SSocket from "../core/ssocket";
 
 /**
  * 走socks5代理连接
@@ -21,10 +21,10 @@ export default class Socks5Connect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<ISocket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
-            let ssocket = new ISocket(socket);
+            let ssocket = new SSocket(socket);
             ssocket.protocol = this.protocol;
             ssocket.on("read", (data) => this.emit("read", data));
             ssocket.on("write", (data) => this.emit("write", data));
@@ -72,9 +72,11 @@ export default class Socks5Connect extends Connect {
             callback(undefined, ssocket);
             resolve(ssocket);
          });
+         socket.setTimeout(15000);
+         socket.on("timeout", ()=>this.emit("timeout"));
          socket.on("error", (err) => {
             socket.destroy(err);
-            callback(err, new ISocket(socket));
+            callback(err, new SSocket(socket));
          });
       });
    }

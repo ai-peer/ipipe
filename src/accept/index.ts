@@ -155,7 +155,7 @@ export default class AcceptFactor extends EventEmitter {
                });
             } catch (err) {
                //logger.info("===>accept handle error", err.message);
-               socket.destroy();
+               socket.destroy(err);
                this.emit("error", err);
             } finally {
                break;

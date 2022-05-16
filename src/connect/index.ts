@@ -131,7 +131,8 @@ export default class ConnectFactor extends EventEmitter {
 
       if (!connect) {
          localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
-         assert.ok(connect, "no handle protocol " + proxy.protocol);
+         console.warn(`ipipe is no connector to connect target server`);
+         return;
       }
 
       connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
