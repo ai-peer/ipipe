@@ -66,6 +66,7 @@ export default class HttpConnect extends Connect {
          socket.on("timeout", ()=>this.emit("timeout"));
          socket.on("error", (err) => {
             socket.destroy(err);
+            this.emit("error", err);
             callback(err, new SSocket(socket));
          });
       });
