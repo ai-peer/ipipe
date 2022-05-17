@@ -47,6 +47,7 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
          let checked = code == "200";
+         console.info("http receive===>", data.slice(0, 256));
          if (!checked) {
             console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
             console.info(data.slice(0, 256));

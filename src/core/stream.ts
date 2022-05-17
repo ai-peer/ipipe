@@ -60,16 +60,10 @@ export default class Stream extends EventEmitter {
                resolve(Buffer.alloc(0));
             }, ttl);
          }
-         socket.on("close", () => {
-            if (isRead) return;
-            isRead = true;
-            pid && clearTimeout(pid);
-            resolve(Buffer.alloc(0));
-         });
          socket.once("data", (chunk: Buffer) => {
+            pid && clearTimeout(pid);
             if (isRead) return;
             isRead = true;
-            pid && clearTimeout(pid);
             this.emit("read", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
             resolve(chunk);
             //ss?.length > 0 && callback && callback(ss.length);
