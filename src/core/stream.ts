@@ -53,22 +53,22 @@ export default class Stream extends EventEmitter {
       resolve(ss);
       ss?.length > 0 && callback && callback(ss.length);
     }); */
-         if (ttl > 0) {
-            pid = setTimeout(() => {
-               if (isRead) return;
-               isRead = true;
-               resolve(Buffer.alloc(0));
-            }, ttl);
-         }
-         socket.once("data", (chunk: Buffer) => {
+         function handle(chunk: Buffer) {
             pid && clearTimeout(pid);
             if (isRead) return;
             isRead = true;
             this.emit("read", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
             resolve(chunk);
-            //ss?.length > 0 && callback && callback(ss.length);
-            //callback && callback(ss?.length || 0);
-         });
+         }
+         if (ttl > 0) {
+            pid = setTimeout(() => {
+               socket.removeListener("data", handle);
+               if (isRead) return;
+               isRead = true;
+               resolve(Buffer.alloc(0));
+            }, ttl);
+         }
+         socket.once("data", handle);
       });
    }
 }

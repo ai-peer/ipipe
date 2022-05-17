@@ -33,9 +33,8 @@ export default class Socks5Connect extends Connect {
             let sendChunk = Buffer.from([0x05, 0x01, usePassword ? 0x02 : 0x00]); //0X01
             await this.write(socket, sendChunk);
             let chunkReceive: Buffer = await this.read(socket);
-
+            usePassword = chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02;
             if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0xff) assert.ok(false, "socks5 no accept auth");
-
             if (usePassword) {
                assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02, "connect socks5 server auth error " + [...chunkReceive]);
 
