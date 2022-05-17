@@ -17,6 +17,10 @@ const config = {
          import: "./bin/proxy.ts",
          filename: "cli.js",
       },
+      "cli-check": {
+         import: "./bin/check.ts",
+         filename: "cli-check.js",
+      },
       lib: {
          import: "./src/index.ts",
          filename: "lib.js",

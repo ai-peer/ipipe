@@ -3,17 +3,16 @@ import Socks5Connect from "./socks5.connect";
 import DirectConnect from "./direct.connect";
 import LightConnect from "./light.connect";
 import Connect from "./connect";
-import net from "net";
 //import ping from "ping";
-import { isLocalNetwork } from "../core/geoip";
 import { Proxy, ConnectOptions, ConnectUser } from "../types";
-import assert from "assert";
 import ForwardHttpConnect from "./forward.http.connect";
 import log from "../core/logger";
 import EventEmitter from "events";
 import Sessions from "../core/sessions";
 import { Transform } from "stream";
 import SSocket from "../core/ssocket";
+import * as check from "../utils/check";
+import { wait } from "../utils";
 
 const isDev = process.env.NODE_ENV == "development";
 
@@ -77,15 +76,70 @@ export default class ConnectFactor extends EventEmitter {
       this.connects.set(connect.protocol, connect);
       return this;
    }
+
+   public removeProxy(host: string, port: number) {
+      let idx = this.proxys.findIndex((v) => v.host == host && v.port == port);
+      this.proxys.splice(idx, 1);
+   }
+
    /**
     * 注册代理服务器
     * @param proxy
     */
-   public registerProxy(proxy: Proxy) {
-      //this.proxy = proxy;
-      this.proxys.push(proxy);
+   public registerProxy(proxy: Proxy): boolean {
+      /* let checked = await check.check(proxy);
+      //console.info("check proxy", proxy, checked);
+      if (!checked) {
+         console.info(`register proxy ${proxy.protocol}://${proxy.host}:${proxy.port} fail!`);
+         return false;
+      } */
+      let existProxy = this.proxys.find((v) => v.host == proxy.host && v.port == proxy.port);
+      if (existProxy) {
+         existProxy.protocol = proxy.protocol;
+         existProxy.username = proxy.username;
+         existProxy.password = proxy.password;
+         existProxy.secret = proxy.secret;
+         existProxy.forwardHost = proxy.forwardHost;
+         existProxy.forwardPort = proxy.forwardPort;
+         existProxy.checked = true;
+      } else {
+         proxy.checked = true;
+         this.proxys.push(proxy);
+      }
+      // 循环检测代理好坏,1分钟检测一次
+      let host = proxy.host,
+         port = proxy.port;
+      setInterval(async () => {
+         existProxy = this.proxys.find((v) => v.host == host && v.port == port);
+         if (existProxy) {
+            let checked = check.check(existProxy).catch((err) => false);
+            if (!checked) {
+               await wait(5000);
+               checked = check.check(existProxy).catch((err) => false);
+               if (!checked) {
+                  existProxy.checked = false;
+               } else {
+                  existProxy.checked = true;
+               }
+            } else {
+               existProxy.checked = true;
+            }
+         }
+      }, 5 * 60 * 1000);
+      return true;
    }
-
+   private findProxy(localSocket: SSocket, user?: ConnectUser) {
+      let proxy: Proxy;
+      let list: Proxy[] = this.proxys.filter((v) => v.checked);
+      if (user) {
+         let idx = hashId(user) % (list.length || 1);
+         proxy = list[idx];
+      } else {
+         let idx = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (list.length || 1);
+         proxy = list[idx];
+      }
+      return proxy || this.proxys.find((v) => v.checked);
+   }
    /**
     * 隧道转发数据
     * @param proxy
@@ -93,7 +147,6 @@ export default class ConnectFactor extends EventEmitter {
     * @param chunk
     */
    public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
-      let proxy: Proxy = this.proxys[0]; // = this.proxy;
       if (!user || !user.username) {
          user = {
             username: "ip-" + localSocket.remoteAddress,
@@ -101,14 +154,15 @@ export default class ConnectFactor extends EventEmitter {
             args: [],
          };
       }
-      if (user) {
+      let proxy: Proxy = this.findProxy(localSocket, user);
+      /*  if (user) {
          let idx = hashId(user) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
       } else {
          let idx = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
-      }
-      proxy = proxy || this.proxys[0];
+      } */
+      //proxy = proxy || this.proxys[0];
       let connect: Connect | undefined = this.options.isDirect == true ? this.connects.get("direct") : this.connects.get(proxy.protocol);
       /*if (this.options.isDirect) connect = this.connects.get("direct");
        else {
@@ -134,7 +188,8 @@ export default class ConnectFactor extends EventEmitter {
          console.warn(`ipipe is no connector to connect target server`);
          return;
       }
-
+      //连接目标超时
+      connect.setTimeout(15 * 1000, () => this.emit("timeout"));
       connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
          if (err) {
             if (err instanceof Error) {

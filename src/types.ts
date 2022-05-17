@@ -51,6 +51,8 @@ export interface Proxy {
    forwardPort?: number;
    /** 代理密钥 */
    secret?: string | Buffer;
+   /** 代理检测好坏，内部使用 */
+   checked?: boolean;
 }
 
 /**

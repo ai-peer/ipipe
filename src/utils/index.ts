@@ -1,4 +1,10 @@
 import crypto from "crypto";
+
+export async function wait(ttl: number): Promise<void> {
+   return new Promise((resolve) => {
+      setTimeout(() => resolve(), ttl);
+   });
+}
 /**
  * md5
  * @param value

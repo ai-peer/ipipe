@@ -1,4 +1,4 @@
-import IPipe from "../src";
+import IPipe, {LightConnect, LightAccept} from "../src";
 import axios from "axios";
 
 /* 
@@ -26,6 +26,8 @@ console.info("proxyList", proxyList); */
       },
    });
    relayProxy.createAcceptServer(proxy.port);
+
+  
    /*    relayProxy.on("in", (data) => {
       console.info("in", data);
    });
@@ -40,10 +42,12 @@ console.info("proxyList", proxyList); */
          return true;
       },
    });
-
+   acceptProxy.registerAccept(new LightAccept());
+   acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(4321);
    let address: any = acceptServer.address();
-
+   console.info("accept proxy port=", 4321);
+   
    acceptProxy.registerProxy(proxy);
    console.info("check proxy");
 

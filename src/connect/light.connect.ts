@@ -28,7 +28,7 @@ export default class LightConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: (error: Error | Buffer | undefined, socket: SSocket) => void): Promise<SSocket> {
       let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
@@ -95,7 +95,7 @@ export default class LightConnect extends Connect {
             resolve(ssocket);
          });
          socket.setTimeout(this.timeout);
-         socket.on("timeout", ()=>this.emit("timeout"));
+         socket.on("timeout", () => this.emit("timeout"));
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);

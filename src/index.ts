@@ -17,6 +17,9 @@ import net from "net";
 import EventEmitter from "events";
 import * as Type from "./types";
 import Cipher from "./core/cipher";
+import { getPublicIp } from "./core/geoip";
+import * as check from "./utils/check";
+import ua from "./utils/ua";
 
 export const Event = {
    out: "out",
@@ -35,6 +38,8 @@ export {
    HttpConnect,
    DirectConnect,
    Cipher,
+   check,
+   ua,
 };
 
 /**
@@ -108,9 +113,9 @@ export default class IPipe extends EventEmitter {
     * 注册远程代理服务器信息
     * @param proxy
     */
-   registerProxy(proxy: Proxy): this {
-      this.connectFactor.registerProxy(proxy);
-      return this;
+   registerProxy(proxy: Proxy): boolean {
+      let checked = this.connectFactor.registerProxy(proxy);
+      return checked;
    }
    /**
     * 获取所有代理列表
@@ -128,4 +133,8 @@ export default class IPipe extends EventEmitter {
       return this;
    }
    async checkProxy(proxy: Proxy) {}
+
+   async getPublicIp() {
+      return getPublicIp();
+   }
 }

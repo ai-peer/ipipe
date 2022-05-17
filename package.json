@@ -1,10 +1,11 @@
 {
    "name": "@ai-lion/ipipe",
-   "version": "1.1.10",
+   "version": "1.1.11",
    "main": "dist/lib.js",
    "license": "MIT",
    "bin": {
-      "ipipe": "dist/cli.js"
+      "ipipe": "dist/cli.js",
+      "ipipe-check": "dist/cli-check.js"
    },
    "types": "dist/src/index.d.ts",
    "scripts": {

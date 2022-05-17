@@ -8,7 +8,7 @@ class Sessions {
    add(socket: net.Socket, session?: string) {
       if (this.pool.has(socket)) return;
       socket.once("close", () => this.pool.delete(socket));
-      session = session || "rand-"+nanoid();
+      session = session || "rand-" + nanoid();
       this.pool.set(socket, session);
    }
    getSession(socket: net.Socket) {

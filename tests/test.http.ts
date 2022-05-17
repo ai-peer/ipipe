@@ -11,13 +11,14 @@ let proxy = {
 
 let testServer;
 describe("测试IPipe", async function () {
+   console.info("s00");
    testServer = await com.createProxyServer(proxy.port);
-
+   //await wait(2000);
+   console.info("sxxxx");
    it("测试http是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "http" });
          let info = await com.requestByHttp(nproxy);
-         console.info("info===", info.length, info && info.length > 1);
          assert.ok(info && info.length > 1, "http res is null");
          //console.info("===http receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
