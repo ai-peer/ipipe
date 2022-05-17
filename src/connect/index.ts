@@ -112,10 +112,10 @@ export default class ConnectFactor extends EventEmitter {
       setInterval(async () => {
          existProxy = this.proxys.find((v) => v.host == host && v.port == port);
          if (existProxy) {
-            let checked = check.check(existProxy).catch((err) => false);
+            let checked = await check.check(existProxy).catch((err) => false);
             if (!checked) {
                await wait(5000);
-               checked = check.check(existProxy).catch((err) => false);
+               checked = await check.check(existProxy).catch((err) => false);
                if (!checked) {
                   existProxy.checked = false;
                } else {
