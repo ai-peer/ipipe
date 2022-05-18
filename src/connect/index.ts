@@ -60,6 +60,7 @@ export default class ConnectFactor extends EventEmitter {
          let exist = this.connects.get(connect.protocol);
          exist?.removeAllListeners("read");
          exist?.removeAllListeners("write");
+         exist?.removeAllListeners("timeout");
       }
       connect.on("read", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
@@ -73,6 +74,7 @@ export default class ConnectFactor extends EventEmitter {
          let session = sessions.getSession(data.socket);
          session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
       });
+      connect.setTimeout(10 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
       return this;
    }
@@ -189,7 +191,7 @@ export default class ConnectFactor extends EventEmitter {
          return;
       }
       //连接目标超时
-      connect.setTimeout(15 * 1000, () => this.emit("timeout"));
+      //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
       connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
          if (err) {
             if (err instanceof Error) {
