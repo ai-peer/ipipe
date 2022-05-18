@@ -74,7 +74,7 @@ export default class ConnectFactor extends EventEmitter {
          let session = sessions.getSession(data.socket);
          session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
       });
-      connect.setTimeout(10 * 1000, () => this.emit("timeout"));
+      connect.setTimeout(15 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
       return this;
    }
