@@ -13,8 +13,8 @@ console.info("proxyList", proxyList); */
       host: "127.0.0.1",
       port: 1082,
       protocol: "socks5",
-      username: "admin",
-      password: "123456",
+      //username: "admin",
+      //password: "123456",
    };
 
    //创建代理测试服务器
@@ -36,12 +36,15 @@ console.info("proxyList", proxyList); */
    });
  */
    let acceptProxy = new IPipe({
-      auth: async (username, password) => {
+/*       auth: async (username, password) => {
          console.info("auth accept proxy", username, password);
          // return username == "admin" && password == "123456";
          return true;
-      },
+      }, */
    });
+   acceptProxy.on("auth", (data)=>{
+      console.info("auth===", data.checked);
+   })
    acceptProxy.registerAccept(new LightAccept());
    acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(4321);

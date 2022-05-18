@@ -19,9 +19,9 @@ export default abstract class Connect extends Stream {
    protected timeout: number = 15 * 1000;
    constructor(options: ConnectOptions) {
       super();
-      this.setMaxListeners(999);
+      this.setMaxListeners(99);
       this.options = options;
-      this.on("error", (err) => console.error(`connect error ${err.stack || err.message}`));
+      this.on("error", (err) => {});
       this.protocol = options.protocol;
    }
 
