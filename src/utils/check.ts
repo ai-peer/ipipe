@@ -1,8 +1,8 @@
 import { Proxy } from "../types";
 import { LightConnect, SSocket, Socks5Connect, HttpConnect } from "../";
 import ua from "./ua";
-const reqUrl = "http://httpbin.org/ip";
-//const reqUrl = "https://ifconfig.me/all.json";
+//const reqUrl = "http://httpbin.org/ip";
+const reqUrl = "http://ip-api.com/json";
 
 export async function check(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    if (proxy.protocol == "http") {
@@ -28,7 +28,7 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
          let code = data.slice(0, 12).split(" ")[1];
          let checked = code == "200";
          if (!checked) {
-            console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+            console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
             console.info(data.slice(0, 256));
          }
          resolve(checked);
@@ -49,7 +49,7 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
          let checked = code == "200";
          console.info("http receive===>", data.slice(0, 256));
          if (!checked) {
-            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
             console.info(data.slice(0, 256));
          }
          resolve(checked);
@@ -69,7 +69,7 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
          let code = data.slice(0, 12).split(" ")[1];
          let checked = code == "200";
          if (!checked) {
-            console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+            console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
             console.info(data.slice(0, 256));
          }
          resolve(checked);
