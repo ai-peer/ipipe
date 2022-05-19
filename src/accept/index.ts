@@ -130,10 +130,14 @@ export default class AcceptFactor extends EventEmitter {
     * @param socket
     */
    public async accept(socket: net.Socket) {
-      let chunk: Buffer = await this.read(socket);
+      let chunk: Buffer = await this.read(socket, 500);
       let isAccept = false;
       let accepts = this.accepts.values();
       const byteLength = chunk.byteLength;
+      if(byteLength<1){
+         socket.destroy();
+         return;
+      }
       //console.info("s apt ", chunk.toString())
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
