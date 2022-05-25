@@ -118,7 +118,7 @@ const config = {
       }),
    ],
    optimization: {
-      minimize: true, //isProduction ? true : false,
+      minimize: false, //isProduction ? true : false,
       minimizer: [
          new TerserPlugin({
             extractComments: false, //不将注释提取到单独的文件中
