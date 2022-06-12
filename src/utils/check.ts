@@ -26,10 +26,10 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
-         let checked = code == "200";
+         let checked = /^[23]/i.test(code); // code == "200";
          if (!checked) {
             console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
-            console.info(data.slice(0, 256));
+            console.info(data.slice(0, 128));
          }
          resolve(checked);
       });
@@ -46,11 +46,10 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
-         let checked = code == "200";
-         console.info("http receive===>", data.slice(0, 256));
+         let checked = /^[23]/i.test(code); // code == "200";
          if (!checked) {
             console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
-            console.info(data.slice(0, 256));
+            console.info(data.slice(0, 128));
          }
          resolve(checked);
       });
@@ -67,10 +66,10 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
-         let checked = code == "200";
+         let checked = /^[23]/i.test(code); // code == "200";
          if (!checked) {
             console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
-            console.info(data.slice(0, 256));
+            console.info(data.slice(0, 128));
          }
          resolve(checked);
       });
