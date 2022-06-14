@@ -58,18 +58,18 @@ export default class ConnectFactor extends EventEmitter {
    public register(connect: Connect) {
       if (this.connects.has(connect.protocol)) {
          let exist = this.connects.get(connect.protocol);
-         exist?.removeAllListeners("read");
-         exist?.removeAllListeners("write");
+         //exist?.removeAllListeners("read");
+         //exist?.removeAllListeners("write");
          exist?.removeAllListeners("timeout");
       }
-      connect.on("read", ({ size, socket, protocol }) => {
+     /*  connect.on("read", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
          session && this.emit("read", { size, session, clientIp: socket.remoteAddress, protocol });
       });
       connect.on("write", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
-      });
+      }); */
       connect.on("auth", (data) => {
          let session = sessions.getSession(data.socket);
          session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
@@ -148,7 +148,7 @@ export default class ConnectFactor extends EventEmitter {
     * @param localSocket
     * @param chunk
     */
-   public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser, inputTransform?: Transform) {
+   public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       if (!user || !user.username) {
          user = {
             username: "ip-" + localSocket.remoteAddress,
@@ -227,7 +227,7 @@ export default class ConnectFactor extends EventEmitter {
                }),
             )
             .pipe(localSocket); */
-         connect?.pipe(localSocket, proxySocket, chunk, inputTransform);
+         connect?.pipe(localSocket, proxySocket, chunk);
       });
    }
 

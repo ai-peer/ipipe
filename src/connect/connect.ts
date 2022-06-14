@@ -39,7 +39,7 @@ export default abstract class Connect extends Stream {
     */
    public abstract connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket>;
 
-   public pipe(sourceSocket: SSocket, targetSocket: SSocket, chunk: Buffer, inputTransform?: Transform) {
+   public pipe(sourceSocket: SSocket, targetSocket: SSocket, chunk: Buffer) {
       sourceSocket.pipe(targetSocket).pipe(sourceSocket);
       targetSocket.write(chunk);
       /*  inputTransform =

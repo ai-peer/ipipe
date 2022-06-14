@@ -20,8 +20,14 @@ export default class HttpAccept extends Accept {
    public async handle(socket: net.Socket, firstChunk: Buffer) {
       let ssocket = new SSocket(socket);
       ssocket.protocol = this.protocol;
-      ssocket.on("read", (data) => this.emit("read", data));
-      ssocket.on("write", (data) => this.emit("write", data));
+      ssocket.on("read", (data) => {
+         //console.info("====read", Math.ceil(1000 * data.size/1024)/1000);
+         this.emit("read", data)
+      });
+      ssocket.on("write", (data) =>{
+         //console.info("====write",socket.remotePort, data.socket.remoteAddress+":"+data.socket.remotePort, Math.ceil(1000 * data.size/1024)/1000);
+         this.emit("write", data)
+      });
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let str = firstChunk.toString();
       let headers = parseHeader(str);

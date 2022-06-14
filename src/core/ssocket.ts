@@ -1,7 +1,6 @@
 import net from "net";
 import Cipher from "./cipher";
 import transform from "../core/transform";
-
 import Stream from "./stream";
 
 /**
@@ -42,9 +41,10 @@ export default class SSocket {
    }
    on(name: string, listener: (...args: any[]) => void) {
       if (name == "read") {
-         this.socket.on("data", (chunk) => {
+         /*  this.socket.on("data", (chunk) => {
             listener({ size: chunk.byteLength, socket: this.socket, protocol: this.protocol || "" });
-         });
+         }); */
+         this.stream.on(name, listener);
       } else if (name == "write") {
          this.stream.on(name, listener);
       } else if (name == "data") {
@@ -110,8 +110,8 @@ export default class SSocket {
                   // chunk = target.cipher.encode(chunk, target.face);
                   chunk = target.encode(chunk);
                }
-               //console.info("pipe=====target socket", chunk.toString().slice(0,128));
-               // this.emit("write", { size: chunk.length, socket: this.socket });
+               this.stream.emit("read", { size: chunk.byteLength, socket: this.socket, protocol: this.protocol || "" });
+               target.stream.emit("write", { size: chunk.byteLength, socket: target.socket, protocol: target.protocol || "" });
                callback(null, chunk);
             }),
          )

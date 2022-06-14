@@ -60,6 +60,7 @@ export default class AcceptFactor extends EventEmitter {
       });
       accept.on("write", ({ size, socket, protocol }) => {
          let session = accept.getSession(socket);
+         //console.info(">>>write", Math.ceil((1000 * size) / 1024) / 1000+"KB", session);
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
       });
       accept.on("auth", (data) => {
@@ -134,7 +135,7 @@ export default class AcceptFactor extends EventEmitter {
       let isAccept = false;
       let accepts = this.accepts.values();
       const byteLength = chunk.byteLength;
-      if(byteLength<1){
+      if (byteLength < 1) {
          socket.destroy();
          return;
       }
@@ -147,9 +148,12 @@ export default class AcceptFactor extends EventEmitter {
                this.emit("accept", socket, { protocol: accept.protocol });
                let clientIp = socket.remoteAddress;
                let protocol = accept.protocol;
+
                socket.on("close", () => {
                   let session = accept.getSession(socket);
+                  //console.info("=====read==", byteLength);
                   session && this.emit("read", { size: byteLength, session, clientIp: clientIp, protocol: protocol });
+
                   this.emit("close", socket);
                });
                accept.handle(socket, chunk).catch((err) => {
