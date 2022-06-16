@@ -19,19 +19,21 @@ async function createRelayProxyServer() {
    ipipe.registerProxy({
       protocol: "socks5",
       host: "127.0.0.1",
-      port: 4321,//9150,
-      username: "xadmin",
-      password: "xeSAJHph",
+      port: 4321, //9150,
+      username: "student",
+      password: "6KJz3mNg",
       //single: 129
    });
-   let tsize = 0, tout=0;
-   ipipe.on("in", ({size, protocol, session, clientIp})=>{
+   ipipe.setTimeout(60 * 1000);
+   let tsize = 0,
+      tout = 0;
+   ipipe.on("in", ({ size, protocol, session, clientIp }) => {
       tsize += size;
       //console.info("in===", Math.ceil(tsize*1000/1024/1024)/1000, "M", size, protocol, session, clientIp);
    });
-   ipipe.on("out", ({size, protocol, session, clientIp})=>{
+   ipipe.on("out", ({ size, protocol, session, clientIp }) => {
       tout += size;
-      console.info("out===", Math.ceil(tout*1000/1024/1024)/1000, "M", size, protocol, session, clientIp);
+      //console.info("out===", Date.now(), Math.ceil((tout * 1000) / 1024 / 1024) / 1000, "M", size, protocol, session, clientIp);
    });
    //for (let i = 0; i < 2; i++) await getIp(forwardProxy);
 }

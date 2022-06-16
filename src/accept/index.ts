@@ -25,6 +25,7 @@ export default class AcceptFactor extends EventEmitter {
    protected connectFactor: ConnectFactor;
    private server: net.Server;
    private options: AcceptOptions;
+   private timeout: number = 0;
 
    constructor(options?: AcceptOptions) {
       super();
@@ -38,6 +39,9 @@ export default class AcceptFactor extends EventEmitter {
    }
    public close() {
       this.server?.close();
+   }
+   setTimeout(timeout: number = 0) {
+      this.timeout = timeout;
    }
    /**
     * 注册本地代理的可接入协议类
@@ -133,6 +137,12 @@ export default class AcceptFactor extends EventEmitter {
    public async accept(socket: net.Socket) {
       let chunk: Buffer = await this.read(socket, 500);
       let isAccept = false;
+
+      if (this.timeout > 0) {
+         //检测超时
+         socket.on("timeout", () => socket.end());
+         socket.setTimeout(this.timeout);
+      }
       let accepts = this.accepts.values();
       const byteLength = chunk.byteLength;
       if (byteLength < 1) {

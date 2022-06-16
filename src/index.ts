@@ -87,7 +87,7 @@ export default class IPipe extends EventEmitter {
       return this.acceptFactor.createServer(port, host, callback);
    }
 
-   registerServer(server: net.Server) {}
+   //registerServer(server: net.Server) {}
 
    /**
     * 注册本地接自定义接入协议， 原生支持http和socks5代理协议
@@ -99,7 +99,9 @@ export default class IPipe extends EventEmitter {
       this.acceptFactor.register(accept);
       return this;
    }
-
+   setTimeout(ttl: number = 0) {
+      this.acceptFactor.setTimeout(ttl);
+   }
    /**
     * 注册连接远程代理服务器自定义协议， 原生支持http,socks5协议,forward.http http转发协议
     * 协议继承类 Connect

@@ -64,12 +64,16 @@ export default class SSocket {
       chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
       await this.stream.write(this.socket, chunk);
    }
-   async end(chunk: Buffer | string): Promise<void> {
+   async end(chunk?: Buffer | string): Promise<void> {
       /*    if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       } */
-      chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
-      await this.stream.end(this.socket, chunk);
+      if (chunk) {
+         chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
+         await this.stream.end(this.socket, chunk);
+      } else {
+         await this.stream.end(this.socket, Buffer.from([]));
+      }
    }
    async read(timeout: number = 0): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);

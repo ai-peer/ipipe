@@ -10,9 +10,7 @@ class Sessions {
       if (this.pool.has(key)) return;
       let _this = this;
       socket.once("close", () => {
-         setTimeout(() => {
-            _this.pool.delete(key);
-         }, 1000);
+         _this.pool.delete(key);
       });
       session = session || "rand-" + nanoid();
       this.pool.set(key, session);

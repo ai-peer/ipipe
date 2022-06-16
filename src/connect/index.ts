@@ -62,7 +62,7 @@ export default class ConnectFactor extends EventEmitter {
          //exist?.removeAllListeners("write");
          exist?.removeAllListeners("timeout");
       }
-     /*  connect.on("read", ({ size, socket, protocol }) => {
+      /*  connect.on("read", ({ size, socket, protocol }) => {
          let session = sessions.getSession(socket);
          session && this.emit("read", { size, session, clientIp: socket.remoteAddress, protocol });
       });
@@ -112,21 +112,23 @@ export default class ConnectFactor extends EventEmitter {
       let host = proxy.host,
          port = proxy.port;
       setInterval(async () => {
-         existProxy = this.proxys.find((v) => v.host == host && v.port == port);
-         if (existProxy) {
-            let checked = await check.check(existProxy).catch((err) => false);
-            if (!checked) {
-               await wait(5000);
-               checked = await check.check(existProxy).catch((err) => false);
+         try {
+            existProxy = this.proxys.find((v) => v.host == host && v.port == port);
+            if (existProxy) {
+               let checked = await check.check(existProxy).catch((err) => false);
                if (!checked) {
-                  existProxy.checked = false;
+                  await wait(5000);
+                  checked = await check.check(existProxy).catch((err) => false);
+                  if (!checked) {
+                     existProxy.checked = false;
+                  } else {
+                     existProxy.checked = true;
+                  }
                } else {
                   existProxy.checked = true;
                }
-            } else {
-               existProxy.checked = true;
             }
-         }
+         } catch (err) {}
       }, 5 * 60 * 1000);
       return true;
    }
@@ -188,6 +190,7 @@ export default class ConnectFactor extends EventEmitter {
       if (!connect) {
          localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
          console.warn(`ipipe is no connector to connect target server`);
+         localSocket.end();
          return;
       }
       //连接目标超时
@@ -197,7 +200,7 @@ export default class ConnectFactor extends EventEmitter {
             if (err instanceof Error) {
                localSocket.destroy(err);
             } else {
-               localSocket.end(err);
+               localSocket.end(recChunk);
             }
             return;
          }
