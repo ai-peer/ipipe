@@ -20,6 +20,7 @@ import Cipher from "./core/cipher";
 import { getPublicIp } from "./core/geoip";
 import * as check from "./utils/check";
 import ua from "./utils/ua";
+import * as password from "./core/password";
 
 export const Event = {
    out: "out",
@@ -27,6 +28,7 @@ export const Event = {
 };
 
 export {
+   password,
    SSocket,
    Accept,
    Connect,

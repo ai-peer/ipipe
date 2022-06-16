@@ -21,7 +21,7 @@ async function createRelayProxyServer() {
       host: "127.0.0.1",
       port: 4321, //9150,
       username: "student",
-      password: "6KJz3mNg",
+      password: "hSDkAAqI",
       //single: 129
    });
    ipipe.setTimeout(60 * 1000);

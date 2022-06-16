@@ -1,3 +1,6 @@
+import { customAlphabet } from "nanoid";
+const buildUID = customAlphabet("1234567890ABCDEFGHIJKLMNOPQRSTWUVXYZ", 7);
+
 const PASSWORD_LENGTH = 256;
 export function validatePassword(pwd) {
    let pwd_buf;
@@ -26,25 +29,14 @@ export function generateRandomPassword(base64: boolean = true): string | Buffer 
    let constantSecret = Buffer.from(tempArray);
    return base64 ? constantSecret.toString("base64") : constantSecret;
 }
-/**
- * 创建指定掩码规则的密钥
- * @param secret
- * @param sign
- * @param version
- */
-export function generatePasswordBySign(secret: Buffer | string, sign: Array<number> | Buffer, version: number) {
-   if (typeof secret === "string") {
-      secret = Buffer.from(secret);
-   }
-}
 
 /**
  *  创建序列号, 采用36进制表示法 0-9a-z
  * @param size 要创建的序列号长度, 默认=6
  * @param hexs 进制, 默认36进制方式创建
  */
-export function buildSN(size: number = 6, hexs: number = 36) {
-   const Hex = Math.min(hexs, 36),
+export function buildSN(size: number = 6) {
+  /*  const Hex = Math.min(hexs, 36),
       Char = (Hex - 1).toString(Hex); //采用36进制
    const maxValue = parseInt(Array(11).join(Char), Hex) - 111111111; //1125899906842623; //= parseInt('VVVVVVVVVV', 32)
    const minValue = parseInt(Array(Math.min(size, 6)).join("1"), Hex);
@@ -54,7 +46,8 @@ export function buildSN(size: number = 6, hexs: number = 36) {
    if (sn.length < size) {
       sn += buildSN(size - sn.length);
    }
-   return sn.substring(0, size).toUpperCase();
+   return sn.substring(0, size).toUpperCase(); */
+   return buildUID(size).toUpperCase();
 }
 /**
  * 随机调换位置
