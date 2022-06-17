@@ -192,9 +192,7 @@ export default class ConnectFactor extends EventEmitter {
          console.warn(`ipipe is no connector to connect target server`);
          return;
       }
-      connect.on("timeout", () => {
-         localSocket.destroy();
-      });
+
       if (!proxy && connect.protocol != "direct") {
          localSocket.destroy();
          log.warn(`ipipe connect is no proxy node`);
@@ -242,6 +240,7 @@ export default class ConnectFactor extends EventEmitter {
          })
          .catch((err) => {
             log.debug("===>connect error", err.message);
+            localSocket.destroy(err);
          });
    }
 

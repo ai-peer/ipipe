@@ -17,12 +17,12 @@ async function createRelayProxyServer() {
       port: acceptPort,
    };
    ipipe.registerProxy({
-      protocol: "socks5",
-      host:"127.0.0.1",//"108.166.201.94",
-      port: 4321, //9150,
+      protocol: "light",
+      host:"108.166.201.94", //"127.0.0.1",//
+      port: 6379, //9150,
       username: "student",
       password: "xlJZeiJA",
-      secret: "DIURKLVdaxDETkrQAbKlYPon1tvePVxbCzFfHOh0OvxDD2cZtKDlsYk5AF7Mecf92PI3lFGPFwPR6peKQjO3Vd1zcJZvfQJP42WBvkgH6Rr/OMp8frn2yOeapozXkKmDcYIKz5xQ89IhJW3AkR6TIMWePgRoJtUkU6jmafWjI6Ip+GwbE2M2QGbDxs52ttoOV4Cn2WEWWap4L/GVre7TeqyHrvRqH1ZG93WOy9QtNOIVvZnvUkXkmNxLr7P74TBBIh27CW6kKryNOxL5K2TgLvC6VJvfhKtEuO0Iwf7Je50yoX9YvwYFSQ0YPEcU7EyfP4awd+s1TVrCzSxyiGKSiw=="
+      secret: "T7YShLk+H3EJc/icTVG/XKye++GCa+b82VTgpkZ6J+6dCs+LGN5KS70/TLEFifWyKmG+bJB+lwvUadVBb6T96BTidst39g2qtDWtpaOMhrchgdK7BCtahyhy/rxkumcC9PJdljnjyf+I33QBFSKvwl/WQzx5xV5Q0MNoxwbAs6nBg85gMbWuisQXkZtEjiDImfpwRS44Se3koN2oHJ/bJJWSVzTKYsZupxCF6U4dN3wlA43X0+8meztHQDDYdSzrWw8p6h5TZbA6LwyYWBEaI9yhZuczVQ7l7Bljk/CA2gdq0W3zNqs9lJqPUlYtAPfNWUj5okK4G/F4FhPMCH0yfw=="
       
       //single: 129
    });
