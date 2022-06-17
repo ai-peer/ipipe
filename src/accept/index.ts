@@ -18,12 +18,12 @@ export default class AcceptFactor extends EventEmitter {
    static LightAccept = LightAccept;
    static Accept = Accept;
    /** 接入协议类列表 */
-   private accepts: Map<string, Accept> = new Map();
+   public accepts: Map<string, Accept> = new Map();
    /** 连接远程代理的连接封装类 */
    protected connectFactor: ConnectFactor;
-   private server: net.Server;
-   private options: AcceptOptions;
-   private timeout: number = 0;
+   public server: net.Server;
+   public options: AcceptOptions;
+   public timeout: number = 0;
 
    constructor(options?: AcceptOptions) {
       super();

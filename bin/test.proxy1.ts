@@ -22,7 +22,7 @@ async function createRelayProxyServer() {
       port: 6379, //9150,
       username: "student",
       password: "xlJZeiJA",
-      secret: "T7YShLk+H3EJc/icTVG/XKye++GCa+b82VTgpkZ6J+6dCs+LGN5KS70/TLEFifWyKmG+bJB+lwvUadVBb6T96BTidst39g2qtDWtpaOMhrchgdK7BCtahyhy/rxkumcC9PJdljnjyf+I33QBFSKvwl/WQzx5xV5Q0MNoxwbAs6nBg85gMbWuisQXkZtEjiDImfpwRS44Se3koN2oHJ/bJJWSVzTKYsZupxCF6U4dN3wlA43X0+8meztHQDDYdSzrWw8p6h5TZbA6LwyYWBEaI9yhZuczVQ7l7Bljk/CA2gdq0W3zNqs9lJqPUlYtAPfNWUj5okK4G/F4FhPMCH0yfw=="
+      secret: "ulhDOtxGGUwqvlTmioGfdPjz397WcQB/CTJHhzPN/5aJwCQmiAWDtdSNyhuz1+P5biGxgCeP9exozyC4e2LpWT5gPDXLAqm0Ecbao7stQDaTqmQoi2FvFUhnmO4ILmvdL1LCzIWXVUKUTfvJD0FexH2g93iSfDGm5Wo56gp1FsNyoa5fmZrHlR7QjP2/F0TVntgSMH55K9usHPQGqymG/vFj/B0ODJyOhCVRS1bttmzIpG1XRQS35L09OAPnwfZp0dKyAXYQkHrika8s0/pdN1MLSptcgk7w6OBlnbBbvA00qKVac+EfP62nos7ZxSNmd7lwOyJJExoYB0/r7xTyUA=="
       
       //single: 129
    });
