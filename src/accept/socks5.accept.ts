@@ -50,6 +50,7 @@ export default class Socks5Accept extends Accept {
          this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
+            socket.destroy();
             logger.debug(`===>auth error socks5 username=${user.username} password=${user.password}`);
             return;
          }

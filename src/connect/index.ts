@@ -164,6 +164,11 @@ export default class ConnectFactor extends EventEmitter {
          };
       }
       let proxy: Proxy = this.findProxy(localSocket, user);
+      if (!proxy) {
+         localSocket.destroy(new Error("no handle node"));
+         log.warn(`ipipe connect is no proxy node`);
+         return;
+      }
       /*  if (user) {
          let idx = hashId(user) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
@@ -195,7 +200,6 @@ export default class ConnectFactor extends EventEmitter {
       if (!connect) {
          localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
          console.warn(`ipipe is no connector to connect target server`);
-         localSocket.end();
          return;
       }
       //连接目标超时
