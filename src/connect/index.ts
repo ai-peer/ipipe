@@ -202,27 +202,28 @@ export default class ConnectFactor extends EventEmitter {
       }
       //连接目标超时
       //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
-      connect.connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
-         if (err) {
-            if (err instanceof Error) {
-               localSocket.destroy(err);
-            } else {
-               localSocket.end(recChunk);
+      connect
+         .connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
+            if (err) {
+               if (err instanceof Error) {
+                  localSocket.destroy(err);
+               } else {
+                  localSocket.end(recChunk);
+               }
+               return;
             }
-            return;
-         }
-         localSocket.on("error", (err) => {
-            localSocket.destroy();
-            proxySocket?.destroy(err);
-         });
-         localSocket.on("close", () => proxySocket?.destroy());
-         proxySocket.on("error", (err) => {
-            proxySocket.destroy();
-            localSocket.destroy(err);
-         });
-         proxySocket.on("close", () => localSocket.destroy());
-         if (recChunk) localSocket.write(recChunk);
-         /*  localSocket
+            localSocket.on("error", (err) => {
+               localSocket.destroy();
+               proxySocket?.destroy(err);
+            });
+            localSocket.on("close", () => proxySocket?.destroy());
+            proxySocket.on("error", (err) => {
+               proxySocket.destroy();
+               localSocket.destroy(err);
+            });
+            proxySocket.on("close", () => localSocket.destroy());
+            if (recChunk) localSocket.write(recChunk);
+            /*  localSocket
             .pipe(
                transform((chunk, encoding, callback) => {
                   //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
@@ -237,8 +238,11 @@ export default class ConnectFactor extends EventEmitter {
                }),
             )
             .pipe(localSocket); */
-         connect?.pipe(localSocket, proxySocket, chunk);
-      });
+            connect?.pipe(localSocket, proxySocket, chunk);
+         })
+         .catch((err) => {
+            log.debug("===>connect error", err.message);
+         });
    }
 
    /*   public async ping(host: string): Promise<boolean> {
