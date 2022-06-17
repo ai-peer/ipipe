@@ -36,7 +36,7 @@ export function generateRandomPassword(base64: boolean = true): string | Buffer 
  * @param hexs 进制, 默认36进制方式创建
  */
 export function buildSN(size: number = 6) {
-  /*  const Hex = Math.min(hexs, 36),
+   /*  const Hex = Math.min(hexs, 36),
       Char = (Hex - 1).toString(Hex); //采用36进制
    const maxValue = parseInt(Array(11).join(Char), Hex) - 111111111; //1125899906842623; //= parseInt('VVVVVVVVVV', 32)
    const minValue = parseInt(Array(Math.min(size, 6)).join("1"), Hex);

@@ -94,12 +94,7 @@ export default class ConnectFactor extends EventEmitter {
     * @param proxy
     */
    public registerProxy(proxy: Proxy): boolean {
-      /* let checked = await check.check(proxy);
-      //console.info("check proxy", proxy, checked);
-      if (!checked) {
-         console.info(`register proxy ${proxy.protocol}://${proxy.host}:${proxy.port} fail!`);
-         return false;
-      } */
+      proxy.checked = proxy.checked == undefined ? true : proxy.checked;
       let existProxy = this.proxys.find((v) => v.host == proxy.host && v.port == proxy.port);
       if (existProxy) {
          existProxy.protocol = proxy.protocol;
@@ -110,7 +105,6 @@ export default class ConnectFactor extends EventEmitter {
          existProxy.forwardPort = proxy.forwardPort;
          existProxy.checked = proxy.checked;
       } else {
-         proxy.checked = proxy.checked;
          this.proxys.push(proxy);
       }
       // 循环检测代理好坏,1分钟检测一次
@@ -164,11 +158,7 @@ export default class ConnectFactor extends EventEmitter {
          };
       }
       let proxy: Proxy = this.findProxy(localSocket, user);
-      if (!proxy) {
-         localSocket.destroy();
-         log.warn(`ipipe connect is no proxy node`);
-         return;
-      }
+
       /*  if (user) {
          let idx = hashId(user) % (this.proxys.length || 1);
          proxy = this.proxys[idx];
@@ -200,6 +190,14 @@ export default class ConnectFactor extends EventEmitter {
       if (!connect) {
          localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
          console.warn(`ipipe is no connector to connect target server`);
+         return;
+      }
+      connect.on("timeout", () => {
+         localSocket.destroy();
+      });
+      if (!proxy && connect.protocol != "direct") {
+         localSocket.destroy();
+         log.warn(`ipipe connect is no proxy node`);
          return;
       }
       //连接目标超时

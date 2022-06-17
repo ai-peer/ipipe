@@ -22,11 +22,11 @@ export default class HttpAccept extends Accept {
       ssocket.protocol = this.protocol;
       ssocket.on("read", (data) => {
          //console.info("====read", Math.ceil(1000 * data.size/1024)/1000);
-         this.emit("read", data)
+         this.emit("read", data);
       });
-      ssocket.on("write", (data) =>{
+      ssocket.on("write", (data) => {
          //console.info("====write",socket.remotePort, data.socket.remoteAddress+":"+data.socket.remotePort, Math.ceil(1000 * data.size/1024)/1000);
-         this.emit("write", data)
+         this.emit("write", data);
       });
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let str = firstChunk.toString();

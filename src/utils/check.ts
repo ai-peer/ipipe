@@ -3,7 +3,7 @@ import { LightConnect, SSocket, Socks5Connect, HttpConnect } from "../";
 import ua from "./ua";
 //const reqUrl = "http://httpbin.org/ip";
 //const reqUrl = "http://ip-api.com/json";
-const reqUrl = "https://www.bing.com";
+const reqUrl = "http://www.bing.com";
 export async function check(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    if (proxy.protocol == "http") {
       return checkHttp(proxy, url).catch((err) => false);

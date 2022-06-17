@@ -17,6 +17,7 @@ const nsecret = password.generateRandomPassword();
 console.info("nsecret", nsecret);
 
 export async function createProxyServer(port: number = 4321) {
+   console.info("createProxyServer port=", port);
    let dport = 8989;
    let directProxy = new IPipe({
       isDirect: true,
@@ -36,12 +37,12 @@ export async function createProxyServer(port: number = 4321) {
    let acceptProxy = new IPipe({
       isDirect: false,
       auth: async (username, password) => {
-         //console.info("check user", username, password);
+         console.info("check user", username, password);
          //console.info("relayProxy accept auth====", username, password);
          return username == "admin" && password == "123";
       },
    });
-   
+
    acceptProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
    acceptProxy.acceptFactor.on("accept", (socket, data) => {
       //console.info("=======relayProxy===>accept1", socket.remotePort, data);
@@ -53,14 +54,13 @@ export async function createProxyServer(port: number = 4321) {
    console.info("regigetProxyChecked", regigetProxyChecked);
    let server1: any = await acceptProxy.createAcceptServer(port);
    //console.info("relayProxy=====", port, server1.address());
-/*    relayProxy.on("in", (data) => {
+   /*    relayProxy.on("in", (data) => {
       console.info("in", data);
    });
    relayProxy.on("out", (data) => {
       console.info("out", data);
    }); */
 
-  
    return directProxy;
 }
 
@@ -82,6 +82,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return Buffer.from(checked ? "OK" : "");
 }
 export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
+   console.info("check proxy", proxy);
    let checked = await check.checkSocks5(proxy);
    console.info("socks5=========receive", `code=${checked}`);
    return Buffer.from(checked ? "OK" : "");

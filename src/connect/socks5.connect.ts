@@ -65,12 +65,12 @@ export default class Socks5Connect extends Connect {
             sendChunk = Socks5.buildClientInfo(host, port);
             await this.write(socket, sendChunk);
             chunkReceive = await this.read(socket);
-            if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
+            /*         if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
                logger.debug("connect target error " + [...chunkReceive]);
                socket.destroy();
                return;
-            }
-            //assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
+            } */
+            assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
             /**     socks5协议连接 end      */
 
             //准备连接协议
@@ -81,6 +81,7 @@ export default class Socks5Connect extends Connect {
          socket.on("timeout", () => {
             socket.end();
             this.emit("timeout");
+            callback(new Error("timeout"), new SSocket(socket));
          });
          socket.on("error", (err) => {
             socket.destroy(err);
