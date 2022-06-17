@@ -67,7 +67,7 @@ export default class Socks5Connect extends Connect {
             chunkReceive = await this.read(socket);
             if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
                logger.debug("connect target error " + [...chunkReceive]);
-               ssocket.destroy();
+               socket.destroy();
                return;
             }
             //assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
@@ -78,7 +78,10 @@ export default class Socks5Connect extends Connect {
             resolve(ssocket);
          });
          socket.setTimeout(this.timeout);
-         socket.on("timeout", () => this.emit("timeout"));
+         socket.on("timeout", () => {
+            socket.end();
+            this.emit("timeout");
+         });
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);

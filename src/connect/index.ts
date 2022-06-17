@@ -108,9 +108,9 @@ export default class ConnectFactor extends EventEmitter {
          existProxy.secret = proxy.secret;
          existProxy.forwardHost = proxy.forwardHost;
          existProxy.forwardPort = proxy.forwardPort;
-         existProxy.checked = true;
+         existProxy.checked = proxy.checked;
       } else {
-         proxy.checked = true;
+         proxy.checked = proxy.checked;
          this.proxys.push(proxy);
       }
       // 循环检测代理好坏,1分钟检测一次
