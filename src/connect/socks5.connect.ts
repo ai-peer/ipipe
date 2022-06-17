@@ -4,6 +4,7 @@ import assert from "assert";
 import { Socks5 } from "../core/protocol";
 import { Proxy } from "../types";
 import SSocket from "../core/ssocket";
+import logger from "../core/logger";
 
 /**
  * 走socks5代理连接
@@ -64,7 +65,12 @@ export default class Socks5Connect extends Connect {
             sendChunk = Socks5.buildClientInfo(host, port);
             await this.write(socket, sendChunk);
             chunkReceive = await this.read(socket);
-            assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
+            if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
+               logger.debug("connect target error " + [...chunkReceive]);
+               ssocket.destroy();
+               return;
+            }
+            //assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
             /**     socks5协议连接 end      */
 
             //准备连接协议

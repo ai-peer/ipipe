@@ -9,7 +9,7 @@ import ForwardHttpConnect from "./forward.http.connect";
 import log from "../core/logger";
 import EventEmitter from "events";
 import Sessions from "../core/sessions";
-import { Transform } from "stream";
+//import { Transform } from "stream";
 import SSocket from "../core/ssocket";
 import * as check from "../utils/check";
 import { wait } from "../utils";
@@ -83,7 +83,12 @@ export default class ConnectFactor extends EventEmitter {
       let idx = this.proxys.findIndex((v) => v.host == host && v.port == port);
       this.proxys.splice(idx, 1);
    }
-
+   /**
+    * 删除所有代理
+    */
+   public removeAllProxy() {
+      this.proxys.splice(0);
+   }
    /**
     * 注册代理服务器
     * @param proxy

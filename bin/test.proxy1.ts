@@ -17,11 +17,13 @@ async function createRelayProxyServer() {
       port: acceptPort,
    };
    ipipe.registerProxy({
-      protocol: "socks5",
-      host: "127.0.0.1",
-      port: 4321, //9150,
+      protocol: "light",
+      host: "108.166.201.94",
+      port: 6379, //9150,
       username: "student",
-      password: "hSDkAAqI",
+      password: "xlJZeiJA",
+      secret: "DIURKLVdaxDETkrQAbKlYPon1tvePVxbCzFfHOh0OvxDD2cZtKDlsYk5AF7Mecf92PI3lFGPFwPR6peKQjO3Vd1zcJZvfQJP42WBvkgH6Rr/OMp8frn2yOeapozXkKmDcYIKz5xQ89IhJW3AkR6TIMWePgRoJtUkU6jmafWjI6Ip+GwbE2M2QGbDxs52ttoOV4Cn2WEWWap4L/GVre7TeqyHrvRqH1ZG93WOy9QtNOIVvZnvUkXkmNxLr7P74TBBIh27CW6kKryNOxL5K2TgLvC6VJvfhKtEuO0Iwf7Je50yoX9YvwYFSQ0YPEcU7EyfP4awd+s1TVrCzSxyiGKSiw=="
+      
       //single: 129
    });
    ipipe.setTimeout(60 * 1000);
@@ -33,7 +35,7 @@ async function createRelayProxyServer() {
    });
    ipipe.on("out", ({ size, protocol, session, clientIp }) => {
       tout += size;
-      //console.info("out===", Date.now(), Math.ceil((tout * 1000) / 1024 / 1024) / 1000, "M", size, protocol, session, clientIp);
+      console.info("out===", Date.now(), Math.ceil((tout * 1000) / 1024 / 1024) / 1000, "M", size, protocol, session, clientIp);
    });
    //for (let i = 0; i < 2; i++) await getIp(forwardProxy);
 }

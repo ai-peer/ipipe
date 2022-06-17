@@ -4,13 +4,11 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import LightAccept from "./light.accept";
-
 import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
 import EventEmitter from "events";
 //import { Options } from "../types";
 import logger from "../core/logger";
-import { Proxy } from "../types";
-import { Transform } from "stream";
+
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
@@ -167,7 +165,6 @@ export default class AcceptFactor extends EventEmitter {
                   this.emit("close", socket);
                });
                accept.handle(socket, chunk).catch((err) => {
-                  //logger.info("===>accept handle error", err.message);
                   socket.destroy();
                   this.emit("error", err);
                });
