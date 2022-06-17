@@ -34,7 +34,7 @@ export default class SSocket {
       if (err) {
          await this.end(err.message).catch((err) => {});
       }
-      this.socket.destroy(err);
+      this.socket.destroy();
    }
    setTimeout(ttl: number = 0) {
       this.socket.setTimeout(ttl);

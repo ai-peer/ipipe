@@ -165,7 +165,7 @@ export default class ConnectFactor extends EventEmitter {
       }
       let proxy: Proxy = this.findProxy(localSocket, user);
       if (!proxy) {
-         localSocket.destroy(new Error("no handle node"));
+         localSocket.destroy();
          log.warn(`ipipe connect is no proxy node`);
          return;
       }
