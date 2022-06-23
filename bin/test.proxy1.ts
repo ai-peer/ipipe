@@ -7,7 +7,7 @@ import { Buffer } from "buffer";
 
 async function createRelayProxyServer() {
    let ipipe = new IPipe();
-   let server = await ipipe.createAcceptServer(1081, "127.0.0.1");
+   let server = await ipipe.createAcceptServer(1082, "127.0.0.1");
    let acceptAddress: any = server.address();
    let acceptPort = acceptAddress.port;
    console.info("create relay server", acceptAddress);
@@ -19,10 +19,10 @@ async function createRelayProxyServer() {
    ipipe.registerProxy({
       protocol: "light",
       host:"108.166.201.94", //"127.0.0.1",//
-      port: 6379, //9150,
+      port: 4321, //9150,
       username: "student",
       password: "xlJZeiJA",
-      secret: "ulhDOtxGGUwqvlTmioGfdPjz397WcQB/CTJHhzPN/5aJwCQmiAWDtdSNyhuz1+P5biGxgCeP9exozyC4e2LpWT5gPDXLAqm0Ecbao7stQDaTqmQoi2FvFUhnmO4ILmvdL1LCzIWXVUKUTfvJD0FexH2g93iSfDGm5Wo56gp1FsNyoa5fmZrHlR7QjP2/F0TVntgSMH55K9usHPQGqymG/vFj/B0ODJyOhCVRS1bttmzIpG1XRQS35L09OAPnwfZp0dKyAXYQkHrika8s0/pdN1MLSptcgk7w6OBlnbBbvA00qKVac+EfP62nos7ZxSNmd7lwOyJJExoYB0/r7xTyUA=="
+      secret: "g8LUlL1l01VGO+A/TT1XyAucb9dEUuilOBgmPFZ74k9LDUHu/wZ6NSGs8T6utR8BmCnPnrI3nYtuzrQH9UrB3nT3EXNFknlIMnAvn9zmHJOIp/KxBH46IvaXD10q70fL29ZOps3HxnZ9JN3ANGgSYAqGWpX+hA70KB3MHiv8TCPJapYWACWOJ9m4Yb+a2OujWeWKbeMME3WQM14ajeyJZjHhWPjVUdBjFRDzSa+58Lyz6rr5rS056f2RfDZiG5sIsPouCVNQ5Gt/cqmCQGcsQoUF58Npd4FxttFDqyC7W75UxaoXZNKkgI+M2gKhGXjEXO2oA6KHX99stzDKmaAU+w=="
       
       //single: 129
    });

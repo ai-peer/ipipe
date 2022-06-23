@@ -23,6 +23,7 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
          //console.info(`check socks5 timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
+      connect.on("error", (err) => resolve(false));
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
@@ -43,6 +44,7 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
          console.info(`check http timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
+      connect.on("error", (err) => resolve(false));
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
@@ -63,6 +65,7 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
          console.info(`check light timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
+      connect.on("error", (err) => resolve(false));
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
