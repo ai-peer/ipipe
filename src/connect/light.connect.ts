@@ -33,66 +33,70 @@ export default class LightConnect extends Connect {
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
-            //====step1 connect
-            let versions: number[] = int2Bit(cipherConnect.buildVersion(3), 3);
-            let face = versions[1];
-            let version = Buffer.from(versions.map((v) => v ^ 0xf1)); //; //Buffer.from([cipherConnect.version]);
-            let protocol = Buffer.from("light").map((v, i) => v ^ versions[i % versions.length]);
-            let step1Req: Buffer = Buffer.concat([
-               protocol, //
-               Buffer.from(int2Bit(cipherConnect.buildVersion(2), 2)),
-               version,
-               Buffer.from(buildSN(Math.ceil(Math.random() * 5))), //填充随机数
-            ]);
-            await this.write(socket, cipherConnect.encode(step1Req, 49));
+            try {
+               //====step1 connect
+               let versions: number[] = int2Bit(cipherConnect.buildVersion(3), 3);
+               let face = versions[1];
+               let version = Buffer.from(versions.map((v) => v ^ 0xf1)); //; //Buffer.from([cipherConnect.version]);
+               let protocol = Buffer.from("light").map((v, i) => v ^ versions[i % versions.length]);
+               let step1Req: Buffer = Buffer.concat([
+                  protocol, //
+                  Buffer.from(int2Bit(cipherConnect.buildVersion(2), 2)),
+                  version,
+                  Buffer.from(buildSN(Math.ceil(Math.random() * 5))), //填充随机数
+               ]);
+               await this.write(socket, cipherConnect.encode(step1Req, 49));
 
-            let step1Res: Buffer = await this.read(socket);
-            step1Res = cipherConnect.decode(step1Res, face);
-            assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "light connect error, maybe secret error");
+               let step1Res: Buffer = await this.read(socket);
+               step1Res = cipherConnect.decode(step1Res, face);
+               assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "light connect error, maybe secret error");
 
-            let username = Buffer.from(proxy.username || "");
-            let password = Buffer.from(proxy.password || "");
-            let step2Chunk = Buffer.concat([
-               Buffer.from([0x01]),
-               Buffer.from([username.byteLength]),
-               username, //
-               Buffer.from([password.byteLength]),
-               password,
-            ]);
-            await this.write(socket, cipherConnect.encode(step2Chunk, face));
+               let username = Buffer.from(proxy.username || "");
+               let password = Buffer.from(proxy.password || "");
+               let step2Chunk = Buffer.concat([
+                  Buffer.from([0x01]),
+                  Buffer.from([username.byteLength]),
+                  username, //
+                  Buffer.from([password.byteLength]),
+                  password,
+               ]);
+               await this.write(socket, cipherConnect.encode(step2Chunk, face));
 
-            let step2Res = await this.read(socket);
-            step2Res = cipherConnect.decode(step2Res, face);
+               let step2Res = await this.read(socket);
+               step2Res = cipherConnect.decode(step2Res, face);
 
-            let checked = step2Res[0] == 0x01 && step2Res[1] == 0x00;
-            //this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password||"").split("_").slice(1).join("_")});
-            //assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
-            this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
-            if (!checked) {
-               let ssocket = new SSocket(socket);
-               callback(step2Res, ssocket);
+               let checked = step2Res[0] == 0x01 && step2Res[1] == 0x00;
+               //this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password||"").split("_").slice(1).join("_")});
+               //assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
+               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               if (!checked) {
+                  let ssocket = new SSocket(socket);
+                  callback(step2Res, ssocket);
+                  resolve(ssocket);
+                  return;
+               }
+
+               let dynamicSecret = step2Res.slice(2, 258);
+               let cipherTransport = Cipher.createCipher(dynamicSecret);
+               //创建加密连接
+               let ssocket = new SSocket(socket, cipherTransport, face);
+               ssocket.protocol = this.protocol;
+               ssocket.on("read", (data) => this.emit("read", data));
+               ssocket.on("write", (data) => this.emit("write", data));
+
+               let step3Req = Socks5.buildClientInfo(host, port);
+               step3Req = cipherTransport.encode(step3Req, face);
+               await this.write(socket, step3Req);
+               let step3Res = await this.read(socket);
+               step3Res = cipherTransport.decode(step3Res, face);
+               assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
+
+               //准备连接协议
+               callback(undefined, ssocket);
                resolve(ssocket);
-               return;
+            } catch (err) {
+               socket.emit("error", err);
             }
-
-            let dynamicSecret = step2Res.slice(2, 258);
-            let cipherTransport = Cipher.createCipher(dynamicSecret);
-            //创建加密连接
-            let ssocket = new SSocket(socket, cipherTransport, face);
-            ssocket.protocol = this.protocol;
-            ssocket.on("read", (data) => this.emit("read", data));
-            ssocket.on("write", (data) => this.emit("write", data));
-
-            let step3Req = Socks5.buildClientInfo(host, port);
-            step3Req = cipherTransport.encode(step3Req, face);
-            await this.write(socket, step3Req);
-            let step3Res = await this.read(socket);
-            step3Res = cipherTransport.decode(step3Res, face);
-            assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
-
-            //准备连接协议
-            callback(undefined, ssocket);
-            resolve(ssocket);
          });
          socket.setTimeout(this.timeout);
          socket.on("timeout", () => {

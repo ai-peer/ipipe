@@ -19,12 +19,18 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
    let connect = new Socks5Connect();
    const info = new URL(url);
    return new Promise((resolve) => {
+      let pid = setTimeout(() => resolve(false), 5000);
       connect.on("timeout", () => {
+         clearTimeout(pid);
          //console.info(`check socks5 timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
-      connect.on("error", (err) => resolve(false));
+      connect.on("error", (err) => {
+         clearTimeout(pid);
+         resolve(false);
+      });
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
+         clearTimeout(pid);
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
@@ -40,12 +46,18 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
    let connect = new HttpConnect();
    const info = new URL(url);
    return new Promise((resolve) => {
+      let pid = setTimeout(() => resolve(false), 5000);
       connect.on("timeout", () => {
-         console.info(`check http timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+         clearTimeout(pid);
+         //console.info(`check http timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
-      connect.on("error", (err) => resolve(false));
+      connect.on("error", (err) => {
+         clearTimeout(pid);
+         resolve(false);
+      });
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
+         clearTimeout(pid);
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
@@ -61,12 +73,18 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
    let connect = new LightConnect();
    const info = new URL(url);
    return new Promise((resolve) => {
+      let pid = setTimeout(() => resolve(false), 5000);
       connect.on("timeout", () => {
-         console.info(`check light timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+         clearTimeout(pid);
+         //console.info(`check light timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
       });
-      connect.on("error", (err) => resolve(false));
+      connect.on("error", (err) => {
+         clearTimeout(pid);
+         resolve(false);
+      });
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
+         clearTimeout(pid);
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";

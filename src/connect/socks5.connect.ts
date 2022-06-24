@@ -25,57 +25,61 @@ export default class Socks5Connect extends Connect {
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(proxy.port, proxy.host, async () => {
-            let ssocket = new SSocket(socket);
-            ssocket.protocol = this.protocol;
-            ssocket.on("read", (data) => this.emit("read", data));
-            ssocket.on("write", (data) => this.emit("write", data));
-            /**     socks5协议连接 start      */
-            let usePassword = !!proxy.username && !!proxy.password;
-            let sendChunk = Buffer.from([0x05, 0x01, usePassword ? 0x02 : 0x00]); //0X01
-            await this.write(socket, sendChunk);
-            let chunkReceive: Buffer = await this.read(socket);
-            usePassword = chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02;
-            if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0xff) assert.ok(false, "socks5 no accept auth");
-            if (usePassword) {
-               assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02, "connect socks5 server auth error " + [...chunkReceive]);
+            try {
+               let ssocket = new SSocket(socket);
+               ssocket.protocol = this.protocol;
+               ssocket.on("read", (data) => this.emit("read", data));
+               ssocket.on("write", (data) => this.emit("write", data));
+               /**     socks5协议连接 start      */
+               let usePassword = !!proxy.username && !!proxy.password;
+               let sendChunk = Buffer.from([0x05, 0x01, usePassword ? 0x02 : 0x00]); //0X01
+               await this.write(socket, sendChunk);
+               let chunkReceive: Buffer = await this.read(socket);
+               usePassword = chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02;
+               if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0xff) assert.ok(false, "socks5 no accept auth");
+               if (usePassword) {
+                  assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02, "connect socks5 server auth error " + [...chunkReceive]);
 
-               let username = Buffer.from(proxy.username || "");
-               let password = Buffer.from(proxy.password || "");
-               sendChunk = Buffer.concat([
-                  Buffer.from([0x01]),
-                  Buffer.from([username.byteLength]),
-                  username, //
-                  Buffer.from([password.byteLength]),
-                  password,
-               ]);
+                  let username = Buffer.from(proxy.username || "");
+                  let password = Buffer.from(proxy.password || "");
+                  sendChunk = Buffer.concat([
+                     Buffer.from([0x01]),
+                     Buffer.from([username.byteLength]),
+                     username, //
+                     Buffer.from([password.byteLength]),
+                     password,
+                  ]);
+                  await this.write(socket, sendChunk);
+                  chunkReceive = await this.read(socket);
+                  let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
+                  this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+                  if (!checked) {
+                     callback(chunkReceive, ssocket);
+                     resolve(ssocket);
+                     return;
+                  }
+               } else {
+                  assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0, "connect socks5 server error " + [...chunkReceive]);
+               }
+
+               //sendChunk = this.createClientInfo(host, port);
+               sendChunk = Socks5.buildClientInfo(host, port);
                await this.write(socket, sendChunk);
                chunkReceive = await this.read(socket);
-               let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
-               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
-               if (!checked) {
-                  callback(chunkReceive, ssocket);
-                  resolve(ssocket);
-                  return;
-               }
-            } else {
-               assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0, "connect socks5 server error " + [...chunkReceive]);
-            }
-
-            //sendChunk = this.createClientInfo(host, port);
-            sendChunk = Socks5.buildClientInfo(host, port);
-            await this.write(socket, sendChunk);
-            chunkReceive = await this.read(socket);
-            /*         if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
+               /*         if (chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00) {
                logger.debug("connect target error " + [...chunkReceive]);
                socket.destroy();
                return;
             } */
-            assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
-            /**     socks5协议连接 end      */
+               assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
+               /**     socks5协议连接 end      */
 
-            //准备连接协议
-            callback(undefined, ssocket);
-            resolve(ssocket);
+               //准备连接协议
+               callback(undefined, ssocket);
+               resolve(ssocket);
+            } catch (err) {
+               socket.emit("error", err);
+            }
          });
          socket.setTimeout(this.timeout);
          socket.on("timeout", () => {

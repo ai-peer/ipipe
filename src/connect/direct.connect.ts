@@ -22,12 +22,16 @@ export default class DirectConnect extends Connect {
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let socket = net.connect(port, host, () => {
-            let ssocket = new SSocket(socket);
-            ssocket.protocol = this.protocol;
-            ssocket.on("read", (data) => this.emit("read", data));
-            ssocket.on("write", (data) => this.emit("write", data));
-            callback(undefined, ssocket);
-            resolve(ssocket);
+            try {
+               let ssocket = new SSocket(socket);
+               ssocket.protocol = this.protocol;
+               ssocket.on("read", (data) => this.emit("read", data));
+               ssocket.on("write", (data) => this.emit("write", data));
+               callback(undefined, ssocket);
+               resolve(ssocket);
+            } catch (err) {
+               socket.emit("error", err);
+            }
          });
          socket.setTimeout(this.timeout);
          socket.on("timeout", () => {
