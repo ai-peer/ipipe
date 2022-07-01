@@ -36,8 +36,8 @@ export async function createProxyServer(port: number = 4321) {
 
    let acceptProxy = new IPipe({
       isDirect: false,
-      auth: async (username, password) => {
-         console.info("check user", username, password);
+      auth: async (username, password, { args, socket, protocol }) => {
+         console.info("check user", username, password, args, protocol, socket.remoteAddress);
          //console.info("relayProxy accept auth====", username, password);
          return username == "admin" && password == "123";
       },

@@ -51,8 +51,9 @@ export default class LightConnect extends Connect {
                step1Res = cipherConnect.decode(step1Res, face);
                assert.ok(step1Res[0] == 0x05 && step1Res[1] == 0x00, "light connect error, maybe secret error");
 
+               let pwd = proxy.password || "";
                let username = Buffer.from(proxy.username || "");
-               let password = Buffer.from(proxy.password || "");
+               let password = Buffer.from(proxy.random == true ? pwd + "_" + buildSN(6) : pwd);
                let step2Chunk = Buffer.concat([
                   Buffer.from([0x01]),
                   Buffer.from([username.byteLength]),

@@ -3,6 +3,7 @@ import Connect, { Callback } from "./connect";
 import assert from "assert";
 import { Proxy } from "..//types";
 import SSocket from "../core/ssocket";
+import { buildSN } from "../core/password";
 
 /**
  * http代理连接
@@ -29,7 +30,9 @@ export default class HttpConnect extends Connect {
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
                let usePassword = !!proxy.username && !!proxy.password;
-               let up = (proxy.username || "").trim() + ":" + (proxy.password || "").trim();
+               let pwd = proxy.password || "";
+               pwd = proxy.random == true ? pwd + "_" + buildSN(6) : pwd;
+               let up = proxy.username + ":" + pwd;
                up = Buffer.from(up).toString("base64");
                let sendChunk = Buffer.concat([
                   Buffer.from(`CONNECT ${proxy.host}:${proxy.port} HTTP/1.1\r\n`), //

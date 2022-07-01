@@ -95,6 +95,8 @@ export default class ConnectFactor extends EventEmitter {
     */
    public registerProxy(proxy: Proxy): boolean {
       proxy.checked = proxy.checked == undefined ? true : proxy.checked;
+      proxy.random = proxy.random == undefined ? false : proxy.random;
+
       let existProxy = this.proxys.find((v) => v.host == proxy.host && v.port == proxy.port);
       if (existProxy) {
          existProxy.protocol = proxy.protocol;
@@ -104,6 +106,7 @@ export default class ConnectFactor extends EventEmitter {
          existProxy.forwardHost = proxy.forwardHost;
          existProxy.forwardPort = proxy.forwardPort;
          existProxy.checked = proxy.checked;
+         existProxy.random = proxy.random;
       } else {
          this.proxys.push(proxy);
       }
@@ -335,9 +338,10 @@ function hashId(user: ConnectUser) {
    let val = user.username + "_" + user.password + "_" + user.args.join("_");
    let res = 0;
    for (let v of val) {
-      res += v.charCodeAt(0) ^ 255;
+      res += v.charCodeAt(0) ^ 111;
    }
    res = res % 666666;
+   //console.info("hash", res, user.args)
    return res;
 }
 export { Connect as Connect, HttpConnect, Socks5Connect, DirectConnect };

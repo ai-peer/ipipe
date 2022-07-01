@@ -2,6 +2,7 @@ import net from "net";
 import Connect, { Callback } from "./connect";
 import { Proxy } from "../types";
 import SSocket from "../core/ssocket";
+import { buildSN } from '../core/password';
 
 /**
  * 透过中转服务转发连接http代理连接
@@ -28,7 +29,9 @@ export default class ForwardHttpConnect extends Connect {
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
                let isAuth = !!proxy.username && !!proxy.password;
-               let up = proxy.username + ":" + proxy.password;
+               let pwd = proxy.password || "";
+               pwd = proxy.random == true ? pwd + "_" + buildSN(6) : pwd;
+               let up = proxy.username + ":" + pwd;
                up = Buffer.from(up).toString("base64");
 
                /**  第一步连接中转服务器 */

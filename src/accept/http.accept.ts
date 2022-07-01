@@ -40,7 +40,13 @@ export default class HttpAccept extends Accept {
       // 需要鉴权
       if (isAuth) {
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
-         let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
+         let authRes = this.acceptAuth
+            ? await this.acceptAuth(user.username, user.password, {
+                 args: user.args, //
+                 socket: socket,
+                 protocol: this.protocol,
+              })
+            : true;
          this.sessions.add(socket, user.username);
          this.emit("auth", { checked: authRes, socket: ssocket, username: user.username, password: user.password, args: user.args });
          if (!authRes) {

@@ -37,7 +37,13 @@ export default class LightAccept extends Accept {
       let step2Req = await this.read(socket); //读取将要建立连接的目标服务,
       step2Req = cipherAccept.decode(step2Req, face);
       let user = this.getUser(step2Req);
-      let authRes = this.acceptAuth ? await this.acceptAuth(user.username, user.password) : true;
+      let authRes = this.acceptAuth
+         ? await this.acceptAuth(user.username, user.password, {
+              args: user.args, //
+              socket: socket,
+              protocol: this.protocol,
+           })
+         : true;
       //console.info("auth res =", authRes, !!this.acceptAuth);
       this.sessions.add(socket, user.username);
       if (!authRes) {

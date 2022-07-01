@@ -32,7 +32,16 @@ export interface Options extends AcceptOptions, ConnectOptions {
 /**
  * accept用户信息验证
  */
-export type AcceptAuth = (username: string, password: string) => Promise<boolean>;
+export type AcceptAuth = (
+   username: string,
+   password: string, //
+   options: {
+      [key: string]: any; //
+      args: string[];
+      socket: net.Socket;
+      protocol: string;
+   },
+) => Promise<boolean>;
 
 export interface Proxy {
    /** 协议 */
@@ -53,6 +62,8 @@ export interface Proxy {
    secret?: string | Buffer;
    /** 代理检测好坏，内部使用 */
    checked?: boolean;
+   /** 是否随机ip,默认false */
+   random?: boolean;
 }
 
 /**

@@ -7,6 +7,7 @@ let proxy = {
    protocol: "http",
    username: "admin",
    password: "123",
+   random: true,
 };
 
 let testServer;
