@@ -118,20 +118,10 @@ export default class ConnectFactor extends EventEmitter {
             existProxy = this.proxys.find((v) => v.host == host && v.port == port);
             if (existProxy) {
                let checked = await check.check(existProxy).catch((err) => false);
-               if (!checked) {
-                  await wait(5000);
-                  checked = await check.check(existProxy).catch((err) => false);
-                  if (!checked) {
-                     existProxy.checked = false;
-                  } else {
-                     existProxy.checked = true;
-                  }
-               } else {
-                  existProxy.checked = true;
-               }
+               existProxy.checked = checked;
             }
          } catch (err) {}
-      }, 5 * 60 * 1000);
+      }, 30 * 1000);
       return true;
    }
    private findProxy(localSocket: SSocket, user?: ConnectUser) {
