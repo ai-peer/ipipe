@@ -136,7 +136,18 @@ export default class IPipe extends EventEmitter {
       this.connectFactor.registerDirectDomain(domain);
       return this;
    }
-   async checkProxy(proxy: Proxy) {}
+   /**
+    * 检测代理
+    * @param callback
+    *    {
+    *       success： 成功数量
+    *       fail: 失败数量
+    *    }
+    * @param interval 检测间隔，单位ms
+    */
+   public checkProxy(callback: (data: { success: number; fail: number }) => void, interval: number = 10 * 1000): void {
+      this.connectFactor.checkProxy(callback, interval);
+   }
 
    async getPublicIp() {
       return getPublicIp();
