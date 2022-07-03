@@ -126,15 +126,16 @@ export default class ConnectFactor extends EventEmitter {
    }
    /**
     * 检测代理
-    * @param callback 
+    * @param callback
     *    {
     *       success： 成功数量
     *       fail: 失败数量
     *    }
+    * @param interval 检测间隔，单位ms
     */
-   public checkProxy(callback: (data: { success: number; fail: number }) => void): void {
+   public checkProxy(callback: (data: { success: number; fail: number }) => void, interval: number = 10 * 1000): void {
       (async () => {
-         await wait(10 * 1000);
+         await wait(interval);
          while (true) {
             //5分钟检测一次
             let successNum = 0,
@@ -167,7 +168,7 @@ export default class ConnectFactor extends EventEmitter {
             } catch (err) {
                //console.debug("error====checked", err.message);
             } finally {
-               await wait(10 * 1000);
+               await wait(interval);
                //console.info(`check proxy pool success=${successNum} fail=${failNum}`);
                callback({ success: successNum, fail: failNum });
             }
