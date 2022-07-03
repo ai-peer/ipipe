@@ -3,7 +3,7 @@ import { LightConnect, SSocket, Socks5Connect, HttpConnect } from "../";
 import ua from "./ua";
 //const reqUrl = "http://httpbin.org/ip";
 //const reqUrl = "http://ip-api.com/json";
-const reqUrl = "http://www.bing.com";
+const reqUrl = "http://www.qq.com";
 export async function check(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    if (proxy.protocol == "http") {
       return checkHttp(proxy, url).catch((err) => false);
@@ -14,12 +14,13 @@ export async function check(proxy: Proxy, url: string = reqUrl): Promise<boolean
    }
    return false;
 }
-
+const timeout = 7 * 1000;
 export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    let connect = new Socks5Connect();
+   connect.setTimeout(timeout);
    const info = new URL(url);
    return new Promise((resolve) => {
-      let pid = setTimeout(() => resolve(false), 5000);
+      let pid = setTimeout(() => resolve(false), timeout);
       connect.on("timeout", () => {
          clearTimeout(pid);
          //console.info(`check socks5 timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
@@ -35,7 +36,7 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
-            console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
+            console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
             console.info(data.slice(0, 128));
          }
          resolve(checked);
@@ -44,9 +45,10 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
 }
 export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    let connect = new HttpConnect();
+   connect.setTimeout(timeout);
    const info = new URL(url);
    return new Promise((resolve) => {
-      let pid = setTimeout(() => resolve(false), 5000);
+      let pid = setTimeout(() => resolve(false), timeout);
       connect.on("timeout", () => {
          clearTimeout(pid);
          //console.info(`check http timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
@@ -62,7 +64,7 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
-            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
+            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
             console.info(data.slice(0, 128));
          }
          resolve(checked);
@@ -71,9 +73,10 @@ export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boo
 }
 export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    let connect = new LightConnect();
+   connect.setTimeout(timeout);
    const info = new URL(url);
    return new Promise((resolve) => {
-      let pid = setTimeout(() => resolve(false), 5000);
+      let pid = setTimeout(() => resolve(false), timeout);
       connect.on("timeout", () => {
          clearTimeout(pid);
          //console.info(`check light timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
@@ -89,7 +92,7 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
-            console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n${data.slice(0, 256)}`);
+            console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
             console.info(data.slice(0, 128));
          }
          resolve(checked);

@@ -64,18 +64,6 @@ export async function createProxyServer(port: number = 4321) {
    return directProxy;
 }
 
-export function createHttpRequest(): string {
-   let list: string[] = [
-      "GET http://www.gov.cn/ HTTP/1.1",
-      "Accept: application/json, text/plain, */*",
-      "User-Agent: axios/0.25.0",
-      "host: www.gov.cn",
-      "Connection: close",
-      "\r\n",
-   ];
-   return list.join("\r\n");
-}
-
 export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    let checked = await check.checkHttp(proxy);
    console.info("http=========receive", `code=${checked}`);

@@ -111,7 +111,7 @@ export default class ConnectFactor extends EventEmitter {
          this.proxys.push(proxy);
       }
       // 循环检测代理好坏,1分钟检测一次
-      let host = proxy.host,
+      /*       let host = proxy.host,
          port = proxy.port;
       setInterval(async () => {
          try {
@@ -121,8 +121,58 @@ export default class ConnectFactor extends EventEmitter {
                existProxy.checked = checked;
             }
          } catch (err) {}
-      }, 30 * 1000);
+      }, 30 * 1000); */
       return true;
+   }
+   /**
+    * 检测代理
+    * @param callback 
+    *    {
+    *       success： 成功数量
+    *       fail: 失败数量
+    *    }
+    */
+   public checkProxy(callback: (data: { success: number; fail: number }) => void): void {
+      (async () => {
+         await wait(10 * 1000);
+         while (true) {
+            //5分钟检测一次
+            let successNum = 0,
+               failNum = 0;
+            try {
+               let proxyList = this.proxys;
+               let tasks: Promise<boolean>[] = [];
+               for (let i = 0; i < proxyList.length; i++) {
+                  tasks.push(
+                     new Promise(async (resolve) => {
+                        let proxy = proxyList[i];
+                        let checked = false;
+                        try {
+                           checked = await check.check(proxy).catch((err) => false); //https://api.myip.com/ http://httpbin.org/ip
+                           if (checked) {
+                              successNum++;
+                              proxy.checked = true;
+                           } else {
+                              failNum++;
+                              proxy.checked = false;
+                           }
+                        } catch (err) {
+                        } finally {
+                           resolve(checked);
+                        }
+                     }),
+                  );
+               }
+               await Promise.all(tasks).catch((err) => []);
+            } catch (err) {
+               //console.debug("error====checked", err.message);
+            } finally {
+               await wait(10 * 1000);
+               //console.info(`check proxy pool success=${successNum} fail=${failNum}`);
+               callback({ success: successNum, fail: failNum });
+            }
+         }
+      })();
    }
    private findProxy(localSocket: SSocket, user?: ConnectUser) {
       let proxy: Proxy;
@@ -207,12 +257,12 @@ export default class ConnectFactor extends EventEmitter {
                localSocket.destroy();
                proxySocket?.destroy(err);
             });
-            localSocket.on("close", () => proxySocket?.destroy());
+            localSocket.on("close", () => proxySocket?.end());
             proxySocket.on("error", (err) => {
                proxySocket.destroy();
                localSocket.destroy(err);
             });
-            proxySocket.on("close", () => localSocket.destroy());
+            proxySocket.on("close", () => localSocket.end());
             if (recChunk) localSocket.write(recChunk);
             /*  localSocket
             .pipe(
