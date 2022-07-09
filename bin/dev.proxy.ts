@@ -32,6 +32,7 @@ async function createRemoteProxy() {
       host: "127.0.0.1",
       port: 1082,
       protocol: "socks5",
+      //secret: secret,
       //username: "admin",
       //password: "123456",
    };
@@ -57,7 +58,7 @@ async function createRemoteProxy() {
       // console.info("auth===", data.checked);
    });
    acceptProxy.registerAccept(new LightAccept({secret: secret}));
-   acceptProxy.registerConnect(new LightConnect());
+   //acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(RemotePort);
    let address: any = acceptServer.address();
    console.info("accept proxy port=", RemotePort);
@@ -79,7 +80,7 @@ async function createLocalProxy() {
    localProxy.registerProxy({
       host: "127.0.0.1",
       port: RemotePort,
-      protocol: "socks5",
+      protocol: "light",
       secret: secret
    });
    console.info("create local proxy", 1081);
@@ -104,7 +105,7 @@ async function createLocalProxy() {
          })
          .then((res) => res.data)
          .catch((err) => err.message);
-      //console.info("res", count, res.length);
+      console.info("res", count, res.length);
    }
    console.info("end======");
 })();
