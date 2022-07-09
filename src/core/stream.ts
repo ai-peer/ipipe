@@ -19,15 +19,16 @@ export default class Stream extends EventEmitter {
       return new Promise((resolve) => {
          socket.pause();
          //setTimeout(() => {
-         socket.write(chunk, (err) => {
-            socket.resume();
-            if (err) {
-               resolve(err);
-            } else {
-               this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
-               resolve(undefined);
-            }
-         });
+         socket.writable &&
+            socket.write(chunk, (err) => {
+               socket.resume();
+               if (err) {
+                  resolve(err);
+               } else {
+                  this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
+                  resolve(undefined);
+               }
+            });
          //}, 5);
       });
    }
@@ -35,12 +36,13 @@ export default class Stream extends EventEmitter {
       return new Promise((resolve) => {
          socket.pause();
          //setTimeout(() => {
-         socket.writableEnded &&
-            socket.end(chunk, () => {
-               socket.resume();
-               this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
-               resolve(undefined);
-            });
+         socket.writable
+            ? socket.end(chunk, () => {
+                 socket.resume();
+                 this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
+                 resolve(undefined);
+              })
+            : socket.end();
          //}, 5);
       });
    }

@@ -32,8 +32,12 @@ export default class LightConnect extends Connect {
       let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
+         let isTimeout = true,
+         pid;
          let socket = net.connect(proxy.port, proxy.host, async () => {
             try {
+               isTimeout = false;
+               pid && clearTimeout(pid);
                //====step1 connect
                let versions: number[] = int2Bit(cipherConnect.buildVersion(3), 3);
                let face = versions[1];
@@ -99,14 +103,15 @@ export default class LightConnect extends Connect {
                socket.emit("error", err);
             }
          });
-         socket.setTimeout(this.timeout);
+         if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
          socket.on("timeout", () => {
-            socket.end();
+            let error = new Error("timeout");
+            socket.emit("error", error);
             this.emit("timeout");
-            callback(new Error("timeout"), new SSocket(socket));
+            callback(error, new SSocket(socket));
          });
          socket.on("error", (err) => {
-            socket.destroy(err);
+            socket.destroy();
             this.emit("error", err);
             callback(err, new SSocket(socket));
          });

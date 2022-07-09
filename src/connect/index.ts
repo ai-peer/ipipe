@@ -13,6 +13,7 @@ import Sessions from "../core/sessions";
 import SSocket from "../core/ssocket";
 import * as check from "../utils/check";
 import { wait } from "../utils";
+import logger from "../core/logger";
 
 const isDev = process.env.NODE_ENV == "development";
 
@@ -238,7 +239,7 @@ export default class ConnectFactor extends EventEmitter {
       }
 
       if (!proxy && connect.protocol != "direct") {
-         localSocket.destroy();
+         localSocket.destroy(new Error(`ipipe connect is no proxy node`));
          log.warn(`ipipe connect is no proxy node`);
          return;
       }
@@ -255,13 +256,15 @@ export default class ConnectFactor extends EventEmitter {
                return;
             }
             localSocket.on("error", (err) => {
+               logger.debug("error local", err.message);
                localSocket.destroy();
-               proxySocket?.destroy(err);
+               proxySocket?.destroy();
             });
             localSocket.on("close", () => proxySocket?.end());
             proxySocket.on("error", (err) => {
+               logger.debug("error proxy", err.message);
                proxySocket.destroy();
-               localSocket.destroy(err);
+               localSocket.destroy();
             });
             proxySocket.on("close", () => localSocket.end());
             if (recChunk) localSocket.write(recChunk);

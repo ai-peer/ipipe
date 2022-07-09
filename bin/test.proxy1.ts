@@ -38,7 +38,7 @@ async function createRelayProxyServer() {
       console.info("out===", Date.now(), Math.ceil((tout * 1000) / 1024 / 1024) / 1000, "M", size, protocol, session, clientIp);
    });
    //for (let i = 0; i < 2; i++) await getIp(forwardProxy);
-}
+}/* 
 async function getIp(proxy: { host: string; port: number }) {
    let info = await axios({
       url: "http://ip-api.com/json",
@@ -52,7 +52,7 @@ async function getIp(proxy: { host: string; port: number }) {
       .then((res) => res.data)
       .catch((err) => console.error("get proxy ip error", err.stack, err.message));
    console.info("proxy ip", info.query);
-}
+} */
 (async () => {
    await createRelayProxyServer();
 })();

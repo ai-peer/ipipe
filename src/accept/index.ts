@@ -151,7 +151,7 @@ export default class AcceptFactor extends EventEmitter {
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {
-            //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol}`);
+            //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol} ${chunk.toString()}`);
             try {
                this.emit("accept", socket, { protocol: accept.protocol });
                let clientIp = socket.remoteAddress;
