@@ -92,7 +92,7 @@ async function createLocalProxy() {
    while (true) {
       if (count >= 3) break;
       count++;
-      console.info("req", count);
+      //console.info("req", count);
       let res = await axios
          .request({
             url: "https://www.bing.com",
@@ -104,7 +104,7 @@ async function createLocalProxy() {
          })
          .then((res) => res.data)
          .catch((err) => err.message);
-      console.info("res", count, res.length);
+      //console.info("res", count, res.length);
    }
    console.info("end======");
 })();

@@ -60,7 +60,7 @@ export default class Socks5Connect extends Connect {
                   await this.write(socket, sendChunk);
                   chunkReceive = await this.read(socket);
                   let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
-                  console.info("checked", checked, proxy.port, proxy.host,);
+                  //console.info("checked", checked, proxy.port, proxy.host,);
                   this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
                   if (!checked) {
                      callback(chunkReceive, ssocket);
