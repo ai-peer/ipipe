@@ -98,8 +98,10 @@ export default class ConnectFactor extends EventEmitter {
       proxy.checked = proxy.checked == undefined ? true : proxy.checked;
       proxy.random = proxy.random == undefined ? false : proxy.random;
 
-      let existProxy = this.proxys.find((v) => v.host == proxy.host && v.port == proxy.port);
+      let existProxy = this.proxys.find((v) => v.host == proxy.host);
       if (existProxy) {
+         existProxy.host = proxy.host;
+         existProxy.port = proxy.port;
          existProxy.protocol = proxy.protocol;
          existProxy.username = proxy.username;
          existProxy.password = proxy.password;
@@ -111,18 +113,6 @@ export default class ConnectFactor extends EventEmitter {
       } else {
          this.proxys.push(proxy);
       }
-      // 循环检测代理好坏,1分钟检测一次
-      /*       let host = proxy.host,
-         port = proxy.port;
-      setInterval(async () => {
-         try {
-            existProxy = this.proxys.find((v) => v.host == host && v.port == port);
-            if (existProxy) {
-               let checked = await check.check(existProxy).catch((err) => false);
-               existProxy.checked = checked;
-            }
-         } catch (err) {}
-      }, 30 * 1000); */
       return true;
    }
    /**
