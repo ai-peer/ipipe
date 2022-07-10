@@ -5,7 +5,7 @@ import { Socks5 } from "../core/protocol";
 import { Proxy } from "../types";
 import SSocket from "../core/ssocket";
 import logger from "../core/logger";
-import { buildSN } from '../core/password';
+import { buildSN } from "../core/password";
 
 /**
  * 走socks5代理连接
@@ -26,7 +26,7 @@ export default class Socks5Connect extends Connect {
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let isTimeout = true,
-         pid;
+            pid;
          let socket = net.connect(proxy.port, proxy.host, async () => {
             try {
                isTimeout = false;
@@ -48,7 +48,7 @@ export default class Socks5Connect extends Connect {
                   let pwd = proxy.password || "";
                   let username = Buffer.from(proxy.username || "");
                   //let password = Buffer.from(proxy.password || "");
-                  let password = Buffer.from(proxy.random == true ? pwd + "_" + buildSN(6) : pwd);
+                  let password = Buffer.from(proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode);
 
                   sendChunk = Buffer.concat([
                      Buffer.from([0x01]),

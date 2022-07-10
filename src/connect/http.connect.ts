@@ -35,7 +35,7 @@ export default class HttpConnect extends Connect {
                ssocket.on("write", (data) => this.emit("write", data));
                let usePassword = !!proxy.username && !!proxy.password;
                let pwd = proxy.password || "";
-               pwd = proxy.random == true ? pwd + "_" + buildSN(6) : pwd;
+               pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
                let up = proxy.username + ":" + pwd;
                up = Buffer.from(up).toString("base64");
                let sendChunk = Buffer.concat([

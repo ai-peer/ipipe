@@ -62,8 +62,8 @@ export interface Proxy {
    secret?: string | Buffer;
    /** 代理检测好坏，内部使用 */
    checked?: boolean;
-   /** 是否随机ip,默认false */
-   random?: boolean;
+   /** 使用模式 0=session模式， 1=随机ip模式， 2=固定模式（未实现） */
+   mode?: 0 | 1 | 2;
 }
 
 /**

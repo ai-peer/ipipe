@@ -33,7 +33,7 @@ export default class LightConnect extends Connect {
       let cipherConnect = Cipher.createCipher(secret);
       return new Promise((resolve, reject) => {
          let isTimeout = true,
-         pid;
+            pid;
          let socket = net.connect(proxy.port, proxy.host, async () => {
             try {
                isTimeout = false;
@@ -57,7 +57,7 @@ export default class LightConnect extends Connect {
 
                let pwd = proxy.password || "";
                let username = Buffer.from(proxy.username || "");
-               let password = Buffer.from(proxy.random == true ? pwd + "_" + buildSN(6) : pwd);
+               let password = Buffer.from(proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode);
                let step2Chunk = Buffer.concat([
                   Buffer.from([0x01]),
                   Buffer.from([username.byteLength]),

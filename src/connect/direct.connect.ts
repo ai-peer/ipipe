@@ -22,7 +22,7 @@ export default class DirectConnect extends Connect {
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       return new Promise((resolve, reject) => {
          let isTimeout = true,
-         pid;
+            pid;
          let socket = net.connect(port, host, () => {
             try {
                isTimeout = false;

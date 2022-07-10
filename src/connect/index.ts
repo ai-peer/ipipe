@@ -96,7 +96,7 @@ export default class ConnectFactor extends EventEmitter {
     */
    public registerProxy(proxy: Proxy): boolean {
       proxy.checked = proxy.checked == undefined ? true : proxy.checked;
-      proxy.random = proxy.random == undefined ? false : proxy.random;
+      proxy.mode = proxy.mode == undefined ? 1 : proxy.mode;
 
       let existProxy = this.proxys.find((v) => v.host == proxy.host);
       if (existProxy) {
@@ -109,7 +109,7 @@ export default class ConnectFactor extends EventEmitter {
          existProxy.forwardHost = proxy.forwardHost;
          existProxy.forwardPort = proxy.forwardPort;
          existProxy.checked = proxy.checked;
-         existProxy.random = proxy.random;
+         existProxy.mode = proxy.mode;
       } else {
          this.proxys.push(proxy);
       }

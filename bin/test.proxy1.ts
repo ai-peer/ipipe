@@ -30,7 +30,7 @@ async function createRelayProxyServer() {
       port: 6379,
       secret: '9jXCyOYmV4AaG4hUt5WoqWe6/e2v2jZDMkaWg6rbz0Sm9PfqxuJR2BVuMNIRig1rfhZ0+G3EY/sFrTuhWL/wRdk3M7GrGSJc0XbyHOjFp1nOwITlmLZJhgRlMTiTi2x4AUtAaeQlCbMSwR8oDo2MfeyiVSqevBhHkKPgeoULmwDh3imdn6UjTmTpmnEGL3BKtf/dUGondfy+Oj7UybQ5F3lyE0+Oub08Kw9m6wiu+tBoUpF806QtNPP+rMPj59YM748HnHNf7stIUwMslCE/PbCBoILMYVv5XiACd817EFZ/3Mcu1d9BsmJgkvGJ9UKZTdeXHhS7TMpdbwpaJB2HuA==',
       checked: true,
-      random: false,
+      mode: 1,
       //status: 1,
       //lastCheckAt: 1657368982101,
       //netStatus: 'on',

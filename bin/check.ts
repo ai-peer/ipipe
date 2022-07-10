@@ -6,7 +6,7 @@ import * as check from "../src/utils/check";
 const program = new Command();
 let appParams: any = program //
    .option("-host, --host [value]", "代理主机", "127.0.0.1") //
-   .option("-port, --port [value]", "代理端口", "6379") //
+   .option("-port, --port [value]", "代理端口", "1080") //
    .option("-secret, --secret [value]", "密钥", "")
    .option("-u, --username [value]", "用户", "") //
    .option("-p, --password [value]", "密码", "") //
