@@ -90,6 +90,9 @@ async function createLocalProxy() {
       secret: secret,
    });
    console.info("create local proxy", 1081);
+   localProxy.on("request", (data) => {
+      console.info("connect=>", data.host + ":" + data.port, data.status);
+   });
 }
 (async () => {
    await createRemoteProxy();

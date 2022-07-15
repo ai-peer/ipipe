@@ -74,6 +74,7 @@ export default class IPipe extends EventEmitter {
 
       this.acceptFactor.on("read", (data) => this.emit(Event.in, data));
       this.acceptFactor.on("write", (data) => this.emit(Event.out, data));
+      this.connectFactor.on("request", (data) => this.emit("request", data));
       //this.connectFactor.on("read", (data) => this.emit(Event.in, data));
       //this.connectFactor.on("write", (data) => this.emit(Event.out, data));
    }

@@ -225,6 +225,7 @@ export default class ConnectFactor extends EventEmitter {
          log.warn(`ipipe connect is no proxy node`);
          return;
       }
+      //let headers = parseHeader(chunk.toString());
       //连接目标超时
       //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
       let isConnect = false;
@@ -296,6 +297,7 @@ export default class ConnectFactor extends EventEmitter {
             }
          }
       }
+      this.emit("request", { host: host, port: port, status: isConnect ? "ok" : "no" });
    }
 
    /*   public async ping(host: string): Promise<boolean> {
