@@ -75,7 +75,7 @@ export default class ConnectFactor extends EventEmitter {
          let session = sessions.getSession(data.socket);
          session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
       });
-      connect.setTimeout(15 * 1000, () => this.emit("timeout"));
+      connect.setTimeout(2 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
       return this;
    }
@@ -169,12 +169,13 @@ export default class ConnectFactor extends EventEmitter {
    private findProxy(localSocket: SSocket, user?: ConnectUser) {
       let proxy: Proxy;
       let list: Proxy[] = this.proxys.filter((v) => v.checked);
+      let hid0 = 0;
       if (user) {
-         let idx = hashId(user) % (list.length || 1);
-         proxy = list[idx];
+         hid0 = hashId(user) % (list.length || 1);
+         proxy = list[hid0];
       } else {
-         let idx = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (list.length || 1);
-         proxy = list[idx];
+         hid0 = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (list.length || 1);
+         proxy = list[hid0];
       }
       return proxy || this.proxys.find((v) => v.checked);
    }
@@ -193,15 +194,6 @@ export default class ConnectFactor extends EventEmitter {
          };
       }
       let proxy: Proxy = this.findProxy(localSocket, user);
-
-      /*  if (user) {
-         let idx = hashId(user) % (this.proxys.length || 1);
-         proxy = this.proxys[idx];
-      } else {
-         let idx = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (this.proxys.length || 1);
-         proxy = this.proxys[idx];
-      } */
-      //proxy = proxy || this.proxys[0];
       let connect: Connect | undefined = this.options.isDirect == true ? this.connects.get("direct") : this.connects.get(proxy.protocol);
       /*if (this.options.isDirect) connect = this.connects.get("direct");
        else {
@@ -235,16 +227,22 @@ export default class ConnectFactor extends EventEmitter {
       }
       //连接目标超时
       //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
-      connect
+      let isConnect = false;
+      //是否可以纠错
+      let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
+      await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
+            //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
-               if (err instanceof Error) {
-                  localSocket.destroy(err);
-               } else {
-                  localSocket.end(recChunk);
+               if (connect?.protocol == "direct") {
+                  isConnect = true;
+                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk);
+               } else if (!isCorrection) {
+                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk);
                }
                return;
             }
+            isConnect = true;
             localSocket.on("error", (err) => {
                logger.debug("error local", err.message);
                localSocket.destroy();
@@ -258,27 +256,46 @@ export default class ConnectFactor extends EventEmitter {
             });
             proxySocket.on("close", () => localSocket.end());
             if (recChunk) localSocket.write(recChunk);
-            /*  localSocket
-            .pipe(
-               transform((chunk, encoding, callback) => {
-                  //console.info("\r\nchunk===1", chunk.toString(), [...chunk].slice(0, 128).join(","));
-                  callback(null, chunk);
-               }),
-            )
-            .pipe(proxySocket)
-            .pipe(
-               transform((chunk: Buffer, encoding, callback) => {
-                  //console.info("\r\nchunk===2", chunk.toString(), [...chunk].slice(0, 128).join(","));
-                  callback(null, chunk);
-               }),
-            )
-            .pipe(localSocket); */
             connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {
-            log.debug("===>connect error", err.message);
-            localSocket.destroy(err);
+            logger.debug("===>connect error", err);
+            !isCorrection && localSocket.destroy(err);
          });
+      if (isCorrection && !isConnect) {
+         let nproxys = [...this.proxys];
+         nproxys = nproxys.sort((a, b) => (Math.floor(Math.random() * 2) == 0 ? -1 : 1));
+         for (let cproxy of nproxys) {
+            if (isConnect) continue;
+            if (cproxy.host == proxy.host) continue;
+            let sconnect: Connect | undefined = this.connects.get(cproxy.protocol);
+            if (sconnect) {
+               await sconnect
+                  .connect(host, port, cproxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
+                     if (err) return err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk);
+                     isConnect = true;
+                     localSocket.on("error", (err) => {
+                        logger.debug("error local", err.message);
+                        localSocket.destroy();
+                        proxySocket?.destroy();
+                     });
+                     localSocket.on("close", () => proxySocket?.end());
+                     proxySocket.on("error", (err) => {
+                        logger.debug("error proxy", err.message);
+                        proxySocket.destroy();
+                        localSocket.destroy();
+                     });
+                     proxySocket.on("close", () => localSocket.end());
+                     if (recChunk) localSocket.write(recChunk);
+                     sconnect?.pipe(localSocket, proxySocket, chunk);
+                  })
+                  .catch((err) => {
+                     log.debug("===>connect error", err);
+                     localSocket.destroy(err);
+                  });
+            }
+         }
+      }
    }
 
    /*   public async ping(host: string): Promise<boolean> {

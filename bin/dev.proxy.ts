@@ -57,14 +57,14 @@ async function createRemoteProxy() {
    acceptProxy.on("auth", (data) => {
       // console.info("auth===", data.checked);
    });
-   acceptProxy.registerAccept(new LightAccept({secret: secret}));
+   acceptProxy.registerAccept(new LightAccept({ secret: secret }));
    //acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(RemotePort);
    let address: any = acceptServer.address();
    console.info("accept proxy port=", RemotePort);
 
    acceptProxy.registerProxy(proxy);
-   console.info("check proxy");
+   console.info("=============== check proxy");
 
    //ipipe.on("in", (size) => console.info("in ", size));
    //ipipe.on("out", (size) => console.info("out ", size));
@@ -81,14 +81,20 @@ async function createLocalProxy() {
       host: "127.0.0.1",
       port: RemotePort,
       protocol: "light",
-      secret: secret
+      secret: secret,
+   });
+   localProxy.registerProxy({
+      host: "192.168.88.1",
+      port: RemotePort,
+      protocol: "light",
+      secret: secret,
    });
    console.info("create local proxy", 1081);
 }
 (async () => {
    await createRemoteProxy();
    await createLocalProxy();
-   proxyIp({ host: "127.0.0.1", port: 4321 });
+   //proxyIp({ host: "127.0.0.1", port: 4321 });
    let count = 0;
    while (true) {
       if (count >= 3) break;
@@ -97,6 +103,7 @@ async function createLocalProxy() {
       let res = await axios
          .request({
             url: "https://www.bing.com",
+            timeout: 15000,
             proxy: {
                protocol: "socks5",
                host: "127.0.0.1",
@@ -105,7 +112,7 @@ async function createLocalProxy() {
          })
          .then((res) => res.data)
          .catch((err) => err.message);
-      console.info("res", count, res.length);
+      console.info("res===>", count, res.length, res.slice(0, 128));
    }
    console.info("end======");
 })();

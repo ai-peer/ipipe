@@ -15,7 +15,16 @@ describe("测试IPipe", async function () {
    console.info("s00");
    testServer = await com.createProxyServer(proxy.port);
    //await wait(2000);
-   console.info("sxxxx");
+
+    it("测试light是否连接成功", () => {
+      return new Promise(async (resolve) => {
+         let nproxy = Object.assign({}, proxy, { protocol: "light" });
+         let info = await com.requestByLight(nproxy);
+         assert.ok(info && info.length > 1, "light res is null");
+         //console.info("===test light receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
+         resolve(undefined);
+      });
+   });
    it("测试http是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "http" });
@@ -24,7 +33,7 @@ describe("测试IPipe", async function () {
          //console.info("===http receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
-   });
+   }); 
    it("测试socks5是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "socks5" });
@@ -32,16 +41,6 @@ describe("测试IPipe", async function () {
          let info = await com.requestBySocks5(nproxy);
          assert.ok(info && info.length > 1, "socks5 res is null");
          // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
-         resolve(undefined);
-      });
-   });
-
-   it("测试light是否连接成功", () => {
-      return new Promise(async (resolve) => {
-         let nproxy = Object.assign({}, proxy, { protocol: "light" });
-         let info = await com.requestByLight(nproxy);
-         assert.ok(info && info.length > 1, "light res is null");
-         //console.info("===test light receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
    });

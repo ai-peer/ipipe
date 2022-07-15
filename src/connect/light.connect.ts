@@ -31,6 +31,7 @@ export default class LightConnect extends Connect {
    public async connect(host: string, port: number, proxy: Proxy, callback: (error: Error | Buffer | undefined, socket: SSocket) => void): Promise<SSocket> {
       let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
+      proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
@@ -109,6 +110,7 @@ export default class LightConnect extends Connect {
             socket.emit("error", error);
             this.emit("timeout");
             callback(error, new SSocket(socket));
+            resolve(new SSocket(socket));
          });
          socket.on("error", (err) => {
             socket.destroy();

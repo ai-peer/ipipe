@@ -50,8 +50,9 @@ export async function createProxyServer(port: number = 4321) {
    acceptProxy.acceptFactor.on("auth", (a) => {
       //console.info("relayProxy==>auth", a.checked, a.session, a.username, a.password);
    });
-   let regigetProxyChecked = acceptProxy.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
-   console.info("regigetProxyChecked", regigetProxyChecked);
+   //acceptProxy.registerProxy({ host: "127.0.0.2", port: 11, protocol: "http" });
+   acceptProxy.registerProxy({ host: "127.0.0.1", port: dport, protocol: "http" });
+
    let server1: any = await acceptProxy.createAcceptServer(port);
    //console.info("relayProxy=====", port, server1.address());
    /*    relayProxy.on("in", (data) => {
@@ -70,7 +71,7 @@ export async function requestByHttp(proxy: Proxy): Promise<Buffer> {
    return Buffer.from(checked ? "OK" : "");
 }
 export async function requestBySocks5(proxy: Proxy): Promise<Buffer> {
-   console.info("check proxy", proxy);
+   //console.info("check proxy", proxy);
    let checked = await check.checkSocks5(proxy);
    console.info("socks5=========receive", `code=${checked}`);
    return Buffer.from(checked ? "OK" : "");

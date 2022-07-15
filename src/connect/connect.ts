@@ -16,7 +16,7 @@ export default abstract class Connect extends Stream {
    /** 协议 */
    //public protocol: string;
    protected options: ConnectOptions;
-   protected timeout: number = 15 * 1000;
+   protected timeout: number = 2 * 1000;
    constructor(options: ConnectOptions) {
       super();
       this.setMaxListeners(99);
@@ -25,7 +25,7 @@ export default abstract class Connect extends Stream {
       this.protocol = options.protocol;
    }
 
-   public setTimeout(ttl: number = 10 * 1000, handle?: () => void) {
+   public setTimeout(ttl: number = 2 * 1000, handle?: () => void) {
       this.timeout = ttl;
       handle && this.on("timeout", handle);
    }

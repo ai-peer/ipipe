@@ -2,7 +2,7 @@ import net from "net";
 import Cipher from "./cipher";
 import transform from "../core/transform";
 import Stream from "./stream";
-
+import logger from "./logger";
 /**
  * 安全连接
  */
@@ -32,6 +32,7 @@ export default class SSocket {
    }
    async destroy(err?: Error) {
       if (err) {
+         logger.debug(err);
          await this.end(err.message).catch((err) => {});
       }
       this.socket.destroy();

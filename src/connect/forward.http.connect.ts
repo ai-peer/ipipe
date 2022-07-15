@@ -21,6 +21,7 @@ export default class ForwardHttpConnect extends Connect {
     * @param callback 连接成功后的回调方法
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
+      proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
@@ -84,6 +85,7 @@ export default class ForwardHttpConnect extends Connect {
             socket.emit("error", error);
             this.emit("timeout");
             callback(error, new SSocket(socket));
+            resolve(new SSocket(socket));
          });
          socket.on("error", (err) => {
             socket.destroy();
