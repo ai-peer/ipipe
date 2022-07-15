@@ -106,7 +106,7 @@ export default class LightConnect extends Connect {
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
          socket.on("timeout", () => {
-            let error = new Error("timeout");
+            let error = new Error("timeout "+ this.timeout);
             socket.emit("error", error);
             this.emit("timeout");
             callback(error, new SSocket(socket));

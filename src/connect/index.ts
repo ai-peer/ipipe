@@ -75,7 +75,7 @@ export default class ConnectFactor extends EventEmitter {
          let session = sessions.getSession(data.socket);
          session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
       });
-      connect.setTimeout(3 * 1000, () => this.emit("timeout"));
+      //connect.setTimeout(7 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
       return this;
    }
@@ -294,10 +294,15 @@ export default class ConnectFactor extends EventEmitter {
                      log.debug("===>connect error", err);
                      localSocket.destroy(err);
                   });
+               break;
             }
          }
       }
       this.emit("request", { host: host, port: port, status: isConnect ? "ok" : "no" });
+      if(!isConnect) {
+         logger.debug("====>no connect")
+         localSocket.destroy();
+      }
    }
 
    /*   public async ping(host: string): Promise<boolean> {
