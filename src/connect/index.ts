@@ -231,6 +231,7 @@ export default class ConnectFactor extends EventEmitter {
       let isConnect = false;
       //是否可以纠错
       let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
+      let startTime = Date.now();
       await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;

@@ -42,13 +42,13 @@ export default class DirectConnect extends Connect {
             let error = new Error("timeout");
             socket.emit("error", error);
             this.emit("timeout");
-            callback(error, new SSocket(socket));
-            resolve(new SSocket(socket));
+            //callback(error, new SSocket(socket));
          });
          socket.on("error", (err) => {
             socket.destroy();
             this.emit("error", err);
             callback(err, new SSocket(socket));
+            resolve(new SSocket(socket));
          });
       });
    }
