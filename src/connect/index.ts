@@ -299,7 +299,7 @@ export default class ConnectFactor extends EventEmitter {
             }
          }
       }
-      this.emit("request", { host: host, port: port, status: isConnect ? "ok" : "no" });
+      this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no" });
       if(!isConnect) {
          logger.debug("====>no connect")
          localSocket.destroy();

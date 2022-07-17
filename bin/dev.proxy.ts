@@ -91,7 +91,7 @@ async function createLocalProxy() {
    });
    console.info("create local proxy", 1081);
    localProxy.on("request", (data) => {
-      console.info("connect=>", data.host + ":" + data.port, data.status);
+      console.info("connect=>", data.host + ":" + data.port, data.status, data.source);
    });
 }
 (async () => {
