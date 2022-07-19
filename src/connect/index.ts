@@ -137,9 +137,9 @@ export default class ConnectFactor extends EventEmitter {
                for (let i = 0; i < proxyList.length; i++) {
                   tasks.push(
                      new Promise(async (resolve) => {
-                        let proxy = proxyList[i];
                         let checked = false;
                         try {
+                           let proxy = proxyList[i];
                            checked = await check.check(proxy).catch((err) => false); //https://api.myip.com/ http://httpbin.org/ip
                            if (checked) {
                               successNum++;
@@ -157,11 +157,12 @@ export default class ConnectFactor extends EventEmitter {
                }
                await Promise.all(tasks).catch((err) => []);
             } catch (err) {
-               //console.debug("error====checked", err.message);
+               console.error("error====checked", err.message);
             } finally {
-               await wait(interval);
-               //console.info(`check proxy pool success=${successNum} fail=${failNum}`);
-               callback({ success: successNum, fail: failNum });
+               try {
+                  await wait(interval);
+                  callback({ success: successNum, fail: failNum });
+               } catch (err) {}
             }
          }
       })();
@@ -300,8 +301,8 @@ export default class ConnectFactor extends EventEmitter {
          }
       }
       this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no" });
-      if(!isConnect) {
-         logger.debug("====>no connect")
+      if (!isConnect) {
+         logger.debug("====>no connect");
          localSocket.destroy();
       }
    }
