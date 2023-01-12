@@ -8,7 +8,7 @@ let proxyList = configProxy.getProxyList("CN", 1);
 console.info("proxyList", proxyList); */
 const RemotePort = 4321;
 const secret = password.generateRandomPassword().toString();
-
+console.info("secret", secret);
 async function proxyIp(proxy: { host: string; port: number }) {
    let info = await axios({
       url: "http://ip-api.com/json",

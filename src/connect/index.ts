@@ -98,7 +98,7 @@ export default class ConnectFactor extends EventEmitter {
       proxy.checked = proxy.checked == undefined ? true : proxy.checked;
       proxy.mode = proxy.mode == undefined ? 1 : proxy.mode;
 
-      let existProxy = this.proxys.find((v) => v.host == proxy.host);
+      let existProxy = this.proxys.find((v) => v.host == proxy.host && v.port == proxy.port);
       if (existProxy) {
          existProxy.host = proxy.host;
          existProxy.port = proxy.port;
