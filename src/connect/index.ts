@@ -171,11 +171,11 @@ export default class ConnectFactor extends EventEmitter {
       let proxy: Proxy;
       let list: Proxy[] = this.proxys.filter((v) => v.checked);
       let hid0 = 0;
-      if (user) {
+      if (user && user.username) {
          hid0 = hashId(user) % (list.length || 1);
          proxy = list[hid0];
       } else {
-         hid0 = hashId({ username: localSocket.remoteAddress || "", password: "", args: [] }) % (list.length || 1);
+         hid0 = hashId({ username: "ip-" + localSocket.socket.localPort + "-" + localSocket.socket.remotePort, password: "", args: [] }) % (list.length || 1);
          proxy = list[hid0];
       }
       return proxy || this.proxys.find((v) => v.checked);
@@ -189,7 +189,7 @@ export default class ConnectFactor extends EventEmitter {
    public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       if (!user || !user.username) {
          user = {
-            username: "ip-" + localSocket.remoteAddress,
+            username: "ip-" + localSocket.socket.localPort + "-" + localSocket.socket.remotePort,
             password: "",
             args: [],
          };
