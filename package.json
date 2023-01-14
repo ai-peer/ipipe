@@ -1,6 +1,6 @@
 {
    "name": "@ai-lion/ipipe",
-   "version": "1.2.14",
+   "version": "1.2.15",
    "main": "dist/lib.js",
    "license": "MIT",
    "bin": {
@@ -23,7 +23,9 @@
       "format": "run-s format:*",
       "format:js": " prettier --write   \"src/**/*.ts\"  "
    },
-   "dependencies": {},
+   "dependencies": {
+      "eventemitter3": "^5.0.0"
+   },
    "devDependencies": {
       "@types/mocha": "^9.0.0",
       "@types/node": "^16.4.2",

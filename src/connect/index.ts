@@ -7,7 +7,7 @@ import Connect from "./connect";
 import { Proxy, ConnectOptions, ConnectUser } from "../types";
 import ForwardHttpConnect from "./forward.http.connect";
 import log from "../core/logger";
-import EventEmitter from "events";
+import EventEmitter from "eventemitter3";
 import Sessions from "../core/sessions";
 //import { Transform } from "stream";
 import SSocket from "../core/ssocket";
@@ -18,10 +18,28 @@ import logger from "../core/logger";
 const isDev = process.env.NODE_ENV == "development";
 
 const sessions = Sessions.instance;
+export type RequestData = {
+   host: string;
+   port: number;
+   source: string;
+   status: "ok" | "no";
+};
+export type AuthData = {
+   checked: boolean;
+   username: string;
+   password: string;
+   session: string;
+   args: any[];
+   [key: string]: any;
+};
+export type EventName = {
+   request: (data: RequestData) => void;
+   auth: (data: AuthData) => void;
+};
 /**
  * 连接代理的封装类
  */
-export default class ConnectFactor extends EventEmitter {
+export default class ConnectFactor extends EventEmitter<EventName> {
    static HttpConnect = HttpConnect;
    static Socks5Connect = Socks5Connect;
    static DirectConnect = DirectConnect;
@@ -35,7 +53,7 @@ export default class ConnectFactor extends EventEmitter {
    public proxys: Proxy[] = [];
    constructor(options?: ConnectOptions) {
       super();
-      this.setMaxListeners(99);
+      //this.setMaxListeners(99);
       this.options = Object.assign({}, options);
       /**
        * 默认支持http,socks5,direct协议连接

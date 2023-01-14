@@ -5,14 +5,75 @@ import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import LightAccept from "./light.accept";
 import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
-import EventEmitter from "events";
+import EventEmitter from "eventemitter3";
 //import { Options } from "../types";
 import logger from "../core/logger";
 
+export type ReadData = {
+   size: number;
+   session: string;
+   clientIp: string;
+   protocol: string;
+};
+export type WriteData = {
+   size: number;
+   session: string;
+   clientIp: string;
+   protocol: string;
+};
+export type AuthData = {
+   checked: boolean;
+   username: string;
+   password: string;
+   session: string;
+   args: any[];
+   [key: string]: any;
+};
+export type EventName = {
+   /**
+    * 读取事件
+    * @param
+    *    data: {
+    *       size: 数据大小
+    *       session: session
+    *       clientIp: 客户端ip
+    *       protocol: 协议
+    *    }
+    * @returns void
+    */
+   read: (data: ReadData) => void;
+   /**
+    * 写入事件
+    * @param
+    *    data: {
+    *       size: 数据大小
+    *       session: session
+    *       clientIp: 客户端ip
+    *       protocol: 协议
+    *    }
+    * @returns void
+    */
+   write: (data: WriteData) => void;
+   /**
+    * 验证事件
+    *
+    */
+   auth: (data: AuthData) => void;
+
+   close: (socket: net.Socket) => void;
+
+   accept: (socket: net.Socket, data: { protocol: string; [key: string]: any }) => void;
+
+   error: (err: Error) => void;
+   /**
+    * 接入风险警告
+    */
+   risk: (data: { ip: string; port: number; message: string }) => void;
+};
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
-export default class AcceptFactor extends EventEmitter {
+export default class AcceptFactor extends EventEmitter<EventName> {
    static HttpAccept = HttpAccept;
    static Socks5Accept = Socks5Accept;
    static LightAccept = LightAccept;
@@ -27,7 +88,6 @@ export default class AcceptFactor extends EventEmitter {
 
    constructor(options?: AcceptOptions) {
       super();
-      this.setMaxListeners(99);
       options = options || {};
       this.options = options;
       let httpAccept = new HttpAccept(options); //http接入
@@ -154,7 +214,7 @@ export default class AcceptFactor extends EventEmitter {
             //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol} ${chunk.toString()}`);
             try {
                this.emit("accept", socket, { protocol: accept.protocol });
-               let clientIp = socket.remoteAddress;
+               let clientIp = socket.remoteAddress || "";
                let protocol = accept.protocol;
 
                socket.on("close", () => {
@@ -181,7 +241,7 @@ export default class AcceptFactor extends EventEmitter {
       if (isAccept == false) {
          logger.debug("===>no support protocol to hanle");
          this.emit("accept", socket, { protocol: "no" });
-         this.emit("risk", { ip: socket.remoteAddress || "", port: socket.remotePort, message: "no support protocol" }); //触发来源警告风险
+         this.emit("risk", { ip: socket.remoteAddress || "", port: socket.remotePort || 0, message: "no support protocol" }); //触发来源警告风险
          let html = this.notiryNoSupportAccept();
          socket.write(html, "utf-8");
          socket.end();
