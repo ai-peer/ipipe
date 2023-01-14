@@ -12,6 +12,7 @@ import DirectConnect from "./connect/direct.connect";
 
 import AcceptFactor, { ReadData, WriteData } from "./accept";
 import ConnectFactor, { RequestData } from "./connect";
+import { Callback as ConnectCallback } from "./connect/connect";
 
 export * from "./types";
 import { Proxy, CreateCallback, Options } from "./types";
@@ -48,6 +49,7 @@ export {
    isIpv4,
    isIpv6,
    isDomain,
+   ConnectCallback,
 };
 
 /**
