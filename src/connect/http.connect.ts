@@ -52,7 +52,7 @@ export default class HttpConnect extends Connect {
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败
                //console.info("receiveChunk", receiveChunk.toString(), usePassword);
-               if (usePassword) {
+               if (usePassword || statusCode == "407") {
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
