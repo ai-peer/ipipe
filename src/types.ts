@@ -3,6 +3,33 @@ import net from "net";
 export const DefaultSecret =
    "lOfGpnn7nZ7KODmxUckw4GhMY95vA/LvlnMcbjNZ9hapILXX20KAClDxB8QjCUElRHfZhrgnf+2FR7kAv6P4TqTqDnLfIV1kanCsRYfVoMA+VhvhwRH0H4QENna0r6qoL/P9dQ27gQv56XE90MuXW4rYWj9pT+Oy6y7uOknH0whiUqGMlbboKn3RX40okGZD0o/DehOzXCTM+s9+98XOpwE0mWcY3CySHhUSpUbNK65IbOwy5mBLV0B8LcgF8IMaazd7bQ9UeGWO1rerKR0MnNpVF7qCIrDdAlhKnzuJ/rxNBnQUNRnkEJuIMf/1mjxemK29ovzivpFT5cKT1CaLYQ==";
 
+export type ReadData = {
+   size: number;
+   session: string;
+   clientIp: string;
+   protocol: string;
+   //type: "connect" | "accept";
+};
+export type WriteData = {
+   size: number;
+   session: string;
+   clientIp: string;
+   protocol: string;
+   //type: "connect" | "accept";
+};
+export type AuthData = {
+   checked: boolean;
+   username: string;
+   password: string;
+   session: string;
+   type: "connect" | "accept";
+   args: any[];
+   //[key: string]: any;
+};
+export type AcceptData = {
+   socket: net.Socket;
+   protocol: string;
+};
 /**
  * 接收器配置参数
  */

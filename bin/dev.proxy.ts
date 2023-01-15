@@ -54,9 +54,9 @@ async function createRemoteProxy() {
          return true;
       }, */
    });
-   acceptProxy.on("auth", (data) => {
+/*    acceptProxy.on("auth", (data) => {
       // console.info("auth===", data.checked);
-   });
+   }); */
    acceptProxy.registerAccept(new LightAccept({ secret: secret }));
    //acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(RemotePort);

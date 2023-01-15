@@ -1,13 +1,55 @@
 import net from "net";
-import { EventEmitter } from "events";
+import EventEmitter from "eventemitter3";
+import { AuthData, WriteData, ReadData } from "../types";
+import Sessions from "./sessions";
 
 //export type Callback = (length: number) => void;
+export type StreamEvent = {
+   /**
+    * 读取事件
+    * @param
+    *    data: {
+    *       size: 数据大小
+    *       session: session
+    *       clientIp: 客户端ip
+    *       protocol: 协议
+    *    }
+    * @returns void
+    */
+   read: (data: ReadData) => void;
+   /**
+    * 写入事件
+    * @param
+    *    data: {
+    *       size: 数据大小
+    *       session: session
+    *       clientIp: 客户端ip
+    *       protocol: 协议
+    *    }
+    * @returns void
+    */
+   write: (data: WriteData) => void;
+   /**
+    * 验证事件
+    *
+    */
+   auth: (data: AuthData) => void;
 
-export default class Stream extends EventEmitter {
+   close: (socket: net.Socket) => void;
+
+   error: (err: Error) => void;
+
+   timeout: () => void;
+};
+export default class Stream extends EventEmitter<StreamEvent> {
+   protected sessions: Sessions = Sessions.instance;
    public protocol: string;
    constructor() {
       super();
-      this.setMaxListeners(99);
+      //this.setMaxListeners(99);
+   }
+   protected getSession(socket: net.Socket) {
+      return this.sessions.getSession(socket);
    }
    /**
     * 往网络里写数据
@@ -25,7 +67,7 @@ export default class Stream extends EventEmitter {
                if (err) {
                   resolve(err);
                } else {
-                  this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
+                  this.emit("write", { size: chunk.length, session: this.getSession(socket), protocol: this.protocol || "", clientIp: socket.remoteAddress || "" });
                   resolve(undefined);
                }
             });
@@ -39,7 +81,7 @@ export default class Stream extends EventEmitter {
          socket.writable
             ? socket.end(chunk, () => {
                  socket.resume();
-                 this.emit("write", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
+                 this.emit("write", { size: chunk.length, session: this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
                  resolve(undefined);
               })
             : socket.end();
@@ -47,6 +89,7 @@ export default class Stream extends EventEmitter {
       });
    }
    public async read(socket: net.Socket, ttl: number = 0): Promise<Buffer> {
+      let _this = this;
       return new Promise((resolve) => {
          let isRead = false,
             pid;
@@ -59,7 +102,7 @@ export default class Stream extends EventEmitter {
             pid && clearTimeout(pid);
             if (isRead) return;
             isRead = true;
-            this.emit("read", { size: chunk.length, socket: socket, protocol: this.protocol || "" });
+            _this.emit("read", { size: chunk.length, session: _this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
             resolve(chunk);
          }
          if (ttl > 0) {

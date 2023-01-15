@@ -1,4 +1,4 @@
-import axios from "axios";
+import fetch from "../src/utils/fetch";
 import IPipe, { LightConnect, LightAccept, password } from "../src";
 import { AddressInfo } from "net";
 import net from "net";
@@ -6,7 +6,12 @@ import net from "net";
 export default async function create(port: number = 4321) {
    //step1
    //===== 创建接入客户端， 默认可以通过http和socks5协议接入代理
-   const ipipe = new IPipe(); //初始化实例
+   const ipipe = new IPipe({
+      auth: async (...args) => {
+         //console.info("auth--", ...args );
+         return true;
+      },
+   }); //初始化实例
    await ipipe.createAcceptServer(port); //创建接入服务kk, 4321 端口是本地接入的端口
    /*  ipipe.registerProxy({
       protocol: config.proxy.protocol,
@@ -17,7 +22,8 @@ export default async function create(port: number = 4321) {
    //step2 可以跳过, 这里是模拟目标代理服务器
    const ipipe2 = new IPipe({
       isDirect: true, //不能少这个参数
-      auth: async () => {
+      auth: async (...args) => {
+         //console.info("auth2", ...args);
          return true;
       },
    }); //初始化实例
@@ -32,30 +38,40 @@ export default async function create(port: number = 4321) {
       //username: "u-" + Math.random().toString(36).slice(2),
       //password: "",
    });
-
-   console.info("proxys", ipipe.getProxys());
+   ipipe.on("auth", (data) => console.info("event log auth", data));
+   ipipe2.on("auth", (data) => console.info("event log auth2", data));
+   ipipe.on("auth", (data) => console.info("event log auth", data));
+   ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
+   ipipe.on("request", (data) => console.info("event log request", data));
+   ipipe.on("in", (data) => console.info("event log in", data));
+   ipipe.on("out", (data) => console.info("event log out", data));
+   ipipe.on("error", (err) => console.info("event log error", err));
+   //console.info("proxys", ipipe.getProxys());
 }
 
 async function testProxy(proxy: { host: string; port: number }) {
-   let info = await axios({
+   let info = await fetch({
       //url: "https://www.ifconfig.me/all.json",
-      //url: "http://ip-api.com/json",
-      url: "http://www.gov.cn/",
+      url: "http://icanhazip.com",
+      //url: "http://www.gov.cn/",
       //url: "https://hoho.tv/vod/detail/id/188303.html",
       timeout: 15000,
       method: "get",
       proxy: {
          host: proxy.host,
          port: proxy.port,
-       /*   auth: {
-            username: "u-" + Math.random().toString(36).slice(2),
+         auth: {
+            username: "u-" + Math.random().toString(36).slice(2, 6),
             password: "",
-         }, */
+         },
       },
    })
-      .then((res) => res.data)
-      .catch((err) => console.error("get proxy ip error", err.stack, err.message));
-   console.info("proxy ip", info.substring(1, 120));
+      .then((res) => res.text())
+      .catch((err) => {
+         //console.error("get proxy ip error", err.stack, err.message);
+         return err.message || "error";
+      });
+   console.info("get res info==========>", info, info.length, typeof info); //info.substring(1, 120)
 }
 function connect() {
    let socket = net.connect(80, "www.ip-api.com");

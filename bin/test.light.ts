@@ -20,6 +20,11 @@ async function createServer() {
    });
    await ipipe.createAcceptServer(4321);
    ipipe.registerAccept(new LightAccept());
+   ipipe.on("auth", (data) => console.info("event log auth", data));
+   ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
+   ipipe.on("request", (data) => console.info("event log request", data));
+   ipipe.on("in", (data) => console.info("event log in", data));
+   ipipe.on("out", (data) => console.info("event log out", data));
 }
 
 async function createClient() {
@@ -34,10 +39,11 @@ async function createClient() {
       password: "123",
    }; */
    connect.on("auth", (data) => {
-      console.info("auth", data.checked);
+      console.info("event log auth connect ==>", data);
    });
+   const info = new URL("http://icanhazip.com");
    connect.connect(
-      "ip-api.com",
+      info.hostname,
       80,
       {
          host: "127.0.0.1",
@@ -47,12 +53,11 @@ async function createClient() {
          password: "123",
       },
       async (err, socket: SSocket) => {
-         console.info("sss===connect");
          let list: string[] = [
-            "GET http://ip-api.com/json HTTP/1.1",
+            `GET ${info.origin} HTTP/1.1`,
             "Accept: application/json, text/plain, */*",
             "User-Agent: axios/0.25.0",
-            "host: ip-api.com",
+            `host: ${info.hostname}`,
             "Connection: close",
             "\r\n",
          ];
@@ -60,8 +65,7 @@ async function createClient() {
          await socket.write(list.join("\r\n"));
          //let chunk = await tstream.read(socket);
          let chunk = await socket.read();
-         console.info("chunk", chunk.length, [...chunk], chunk.toString());
-         console.info("end===");
+         console.info("get res log", chunk.length, chunk.slice(0, 1024).toString());
          socket.destroy();
       },
    );

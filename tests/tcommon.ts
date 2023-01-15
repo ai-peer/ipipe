@@ -44,7 +44,7 @@ export async function createProxyServer(port: number = 4321) {
    });
 
    acceptProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
-   acceptProxy.acceptFactor.on("accept", (socket, data) => {
+   acceptProxy.acceptFactor.on("accept", (data) => {
       //console.info("=======relayProxy===>accept1", socket.remotePort, data);
    });
    acceptProxy.acceptFactor.on("auth", (a) => {

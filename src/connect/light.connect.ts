@@ -74,7 +74,14 @@ export default class LightConnect extends Connect {
                let checked = step2Res[0] == 0x01 && step2Res[1] == 0x00;
                //this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password||"").split("_").slice(1).join("_")});
                //assert.ok(step2Res[0] == 0x01 && step2Res[1] == 0x00, "auth error");
-               this.emit("auth", { checked: checked, socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+               this.emit("auth", {
+                  checked: checked,
+                  type: "connect",
+                  session: this.getSession(socket),
+                  username: proxy.username || "",
+                  password: proxy.password || "",
+                  args: (proxy.password || "").split("_").slice(1),
+               });
                if (!checked) {
                   let ssocket = new SSocket(socket);
                   callback(step2Res, ssocket);
@@ -106,7 +113,7 @@ export default class LightConnect extends Connect {
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
          socket.on("timeout", () => {
-            let error = new Error("timeout "+ this.timeout);
+            let error = new Error("timeout " + this.timeout);
             socket.emit("error", error);
             this.emit("timeout");
             //callback(error, new SSocket(socket));

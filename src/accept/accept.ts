@@ -16,7 +16,7 @@ export default abstract class Accept extends Stream {
 
    constructor(options?: AcceptOptions) {
       super();
-      this.setMaxListeners(9999);
+      //this.setMaxListeners(9999);
       this.options = Object.assign({}, options);
    }
 

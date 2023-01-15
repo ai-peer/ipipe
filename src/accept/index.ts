@@ -4,72 +4,21 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import LightAccept from "./light.accept";
-import { CreateCallback, AcceptOptions, AcceptAuth } from "../types";
+import { CreateCallback, AcceptOptions, AcceptAuth, AcceptData, Proxy } from "../types";
 import EventEmitter from "eventemitter3";
+import { StreamEvent } from "../core/stream";
 //import { Options } from "../types";
 import logger from "../core/logger";
 
-export type ReadData = {
-   size: number;
-   session: string;
-   clientIp: string;
-   protocol: string;
-};
-export type WriteData = {
-   size: number;
-   session: string;
-   clientIp: string;
-   protocol: string;
-};
-export type AuthData = {
-   checked: boolean;
-   username: string;
-   password: string;
-   session: string;
-   args: any[];
-   [key: string]: any;
-};
-export type EventName = {
-   /**
-    * 读取事件
-    * @param
-    *    data: {
-    *       size: 数据大小
-    *       session: session
-    *       clientIp: 客户端ip
-    *       protocol: 协议
-    *    }
-    * @returns void
-    */
-   read: (data: ReadData) => void;
-   /**
-    * 写入事件
-    * @param
-    *    data: {
-    *       size: 数据大小
-    *       session: session
-    *       clientIp: 客户端ip
-    *       protocol: 协议
-    *    }
-    * @returns void
-    */
-   write: (data: WriteData) => void;
-   /**
-    * 验证事件
-    *
-    */
-   auth: (data: AuthData) => void;
+export type EventName = StreamEvent & {
+   accept: (data: AcceptData) => void;
 
-   close: (socket: net.Socket) => void;
-
-   accept: (socket: net.Socket, data: { protocol: string; [key: string]: any }) => void;
-
-   error: (err: Error) => void;
    /**
     * 接入风险警告
     */
    risk: (data: { ip: string; port: number; message: string }) => void;
 };
+
 /**
  * 本地代理接收协议包装类， 用于接入本地的连接接入
  */
@@ -116,18 +65,22 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       }
 
       accept.registerConnect(this.connectFactor);
-      accept.on("read", ({ size, socket, protocol }) => {
-         let session = accept.getSession(socket);
-         session && this.emit("read", { size, session, clientIp: socket.remoteAddress, protocol });
+      accept.on("read", ({ size, session, clientIp, protocol }) => {
+         //let session = accept.getSession(socket);
+         this.emit("read", { size, session, clientIp, protocol });
       });
-      accept.on("write", ({ size, socket, protocol }) => {
-         let session = accept.getSession(socket);
+      accept.on("write", ({ size, session, clientIp, protocol }) => {
+         //let session = accept.getSession(socket);
          //console.info(">>>write", Math.ceil((1000 * size) / 1024) / 1000+"KB", session);
-         session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
+         this.emit("write", { size, session, clientIp, protocol });
       });
       accept.on("auth", (data) => {
-         let session = accept.getSession(data.socket);
-         session && this.emit("auth", { ...data, session, clientIp: data.socket.remoteAddress });
+         //let session = accept.getSession(data["socket"]);
+         //session && this.emit("auth", { ...data, session, clientIp: data.socket.remoteAddress });
+         this.emit("auth", data);
+      });
+      accept.on("error", (err) => {
+         console.info("accept error", err);
       });
       this.accepts.set(accept.protocol, accept);
       return this;
@@ -156,7 +109,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
          this.accept(socket);
       });
       server.on("error", (err) => {
-         //logger.warn("server error ", err.message);
+         logger.warn("server error ", err.message);
       });
    }
    /**
@@ -195,7 +148,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
    public async accept(socket: net.Socket) {
       let chunk: Buffer = await this.read(socket, 500);
       let isAccept = false;
-
+      //console.info("accpet", chunk.toString())
       if (this.timeout > 0) {
          //检测超时
          socket.on("timeout", () => socket.end());
@@ -213,7 +166,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
          if (isAccept) {
             //console.info(`===>accept client ${socket.remoteAddress}:${socket.remotePort} ${accept.protocol} ${chunk.toString()}`);
             try {
-               this.emit("accept", socket, { protocol: accept.protocol });
+               this.emit("accept", { socket, protocol: accept.protocol });
                let clientIp = socket.remoteAddress || "";
                let protocol = accept.protocol;
 
@@ -225,11 +178,12 @@ export default class AcceptFactor extends EventEmitter<EventName> {
                   this.emit("close", socket);
                });
                accept.handle(socket, chunk).catch((err) => {
+                  logger.warn(`accept[${accept.protocol}] handle error`, err);
                   socket.destroy();
                   this.emit("error", err);
                });
             } catch (err) {
-               //logger.info("===>accept handle error", err.message);
+               logger.warn(`accept[${accept.protocol}] handle error`, err);
                socket.destroy(err);
                this.emit("error", err);
             } finally {
@@ -240,7 +194,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
 
       if (isAccept == false) {
          logger.debug("===>no support protocol to hanle");
-         this.emit("accept", socket, { protocol: "no" });
+         this.emit("accept", { socket, protocol: "no" });
          this.emit("risk", { ip: socket.remoteAddress || "", port: socket.remotePort || 0, message: "no support protocol" }); //触发来源警告风险
          let html = this.notiryNoSupportAccept();
          socket.write(html, "utf-8");

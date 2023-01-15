@@ -37,6 +37,7 @@ export default class HttpAccept extends Accept {
       if (!host) return;
       let user: ConnectUser | undefined = this.getUser(headers["proxy-authorization"]);
       let isAuth = !!this.acceptAuth;
+
       // 需要鉴权
       if (isAuth) {
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
@@ -48,7 +49,10 @@ export default class HttpAccept extends Accept {
               })
             : true;
          this.sessions.add(socket, user.username);
-         this.emit("auth", { checked: authRes, socket: ssocket, username: user.username, password: user.password, args: user.args });
+         //console.info("accept s3",authRes, this.getSession(socket), user);
+         this.emit("auth", { checked: authRes, type: "accept", session: this.getSession(socket), username: user.username, password: user.password, args: user.args });
+         //console.info("accept s4",authRes);
+
          if (!authRes) {
             //this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
             await ssocket.end(Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
@@ -59,7 +63,6 @@ export default class HttpAccept extends Accept {
       } else {
          this.sessions.add(socket, user?.username);
       }
-
       //console.info("req headers", str, isAuth, /^CONNECT/i.test(str));
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;

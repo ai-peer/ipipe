@@ -4,7 +4,7 @@ import DirectConnect from "./direct.connect";
 import LightConnect from "./light.connect";
 import Connect from "./connect";
 //import ping from "ping";
-import { Proxy, ConnectOptions, ConnectUser } from "../types";
+import { Proxy, ConnectOptions, ConnectUser, AuthData } from "../types";
 import ForwardHttpConnect from "./forward.http.connect";
 import log from "../core/logger";
 import EventEmitter from "eventemitter3";
@@ -24,17 +24,11 @@ export type RequestData = {
    source: string;
    status: "ok" | "no";
 };
-export type AuthData = {
-   checked: boolean;
-   username: string;
-   password: string;
-   session: string;
-   args: any[];
-   [key: string]: any;
-};
+
 export type EventName = {
    request: (data: RequestData) => void;
    auth: (data: AuthData) => void;
+   error: (err: Error) => void;
 };
 /**
  * 连接代理的封装类
@@ -90,8 +84,9 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          session && this.emit("write", { size, session, clientIp: socket.remoteAddress, protocol });
       }); */
       connect.on("auth", (data) => {
-         let session = sessions.getSession(data.socket);
-         session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
+         //let session = sessions.getSession(data.socket);
+         //session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
+         this.emit("auth", data);
       });
       //connect.setTimeout(7 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
@@ -224,7 +219,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             connect = this.connects.get(proxy.protocol);
          }
       } */
-      //console.info("connect s1");
+      //console.info("connect s1", connect);
       if (connect?.protocol != "direct") {
          let domain = getDomainFromBytes(chunk);
          if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {

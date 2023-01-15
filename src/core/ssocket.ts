@@ -3,6 +3,7 @@ import Cipher from "./cipher";
 import transform from "../core/transform";
 import Stream from "./stream";
 import logger from "./logger";
+import Sessions from "./sessions";
 /**
  * 安全连接
  */
@@ -17,6 +18,9 @@ export default class SSocket {
       this.cipher = cipher;
       this.face = face;
       socket.setMaxListeners(99);
+   }
+   private getSession(socket: net.Socket) {
+      return Sessions.instance.getSession(socket);
    }
    set protocol(protocol: string) {
       this.stream.protocol = protocol;
@@ -115,8 +119,18 @@ export default class SSocket {
                   // chunk = target.cipher.encode(chunk, target.face);
                   chunk = target.encode(chunk);
                }
-               this.stream.emit("read", { size: chunk.byteLength, socket: this.socket, protocol: this.protocol || "" });
-               target.stream.emit("write", { size: chunk.byteLength, socket: target.socket, protocol: target.protocol || "" });
+               this.stream.emit("read", {
+                  size: chunk.byteLength,
+                  session: this.getSession(this.socket),
+                  clientIp: this.socket.remoteAddress || "",
+                  protocol: this.protocol || "",
+               });
+               target.stream.emit("write", {
+                  size: chunk.byteLength,
+                  session: this.getSession(target.socket),
+                  clientIp: target.socket.remoteAddress || "",
+                  protocol: target.protocol || "",
+               });
                callback(null, chunk);
             }),
          )

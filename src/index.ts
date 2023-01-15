@@ -10,12 +10,12 @@ import Socks5Connect from "./connect/socks5.connect";
 import HttpConnect from "./connect/http.connect";
 import DirectConnect from "./connect/direct.connect";
 
-import AcceptFactor, { ReadData, WriteData } from "./accept";
+import AcceptFactor from "./accept";
 import ConnectFactor, { RequestData } from "./connect";
 import { Callback as ConnectCallback } from "./connect/connect";
 
 export * from "./types";
-import { Proxy, CreateCallback, Options } from "./types";
+import { Proxy, CreateCallback, Options, ReadData, WriteData, AcceptData, AuthData } from "./types";
 import net from "net";
 import EventEmitter from "eventemitter3";
 import Cipher from "./core/cipher";
@@ -25,9 +25,12 @@ import ua from "./utils/ua";
 import * as password from "./core/password";
 
 export type EventName = {
-   out: (data: WriteData) => void;
-   in: (data: ReadData) => void;
+   out: (data: WriteData & { type: "accept" | "connect" }) => void;
+   in: (data: ReadData & { type: "accept" | "connect" }) => void;
    request: (data: RequestData) => void;
+   auth: (data: AuthData) => void;
+   accept: (data: AcceptData) => void;
+   error: (err: Error) => void;
 };
 export {
    password,
@@ -79,9 +82,14 @@ export default class IPipe extends EventEmitter<EventName> {
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
 
-      this.acceptFactor.on("read", (data) => this.emit("in", data));
-      this.acceptFactor.on("write", (data) => this.emit("out", data));
+      this.acceptFactor.on("read", (data) => this.emit("out", { ...data, type: "accept" }));
+      this.acceptFactor.on("write", (data) => this.emit("in", { ...data, type: "accept" }));
       this.connectFactor.on("request", (data) => this.emit("request", data));
+      this.acceptFactor.on("auth", (data) => this.emit("auth", data));
+      this.acceptFactor.on("accept", (data) => this.emit("accept", data));
+      this.connectFactor.on("auth", (data) => this.emit("auth", data));
+      this.acceptFactor.on("error", (err) => this.emit("error", err));
+      this.connectFactor.on("error", (err) => this.emit("error", err));
       //this.connectFactor.on("read", (data) => this.emit(Event.in, data));
       //this.connectFactor.on("write", (data) => this.emit(Event.out, data));
    }

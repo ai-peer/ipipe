@@ -53,7 +53,14 @@ export default class HttpConnect extends Connect {
                //console.info("receiveChunk", receiveChunk.toString(), usePassword);
                if (usePassword) {
                   let checked = statusCode == "407";
-                  this.emit("auth", { checked: checked, socket: socket, username: proxy.username, password: proxy.password, args: (proxy.password || "").split("_").slice(1) });
+                  this.emit("auth", {
+                     checked: checked,
+                     type: "connect",
+                     session: this.getSession(socket),
+                     username: proxy.username || "",
+                     password: proxy.password || "",
+                     args: (proxy.password || "").split("_").slice(1),
+                  });
                   if (checked) {
                      callback(receiveChunk, ssocket);
                      resolve(ssocket);

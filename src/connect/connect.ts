@@ -19,7 +19,7 @@ export default abstract class Connect extends Stream {
    protected timeout: number = 3 * 1000;
    constructor(options: ConnectOptions) {
       super();
-      this.setMaxListeners(99);
+      //this.setMaxListeners(99);
       this.options = options;
       this.on("error", (err) => {});
       this.protocol = options.protocol;

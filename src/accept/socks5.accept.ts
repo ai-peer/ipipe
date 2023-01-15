@@ -53,7 +53,7 @@ export default class Socks5Accept extends Accept {
               })
             : true;
          this.sessions.add(socket, user.username);
-         this.emit("auth", { checked: authRes, socket, username: user.username, password: user.password, args: user.args });
+         this.emit("auth", { checked: authRes, type: "accept", session: this.getSession(socket), username: user.username, password: user.password, args: user.args });
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
             socket.destroy();
