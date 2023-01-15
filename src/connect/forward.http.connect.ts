@@ -102,10 +102,7 @@ export default class ForwardHttpConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               if (!checkedAuth) {
-                  socket.destroy(new Error(receiveChunk.toString()));
-               }
-               callback(undefined, ssocket);
+               callback(checkedAuth ? undefined : receiveChunk, ssocket);
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);

@@ -6,6 +6,7 @@ import { Proxy } from "../types";
 import SSocket from "../core/ssocket";
 import logger from "../core/logger";
 import { buildSN } from "../core/password";
+import * as socks5 from "./protocol/socks5";
 
 /**
  * 走socks5代理连接
@@ -24,7 +25,8 @@ export default class Socks5Connect extends Connect {
     * @param callback 连接成功后的回调方法
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
-      proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      const mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      proxy.mode = mode;
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
@@ -46,7 +48,7 @@ export default class Socks5Connect extends Connect {
                if (usePassword) {
                   assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x02, "connect socks5 server auth error " + [...chunkReceive]);
 
-                  let pwd = proxy.password || "";
+                  /*   let pwd = proxy.password || "";
                   let username = Buffer.from(proxy.username || "");
                   //let password = Buffer.from(proxy.password || "");
                   let password = Buffer.from(proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode);
@@ -56,11 +58,12 @@ export default class Socks5Connect extends Connect {
                      username, //
                      Buffer.from([password.byteLength]),
                      password,
-                  ]);
-                  await this.write(socket, sendChunk);
-                  chunkReceive = await this.read(socket);
+                  ]); */
+                  let authChunk = socks5.sendAuth({ mode, username: proxy.username || "", password: proxy.password || "" });
+                  await ssocket.write(authChunk);
+                  chunkReceive = await ssocket.read(1000);
                   let checked = chunkReceive[0] == 0x01 && chunkReceive[1] == 0x00;
-                  //console.info("checked", checked, proxy.port, proxy.host,);
+                  //console.info("checked===", checked, proxy.port, proxy.host, socket.localPort, socket.remotePort);
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
@@ -71,9 +74,10 @@ export default class Socks5Connect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                   if (!checked) {
+                     //ssocket.destroy(new Error(`HTTP/1.1 407 autherror`));
+                     ssocket.end(chunkReceive);
                      callback(chunkReceive, ssocket);
                      resolve(ssocket);
-                     socket.end();
                      return;
                   }
                } else {

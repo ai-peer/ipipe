@@ -63,10 +63,8 @@ export default class HttpConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               if (!checked) {
-                  socket.destroy(new Error(receiveChunk.toString()));
-               }
-               callback(receiveChunk, ssocket);
+
+               callback(checked ? undefined : receiveChunk, ssocket);
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);

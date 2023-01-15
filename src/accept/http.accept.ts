@@ -78,7 +78,7 @@ export default class HttpAccept extends Accept {
       } else {
          this.sessions.add(socket, user?.username);
       }
-      //console.info("req headers", str, isAuth, /^CONNECT/i.test(str));
+      //console.info("req headers", str);
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
          //https请示

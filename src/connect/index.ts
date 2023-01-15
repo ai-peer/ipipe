@@ -89,6 +89,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          //session && this.emit("auth", { ...data, session, serverIp: data.socket.remoteAddress });
          this.emit("auth", data);
       });
+      //this.on("auth", (data)=>console.info("====>>>>>000<<auth", data));
       //connect.setTimeout(7 * 1000, () => this.emit("timeout"));
       this.connects.set(connect.protocol, connect);
       return this;
@@ -219,7 +220,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             connect = this.connects.get(proxy.protocol);
          }
       } */
-      //console.info("connect s1", connect);
+      //console.info("connect s1", connect?.protocol);
       if (connect?.protocol != "direct") {
          let domain = getDomainFromBytes(chunk);
          if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
@@ -247,14 +248,15 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
       let startTime = Date.now();
       await connect
-         .connect(host, port, proxy, (err, proxySocket: SSocket, recChunk?: Buffer) => {
+         .connect(host, port, proxy, (err, proxySocket: SSocket) => { //, recChunk?: Buffer
+            //console.info("ccxxxxx",connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
                if (connect?.protocol == "direct") {
                   isConnect = true;
-                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk);
+                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
                } else if (!isCorrection) {
-                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk);
+                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
                }
                return;
             }
@@ -272,7 +274,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                localSocket.destroy();
             });
             proxySocket.on("close", () => localSocket.end());
-            if (recChunk) localSocket.write(recChunk);
+            //if (recChunk) localSocket.write(recChunk);
             connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {

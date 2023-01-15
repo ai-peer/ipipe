@@ -80,7 +80,7 @@ export default class SSocket {
          await this.stream.end(this.socket, Buffer.from([]));
       }
    }
-   async read(timeout: number = 0): Promise<Buffer> {
+   async read(timeout: number = 5000): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);
       /*     if (this.cipher) {
          chunk = this.cipher.decode(chunk, this.face);

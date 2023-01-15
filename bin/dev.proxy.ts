@@ -1,17 +1,18 @@
 import IPipe, { LightConnect, LightAccept, password } from "../src";
-import axios from "axios";
+import fetch from "../src/utils/fetch";
 /* 
 let cFileConfig = path.resolve(__dirname, "../env/config.js");
 console.info("file", cFileConfig);
 let configProxy = runJSFromFile(cFileConfig);
 let proxyList = configProxy.getProxyList("CN", 1);
 console.info("proxyList", proxyList); */
-const RemotePort = 4321;
+const RemotePort = 4321,
+   LocalPort = 1081;
 const secret = password.generateRandomPassword().toString();
 
 async function proxyIp(proxy: { host: string; port: number }) {
-   let info = await axios({
-      url: "http://ip-api.com/json",
+   let info = await fetch({
+      url: "http://icanhazip.com",
       timeout: 15000,
       method: "get",
       proxy: {
@@ -23,30 +24,30 @@ async function proxyIp(proxy: { host: string; port: number }) {
          }, */
       },
    })
-      .then((res) => res.data)
+      .then((res) => res.text())
       .catch((err) => console.error("get proxy ip error", err.stack, err.message));
-   console.info("proxy ip", info.query);
+   console.info("get proxy ip", info);
 }
 async function createRemoteProxy() {
    let proxy = {
       host: "127.0.0.1",
       port: 1082,
       protocol: "socks5",
-      //secret: secret,
-      //username: "admin",
-      //password: "123456",
+      secret: secret,
+      username: "admin",
+      password: "123456",
    };
 
    //创建代理测试服务器
    let relayProxy = new IPipe({
       isDirect: true,
-      auth: async ({username, password}) => {
-         //return username == "admin" && password == "123456";
-         return true;
+      auth: async ({ username, password }) => {
+         //console.info("event log auth ", username, password);
+         return username == "admin" && password == "123456";
       },
    });
-   relayProxy.createAcceptServer(proxy.port);
-
+   await relayProxy.createAcceptServer(proxy.port);
+   relayProxy.on("auth", (data) => console.info("event auth relay", data.checked));
    let acceptProxy = new IPipe({
       /*       auth: async (username, password) => {
          console.info("auth accept proxy", username, password);
@@ -54,17 +55,19 @@ async function createRemoteProxy() {
          return true;
       }, */
    });
-/*    acceptProxy.on("auth", (data) => {
+   /*    acceptProxy.on("auth", (data) => {
       // console.info("auth===", data.checked);
    }); */
    acceptProxy.registerAccept(new LightAccept({ secret: secret }));
    //acceptProxy.registerConnect(new LightConnect());
    let acceptServer = await acceptProxy.createAcceptServer(RemotePort);
    let address: any = acceptServer.address();
-   console.info("accept proxy port=", RemotePort);
+   //console.info("accept proxy port=", address);
 
    acceptProxy.registerProxy(proxy);
-   console.info("=============== check proxy");
+   acceptProxy.on("auth", (data)=>console.info("event auth accept", data.checked));
+   acceptProxy.on("accept", (data)=>console.info("event accept accept", data.protocol));
+   //console.info("=============== check proxy");
 
    //ipipe.on("in", (size) => console.info("in ", size));
    //ipipe.on("out", (size) => console.info("out ", size));
@@ -76,46 +79,44 @@ async function createLocalProxy() {
       isDirect: false,
    });
 
-   await localProxy.createAcceptServer(1081);
+   await localProxy.createAcceptServer(LocalPort);
    localProxy.registerProxy({
       host: "127.0.0.1",
       port: RemotePort,
-      protocol: "light",
+      protocol: "http",
       secret: secret,
    });
-   localProxy.registerProxy({
+   /*    localProxy.registerProxy({
       host: "192.168.88.1",
       port: RemotePort,
       protocol: "light",
       secret: secret,
-   });
-   console.info("create local proxy", 1081);
+   }); */
+   localProxy.on("auth", (data) => console.info("event auth local", data.checked));
+   //console.info("create local proxy", LocalPort);
    localProxy.on("request", (data) => {
-      console.info("connect=>", data.host + ":" + data.port, data.status, data.source);
+      //console.info("connect=>", data.host + ":" + data.port, data.status, data.source);
    });
 }
 (async () => {
    await createRemoteProxy();
    await createLocalProxy();
    //proxyIp({ host: "127.0.0.1", port: 4321 });
-   let count = 0;
-   while (true) {
-      if (count >= 3) break;
-      count++;
-      //console.info("req", count);
-      let res = await axios
-         .request({
-            url: "https://www.bing.com",
-            timeout: 15000,
-            proxy: {
-               protocol: "socks5",
-               host: "127.0.0.1",
-               port: 1081,
-            },
-         })
-         .then((res) => res.data)
-         .catch((err) => err.message);
-      console.info("res===>", count, res.length, res.slice(0, 128));
-   }
+ 
+  /*  let res = await fetch({
+      url: "https://www.bing.com",
+      timeout: 15000,
+      proxy: {
+         //protocol: "socks5",
+         host: "127.0.0.1",
+         port: 1081,
+      },
+   })
+      .then((res) => res.text())
+      .catch((err) => err.message);
+   console.info("res===>", res.length, res.slice(0, 128)); */
+
+   await proxyIp({ host: "127.0.0.1", port: LocalPort });
    console.info("end======");
+   process.exit();
 })();

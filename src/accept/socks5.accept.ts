@@ -34,7 +34,7 @@ export default class Socks5Accept extends Accept {
          }
       }, 1000);
       /** 三步走 start */
-      await _this.write(socket, Buffer.from([0x05, isAuth ? 0x02 : 0x00])); //响应客户端连接
+      await ssocket.write(Buffer.from([0x05, isAuth ? 0x02 : 0x00])); //响应客户端连接
 
       let user: ConnectUser | undefined;
       // 需要鉴权
@@ -72,12 +72,10 @@ export default class Socks5Accept extends Accept {
             args: user.args,
          });
          if (!authRes) {
-            this.end(socket, Buffer.from([0x01, 0x01]));
-            socket.destroy();
-            logger.debug(`===>auth error socks5 username=${user.username} password=${user.password}`);
+            ssocket.destroy(new Error(`HTTP/1.1 407 noauth`))
             return;
          }
-         await this.write(socket, Buffer.from([0x01, 0x00]));
+         await ssocket.write(Buffer.from([0x01, 0x00]));
       } else {
          this.sessions.add(socket);
       }
@@ -91,10 +89,10 @@ export default class Socks5Accept extends Accept {
          return;
       }
       //await _this.write(socket, Buffer.from([0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00])); //返回告诉
-      await _this.write(socket, Buffer.from([0x05, 0x00, 0x00, ...targetInfoBuffer.slice(3)])); //返回告诉
+      await ssocket.write(Buffer.from([0x05, 0x00, 0x00, ...targetInfoBuffer.slice(3)])); //返回告诉
       //await _this.write(socket, Buffer.concat([Buffer.from([0x05, 0x00, 0x00]), targetInfoBuffer.slice(3)])); //返回告诉
       /** 三步走 end */
-      let sendData = await _this.read(socket, 500);
+      let sendData = await ssocket.read(500);
 
       /** 解析首次 socks5 请求协议获取反馈和主机信息 end */
 
