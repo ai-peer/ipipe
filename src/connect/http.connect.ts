@@ -50,9 +50,9 @@ export default class HttpConnect extends Connect {
                await ssocket.write(sendChunk);
                let receiveChunk = await ssocket.read(2000);
                let statusCode = receiveChunk.toString().split(" ")[1];
+               let checked = statusCode == "200"; //407 auth 失败
                //console.info("receiveChunk", receiveChunk.toString(), usePassword);
                if (usePassword) {
-                  let checked = statusCode == "407";
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
@@ -62,20 +62,11 @@ export default class HttpConnect extends Connect {
                      password: proxy.password || "",
                      args: (proxy.password || "").split("_").slice(1),
                   });
-                  if (checked) {
-                     callback(receiveChunk, ssocket);
-                     resolve(ssocket);
-                     return;
-                  }
-               } else {
-                  let checked = statusCode == "200";
-                  if (!checked) {
-                     callback(receiveChunk, ssocket);
-                     resolve(ssocket);
-                     return;
-                  }
                }
-               callback(undefined, ssocket);
+               if (!checked) {
+                  socket.destroy(new Error(receiveChunk.toString()));
+               }
+               callback(receiveChunk, ssocket);
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);

@@ -1,8 +1,9 @@
 import net from "net";
 import Connect, { Callback } from "./connect";
-import { Proxy } from "../types";
+import { Proxy, ProxyMode } from "../types";
 import SSocket from "../core/ssocket";
 import { buildSN } from "../core/password";
+import assert from "assert";
 
 /**
  * 透过中转服务转发连接http代理连接
@@ -21,11 +22,15 @@ export default class ForwardHttpConnect extends Connect {
     * @param callback 连接成功后的回调方法
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
-      proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      let mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      proxy.mode = mode;
+
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
-         let socket = net.connect(proxy.forwardPort || 0, proxy.forwardHost, async () => {
+         let forward = proxy.forward;
+         assert.ok(!!forward, "forward is null");
+         let socket = net.connect(forward.port || 0, forward.host, async () => {
             try {
                isTimeout = false;
                pid && clearTimeout(pid);
@@ -34,22 +39,39 @@ export default class ForwardHttpConnect extends Connect {
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
                let isAuth = !!proxy.username && !!proxy.password;
-               let pwd = proxy.password || "";
+               let isAuthForward = !!forward?.username && !!forward?.password;
+               /*  let pwd = proxy.password || "";
                pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
                let up = proxy.username + ":" + pwd;
-               up = Buffer.from(up).toString("base64");
+               up = Buffer.from(up).toString("base64"); */
+               let up = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: proxy.username || "", password: proxy.password || "" })).toString("base64");
+               let upForward = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: forward?.username || "", password: forward?.password || "" })).toString("base64");
 
                /**  第一步连接中转服务器 */
                let sendChunk = Buffer.concat([
                   Buffer.from(`CONNECT ${proxy.host}:${proxy.port} HTTP/1.1\r\n`), //
                   Buffer.from(`Host: ${proxy.host}:${proxy.port}\r\n`), //
                   Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
+                  Buffer.from(isAuthForward ? `Proxy-Authorization: Basic ${upForward}\r\n` : ""),
                   Buffer.from("\r\n"),
                ]);
-               await this.write(socket, sendChunk);
-               let receiveChunk = await this.read(socket);
+               await ssocket.write(sendChunk);
+               let receiveChunk = await ssocket.read(2000);
                let statusCode = receiveChunk.toString().split(" ")[1];
-               if (statusCode != "200") {
+               let checkedAuthForward = statusCode == "200";
+               if (isAuthForward || statusCode == "407") {
+                  this.emit("auth", {
+                     checked: checkedAuthForward,
+                     type: "connect",
+                     session: this.getSession(socket),
+                     clientIp: "127.0.0.1",
+                     username: forward?.username || "",
+                     password: forward?.password || "",
+                     args: (forward?.password || "").split("_").slice(1),
+                  });
+               }
+               if (!checkedAuthForward) {
+                  this.emit("error", new Error(`connect forward.http[${proxy.host}:${proxy.port}] error`));
                   socket.destroy(new Error(receiveChunk.toString()));
                   callback(undefined, ssocket);
                   resolve(ssocket);
@@ -67,12 +89,22 @@ export default class ForwardHttpConnect extends Connect {
                ]);
                await this.write(socket, sendChunk);
                receiveChunk = await this.read(socket);
-
                statusCode = receiveChunk.toString().split(" ")[1];
-               if (statusCode != "200") {
+               let checkedAuth = statusCode == "200";
+               if (isAuth || statusCode == "407") {
+                  this.emit("auth", {
+                     checked: checkedAuth,
+                     type: "connect",
+                     session: this.getSession(socket),
+                     clientIp: "127.0.0.1",
+                     username: proxy?.username || "",
+                     password: proxy?.password || "",
+                     args: (proxy.password || "").split("_").slice(1),
+                  });
+               }
+               if (!checkedAuth) {
                   socket.destroy(new Error(receiveChunk.toString()));
                }
-
                callback(undefined, ssocket);
                resolve(ssocket);
             } catch (err) {

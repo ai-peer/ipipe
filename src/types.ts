@@ -70,6 +70,20 @@ export type AcceptAuthData = (data: {
    clientIp: string;
 }) => Promise<boolean>;
 
+/**
+ * 代理模式
+ * 0=session模式， 1=随机ip模式， 2=固定模式（未实现）
+ */
+export enum ProxyMode {
+   /**
+    * session模式,一段时间内ip稳定
+    */
+   session = 0,
+   /**
+    * 随机模式,每次请求变更ip
+    */
+   random = 1,
+}
 export interface Proxy {
    /** 协议 */
    protocol: string;
@@ -81,16 +95,21 @@ export interface Proxy {
    username?: string;
    /** 密码 */
    password?: string;
-   /** 转发主机  */
-   forwardHost?: string;
-   /** 转发主机端口 */
-   forwardPort?: number;
+   /** 转发主机,转发到代理  */
+   forward?: {
+      host: string;
+      port: number;
+      /** 用户名 */
+      username?: string;
+      /** 密码 */
+      password?: string;
+   };
    /** 代理密钥 */
    secret?: string | Buffer;
    /** 代理检测好坏，内部使用 */
    checked?: boolean;
    /** 使用模式 0=session模式， 1=随机ip模式， 2=固定模式（未实现） */
-   mode?: 0 | 1 | 2;
+   mode?: ProxyMode;
 }
 
 /**

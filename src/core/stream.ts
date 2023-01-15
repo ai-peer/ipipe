@@ -1,6 +1,6 @@
 import net from "net";
 import EventEmitter from "eventemitter3";
-import { AuthData, WriteData, ReadData } from "../types";
+import { AuthData, WriteData, ReadData, ConnectUser } from "../types";
 import Sessions from "./sessions";
 
 //export type Callback = (length: number) => void;
@@ -50,6 +50,43 @@ export default class Stream extends EventEmitter<StreamEvent> {
    }
    protected getSession(socket: net.Socket) {
       return this.sessions.getSession(socket);
+   }
+   /**
+    * 分隔密码格式: 用 _分隔
+    * 组成格式: password_x1_x2_x3_...
+    */
+   protected splitHttpPassword(str: string): { password: string; args: string[] } {
+      let ss = str.split("_");
+      return {
+         password: ss[0] || "",
+         args: ss.slice(1) || [],
+      };
+   }
+   /**
+    * 解析http协议的认证数据,转为用户对象
+    * @param authorization
+    */
+   protected parseHttpUser(authorization: string): ConnectUser {
+      try {
+         authorization = authorization || "";
+         let kv = authorization.trim().split(" ")[1] || "";
+         let buf = Buffer.from(kv, "base64");
+         let kvs = buf.toString().split(":");
+         let username = kvs[0] || "",
+            password = kvs[1] || "";
+         let pps = this.splitHttpPassword(password);
+         return {
+            username: username || "",
+            password: pps.password || "",
+            args: pps.args || [],
+         };
+      } catch (err) {
+         return {
+            username: "",
+            password: "",
+            args: [],
+         };
+      }
    }
    /**
     * 往网络里写数据

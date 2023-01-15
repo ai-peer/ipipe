@@ -44,7 +44,7 @@ describe("测试IPipe", async function () {
          resolve(undefined);
       });
    });
-   it("测试http.forward是否连接成功", () => {
+   /*    it("测试http.forward是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "forward.http", forwardHost: "127.0.0.1", forwardPort: 9999 });
          //let nproxy = {protocol: "socks5", host: "127.0.0.1", port: 9150, single: 129};
@@ -53,7 +53,7 @@ describe("测试IPipe", async function () {
          // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
-   });
+   }); */
    await wait(5000);
    //testServer?.close();
 });

@@ -1,11 +1,12 @@
 import net from "net";
 //import { EventEmitter } from "events";
 //import ping from "ping";
-import { Proxy, ConnectOptions } from "../types";
+import { Proxy, ConnectOptions, ProxyMode } from "../types";
 import Stream from "../core/stream";
 import transform from "../core/transform";
 import { Transform } from "stream";
 import SSocket from "../core/ssocket";
+import { buildSN } from "../core/password";
 
 export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => void;
 
@@ -29,7 +30,16 @@ export default abstract class Connect extends Stream {
       this.timeout = ttl;
       //handle && this.on("timeout", handle);
    }
-
+   /**
+    * 生成基于http协议代理的用户认证密钥信息
+    * @param proxy
+    */
+   buildHttpProxyAuthorization(proxy: { mode: ProxyMode; username: string; password: string }) {
+      let pwd = proxy.password || "";
+      pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
+      let up = proxy.username + ":" + pwd;
+      return up;
+   }
    /**
     * 连接远程代理主机
     * @param host 目标主机ip或域名

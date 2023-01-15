@@ -134,7 +134,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
             reject(err);
          });
          server.listen(port, host, () => {
-            logger.debug(`create accept proxy server listen ${port}`, server.address());
+            logger.info(`create accept proxy server listen`, server.address());
             callback && callback(server);
             resolve(server);
          });
@@ -148,7 +148,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
    public async accept(socket: net.Socket) {
       let chunk: Buffer = await this.read(socket, 500);
       let isAccept = false;
-      //console.info("accpet", chunk.toString())
+      //console.info("accpet receive", chunk.toString());
       if (this.timeout > 0) {
          //检测超时
          socket.on("timeout", () => socket.end());
@@ -160,7 +160,6 @@ export default class AcceptFactor extends EventEmitter<EventName> {
          socket.destroy();
          return;
       }
-      //console.info("s apt ", chunk.toString())
       for (let accept of accepts) {
          isAccept = await accept.isAccept(socket, chunk);
          if (isAccept) {

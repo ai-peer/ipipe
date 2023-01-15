@@ -35,7 +35,7 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) return;
-      let user: ConnectUser | undefined = this.getUser(headers["proxy-authorization"]);
+      let user: ConnectUser | undefined = this.parseHttpUser(headers["proxy-authorization"]);
       let isAuth = !!this.acceptAuth;
 
       // 需要鉴权
@@ -90,7 +90,7 @@ export default class HttpAccept extends Accept {
       /** 解析首次http请求协议获取反馈和主机信息 end */
       this.connect(host, port, ssocket, firstChunk, user);
    }
-   private getUser(authorization: string): ConnectUser {
+   /* private getUser(authorization: string): ConnectUser {
       try {
          authorization = authorization || "";
          let kv = authorization.trim().split(" ")[1] || "";
@@ -111,7 +111,7 @@ export default class HttpAccept extends Accept {
             args: [],
          };
       }
-   }
+   } */
 
    private isHttpProtocol(str: string) {
       switch (str.slice(0, 3).toUpperCase()) {

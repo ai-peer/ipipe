@@ -119,8 +119,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          existProxy.username = proxy.username;
          existProxy.password = proxy.password;
          existProxy.secret = proxy.secret;
-         existProxy.forwardHost = proxy.forwardHost;
-         existProxy.forwardPort = proxy.forwardPort;
+         existProxy.forward = proxy.forward;
          existProxy.checked = proxy.checked;
          existProxy.mode = proxy.mode;
       } else {
