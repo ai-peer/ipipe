@@ -43,8 +43,8 @@ export default async function create(port: number = 4321) {
    ipipe.on("auth", (data) => console.info("event log auth", data));
    ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
    ipipe.on("request", (data) => console.info("event log request", data));
-   ipipe.on("in", (data) => console.info("event log in", data));
-   ipipe.on("out", (data) => console.info("event log out", data));
+   ipipe.on("in", (data) => console.info("event log in", data.size));
+   ipipe.on("out", (data) => console.info("event log out", data.size));
    ipipe.on("error", (err) => console.info("event log error", err));
    //console.info("proxys", ipipe.getProxys());
 }

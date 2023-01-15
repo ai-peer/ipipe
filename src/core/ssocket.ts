@@ -120,12 +120,14 @@ export default class SSocket {
                   chunk = target.encode(chunk);
                }
                this.stream.emit("read", {
+                  chunk,
                   size: chunk.byteLength,
                   session: this.getSession(this.socket),
                   clientIp: this.socket.remoteAddress || "",
                   protocol: this.protocol || "",
                });
                target.stream.emit("write", {
+                  chunk,
                   size: chunk.byteLength,
                   session: this.getSession(target.socket),
                   clientIp: target.socket.remoteAddress || "",

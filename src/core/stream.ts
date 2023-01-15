@@ -5,6 +5,7 @@ import Sessions from "./sessions";
 
 //export type Callback = (length: number) => void;
 export type StreamEvent = {
+   open: () => void;
    /**
     * 读取事件
     * @param
@@ -104,7 +105,7 @@ export default class Stream extends EventEmitter<StreamEvent> {
                if (err) {
                   resolve(err);
                } else {
-                  this.emit("write", { size: chunk.length, session: this.getSession(socket), protocol: this.protocol || "", clientIp: socket.remoteAddress || "" });
+                  this.emit("write", { chunk, size: chunk.length, session: this.getSession(socket), protocol: this.protocol || "", clientIp: socket.remoteAddress || "" });
                   resolve(undefined);
                }
             });
@@ -118,7 +119,7 @@ export default class Stream extends EventEmitter<StreamEvent> {
          socket.writable
             ? socket.end(chunk, () => {
                  socket.resume();
-                 this.emit("write", { size: chunk.length, session: this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
+                 this.emit("write", { chunk, size: chunk.length, session: this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
                  resolve(undefined);
               })
             : socket.end();
@@ -139,7 +140,7 @@ export default class Stream extends EventEmitter<StreamEvent> {
             pid && clearTimeout(pid);
             if (isRead) return;
             isRead = true;
-            _this.emit("read", { size: chunk.length, session: _this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
+            _this.emit("read", { chunk, size: chunk.length, session: _this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
             resolve(chunk);
          }
          if (ttl > 0) {

@@ -65,14 +65,14 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       }
 
       accept.registerConnect(this.connectFactor);
-      accept.on("read", ({ size, session, clientIp, protocol }) => {
+      accept.on("read", (data) => {
          //let session = accept.getSession(socket);
-         this.emit("read", { size, session, clientIp, protocol });
+         this.emit("read", data);
       });
-      accept.on("write", ({ size, session, clientIp, protocol }) => {
+      accept.on("write", (data) => {
          //let session = accept.getSession(socket);
          //console.info(">>>write", Math.ceil((1000 * size) / 1024) / 1000+"KB", session);
-         this.emit("write", { size, session, clientIp, protocol });
+         this.emit("write", data);
       });
       accept.on("auth", (data) => {
          //let session = accept.getSession(data["socket"]);
@@ -95,6 +95,8 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       this.accepts.forEach((accept) => {
          accept.registerConnect(connectFactor);
       });
+      //connectFactor.on("open", () => this.emit("open"));
+      connectFactor.on("request", () => this.emit("open"));
       return this;
    }
    /**
@@ -169,11 +171,17 @@ export default class AcceptFactor extends EventEmitter<EventName> {
                let clientIp = socket.remoteAddress || "";
                let protocol = accept.protocol;
 
-               socket.on("close", () => {
-                  let session = accept.getSession(socket);
-                  //console.info("=====read==", byteLength);
-                  session && this.emit("read", { size: byteLength, session, clientIp: clientIp, protocol: protocol });
-
+               this.on("open", () => {
+                  //console.info("open================", protocol, socket.localPort, socket.remotePort);
+                  let pid = setInterval(() => {
+                     //HEART 心跳 check
+                     //socket.write(Buffer.from([0]));
+                  }, 5 * 1000);
+                  socket.once("close", () => {
+                     clearInterval(pid); //取消心态检测
+                  });
+               });
+               socket.once("close", () => {
                   this.emit("close", socket);
                });
                accept.handle(socket, chunk).catch((err) => {

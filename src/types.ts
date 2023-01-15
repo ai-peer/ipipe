@@ -8,6 +8,7 @@ export type ReadData = {
    session: string;
    clientIp: string;
    protocol: string;
+   chunk: any;
    //type: "connect" | "accept";
 };
 export type WriteData = {
@@ -15,6 +16,7 @@ export type WriteData = {
    session: string;
    clientIp: string;
    protocol: string;
+   chunk: any;
    //type: "connect" | "accept";
 };
 export type AuthData = {

@@ -29,6 +29,7 @@ export type EventName = {
    request: (data: RequestData) => void;
    auth: (data: AuthData) => void;
    error: (err: Error) => void;
+   open: () => void;
 };
 /**
  * 连接代理的封装类
@@ -257,6 +258,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                }
                return;
             }
+            this.emit("open");
             isConnect = true;
             localSocket.on("error", (err) => {
                logger.debug("error local", err.message);

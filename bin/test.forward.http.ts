@@ -18,13 +18,13 @@ async function createServer() {
    let ipipeTarget = new IPipe({
       isDirect: true,
       auth: async (data) => {
-         console.info("event log auth accept function check user target==========>", data);
+         //console.info("event log auth accept function check user target==========>", data);
          return data.username == "admin" && data.password == "123";
       },
    });
    await ipipeTarget.createAcceptServer(port);
    //ipipeTarget.registerAccept(new LightAccept());
-   ipipeTarget.on("auth", (data) => console.info("event log auth", data));
+   //ipipeTarget.on("auth", (data) => console.info("event log auth", data));
    /*   ipipeTarget.on("accept", (data) => console.info("event log accept", data.protocol));
    ipipeTarget.on("request", (data) => console.info("event log request", data));
    ipipeTarget.on("in", (data) => console.info("event log in", data));
@@ -33,20 +33,24 @@ async function createServer() {
    let ipipeForwardHttp = new IPipe({
       isDirect: true,
       auth: async (data) => {
-         console.info("event log auth accept function check user forward==========>", data);
+         //console.info("event log auth accept function check user forward==========>", data);
          return data.username == "admin" && data.password == "123456";
       },
    });
+
+   //ipipeForwardHttp.on("accept", (data) => console.info("event log accept forward.http", data.protocol));
+   //ipipeForwardHttp.on("auth", (data) => console.info("event log auth forward.http", data));
+   //ipipeForwardHttp.on("error", (err) => console.info("forwardhttp error forward.http", err));
+   ipipeForwardHttp.on("in", (data) => console.info("event log forwardhttp in", data.size));
+   ipipeForwardHttp.on("out", (data) => console.info("event log forwardhttp out", data.size));
+   ipipeForwardHttp.on("error", (err)=>console.info("event log forwardhttp error", err));
    await ipipeForwardHttp.createAcceptServer(forwardPort);
-   ipipeForwardHttp.on("accept", (data) => console.info("event log accept forward.http", data.protocol));
-   ipipeForwardHttp.on("auth", (data) => console.info("event log auth forward.http", data));
-   ipipeForwardHttp.on("error", (err) => console.info("forwardhttp error forward.http", err));
 }
 
 async function createClient() {
    let connect = new ForwardHttpConnect();
    connect.on("auth", (data) => {
-      console.info("event log auth connect ==>", data);
+      //console.info("event log auth connect ==>", data);
    });
    const info = new URL("http://icanhazip.com");
 
