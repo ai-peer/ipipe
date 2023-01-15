@@ -54,8 +54,15 @@ export default class LightAccept extends Accept {
            })
          : true;
       //console.info("auth res =", authRes, !!this.acceptAuth);
-      this.emit("auth", { checked: authRes, type: "accept", session, clientIp,//
-       username: user.username, password: user.password, args: user.args });
+      this.emit("auth", {
+         checked: authRes,
+         type: "accept",
+         session,
+         clientIp, //
+         username: user.username,
+         password: user.password,
+         args: user.args,
+      });
       if (!authRes) {
          this.end(socket, cipherAccept.encode(Buffer.from([0x01, 0x01]))); //鉴权失败
          logger.debug(`===>auth error username=${user.username} password=${user.password}`);

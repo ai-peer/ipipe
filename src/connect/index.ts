@@ -49,7 +49,8 @@ export default class ConnectFactor extends EventEmitter<EventName> {
    constructor(options?: ConnectOptions) {
       super();
       //this.setMaxListeners(99);
-      this.options = Object.assign({}, options);
+      options = Object.assign({}, options);
+      this.options = options;
       /**
        * 默认支持http,socks5,direct协议连接
        */
@@ -248,10 +249,12 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
       let startTime = Date.now();
       await connect
-         .connect(host, port, proxy, (err, proxySocket: SSocket) => { //, recChunk?: Buffer
+         .connect(host, port, proxy, (err, proxySocket: SSocket) => {
+            //, recChunk?: Buffer
             //console.info("ccxxxxx",connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
+               //console.info("error===", this.proxys.length, err.toString(), err instanceof Error, connect?.protocol, isCorrection);
                if (connect?.protocol == "direct") {
                   isConnect = true;
                   err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);

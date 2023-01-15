@@ -79,7 +79,7 @@ export default class IPipe extends EventEmitter<EventName> {
    public acceptFactor: AcceptFactor;
    constructor(options?: Options) {
       super();
-      options = options || {};
+      options = Object.assign({}, options);
       this.acceptFactor = new AcceptFactor(options);
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);

@@ -72,7 +72,7 @@ export default class Socks5Accept extends Accept {
             args: user.args,
          });
          if (!authRes) {
-            ssocket.destroy(new Error(`HTTP/1.1 407 noauth`))
+            ssocket.destroy(new Error(`HTTP/1.1 407 noauth`));
             return;
          }
          await ssocket.write(Buffer.from([0x01, 0x00]));

@@ -14,32 +14,21 @@ export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => v
  * 连接远程代理服务器的抽象类
  */
 export default abstract class Connect extends Stream {
-   /** 协议 */
-   //public protocol: string;
    protected options: ConnectOptions;
    protected timeout: number = 30 * 1000;
    constructor(options: ConnectOptions) {
       super();
       //this.setMaxListeners(99);
-      this.options = options;
+      this.options = Object.assign({ protocol: "socks5" }, options);
       this.on("error", (err) => {});
-      this.protocol = options.protocol;
+      this.protocol = options.protocol || "socks5";
    }
 
    public setTimeout(ttl: number = 3 * 1000) {
       this.timeout = ttl;
       //handle && this.on("timeout", handle);
    }
-   /**
-    * 生成基于http协议代理的用户认证密钥信息
-    * @param proxy
-    */
-   buildHttpProxyAuthorization(proxy: { mode: ProxyMode; username: string; password: string }) {
-      let pwd = proxy.password || "";
-      pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
-      let up = proxy.username + ":" + pwd;
-      return up;
-   }
+
    /**
     * 连接远程代理主机
     * @param host 目标主机ip或域名

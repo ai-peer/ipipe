@@ -37,7 +37,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
 
    constructor(options?: AcceptOptions) {
       super();
-      options = options || {};
+      options = Object.assign({}, options);
       this.options = options;
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入

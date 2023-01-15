@@ -3,6 +3,7 @@ import net, { SocketAddress } from "net";
 import { AcceptOptions, ConnectUser } from "../types";
 import logger from "../core/logger";
 import SSocket from "../core/ssocket";
+import * as http from "../connect/protocol/http";
 
 /**
  * Http协议接入类
@@ -34,10 +35,17 @@ export default class HttpAccept extends Accept {
       let hp = headers["host"]?.split(":");
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
-      if (!host) return;
-      let user: ConnectUser | undefined = this.parseHttpUser(headers["proxy-authorization"]);
-      let isAuth = !!this.acceptAuth;
+      if (!host) {
+         ssocket.encode(Buffer.from(`HTTP/1.0 400 badheader`));
+         return;
+      }
+      str = str.replace(/Proxy-Authorization: Basic .*[\r\n]+/i, "");
+      firstChunk = Buffer.from(str);
 
+      let user: ConnectUser | undefined = http.parseHttpUser(headers["proxy-authorization"]);
+      let isAuth = !!this.acceptAuth;
+      if (this.options.isDirect && !user.username) isAuth = false;
+      //console.info("accept http", isAuth, this.protocol, this.options, user.username + "/" + user.password, str);
       // 需要鉴权
       if (isAuth) {
          this.sessions.add(socket, user.username);
@@ -66,7 +74,7 @@ export default class HttpAccept extends Accept {
             args: user.args,
             clientIp,
          });
-         //console.info("accept s4",authRes);
+         //console.info("accept auth res", authRes);
 
          if (!authRes) {
             //this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
@@ -78,40 +86,16 @@ export default class HttpAccept extends Accept {
       } else {
          this.sessions.add(socket, user?.username);
       }
-      //console.info("req headers", str);
+
       if (/^CONNECT/i.test(str)) {
          port = parseInt(hp[1]) || 443;
-         //https请示
-         // await this.write(socket, Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
          await ssocket.write(Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
-         //firstChunk = await this.read(socket, 500);
          firstChunk = await ssocket.read(500);
       }
       /** 解析首次http请求协议获取反馈和主机信息 end */
+
       this.connect(host, port, ssocket, firstChunk, user);
    }
-   /* private getUser(authorization: string): ConnectUser {
-      try {
-         authorization = authorization || "";
-         let kv = authorization.trim().split(" ")[1] || "";
-         let buf = Buffer.from(kv, "base64");
-         let kvs = buf.toString().split(":");
-         let username = kvs[0] || "",
-            password = kvs[1] || "";
-         let pps = this.splitPasswodArgs(password);
-         return {
-            username: username || "",
-            password: pps.password || "",
-            args: pps.args || [],
-         };
-      } catch (err) {
-         return {
-            username: "",
-            password: "",
-            args: [],
-         };
-      }
-   } */
 
    private isHttpProtocol(str: string) {
       switch (str.slice(0, 3).toUpperCase()) {

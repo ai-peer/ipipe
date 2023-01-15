@@ -4,6 +4,7 @@ import { Proxy, ProxyMode } from "../types";
 import SSocket from "../core/ssocket";
 import { buildSN } from "../core/password";
 import assert from "assert";
+import * as http from "./protocol/http";
 
 /**
  * 透过中转服务转发连接http代理连接
@@ -44,18 +45,19 @@ export default class ForwardHttpConnect extends Connect {
                pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
                let up = proxy.username + ":" + pwd;
                up = Buffer.from(up).toString("base64"); */
-               let up = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: proxy.username || "", password: proxy.password || "" })).toString("base64");
-               let upForward = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: forward?.username || "", password: forward?.password || "" })).toString("base64");
+               //let up = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: proxy.username || "", password: proxy.password || "" })).toString("base64");
+               //let upForward = Buffer.from(this.buildHttpProxyAuthorization({ mode, username: forward?.username || "", password: forward?.password || "" })).toString("base64");
 
                /**  第一步连接中转服务器 */
-               let sendChunk = Buffer.concat([
+               let connectChunk = http.buildConnectChunk({ mode, host: proxy.host || "", port: proxy.port || 0, username: forward?.username, password: forward?.password });
+               /* let sendChunk = Buffer.concat([
                   Buffer.from(`CONNECT ${proxy.host}:${proxy.port} HTTP/1.1\r\n`), //
                   Buffer.from(`Host: ${proxy.host}:${proxy.port}\r\n`), //
                   Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
                   Buffer.from(isAuthForward ? `Proxy-Authorization: Basic ${upForward}\r\n` : ""),
                   Buffer.from("\r\n"),
-               ]);
-               await ssocket.write(sendChunk);
+               ]); */
+               await ssocket.write(connectChunk);
                let receiveChunk = await ssocket.read(2000);
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checkedAuthForward = statusCode == "200";
@@ -79,15 +81,16 @@ export default class ForwardHttpConnect extends Connect {
                }
 
                /** 第二步 通过中转服务器连接到目标代理服务器 */
-               sendChunk = Buffer.concat([
+               /*   sendChunk = Buffer.concat([
                   Buffer.from(`CONNECT ${host}:${port} HTTP/1.1\r\n`), //
                   Buffer.from(`Host: ${host}:${port}\r\n`), //
                   Buffer.from(`Proxy-Connection: keep-alive\r\n`), //
                   //Buffer.from(`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.2612.71 Safari/537.36\r\n`), //
                   Buffer.from(isAuth ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                   Buffer.from("\r\n"),
-               ]);
-               await this.write(socket, sendChunk);
+               ]); */
+               let connectChunk2 = http.buildConnectChunk({ mode, host: host || "", port: port, username: proxy.username, password: proxy.password });
+               await this.write(socket, connectChunk2);
                receiveChunk = await this.read(socket);
                statusCode = receiveChunk.toString().split(" ")[1];
                let checkedAuth = statusCode == "200";

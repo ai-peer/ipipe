@@ -35,7 +35,7 @@ async function createRelay() {
    };
    let ipipe = new IPipe({
       isDirect: false,
-      auth: async (username, password) => {
+      auth: async ({username, password}) => {
          return username == appParams.username && password == appParams.password;
       },
    });
@@ -52,7 +52,7 @@ async function createServer() {
    console.info("======createServer");
    let ipipe = new IPipe({
       isDirect: true,
-      auth: async (username, password) => {
+      auth: async ({username, password}) => {
          return username == appParams.username && password == appParams.password;
       },
    });
@@ -73,7 +73,7 @@ async function createClient() {
       password: appParams.password,
    };
    let ipipe = new IPipe({
-      auth: async (username, password) => {
+      auth: async ({username, password}) => {
          return username == appParams.username && password == appParams.password;
       },
    });

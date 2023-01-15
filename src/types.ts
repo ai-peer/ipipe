@@ -36,28 +36,31 @@ export type AcceptData = {
 /**
  * 接收器配置参数
  */
-export interface AcceptOptions {
+export type AcceptOptions = {
    /** 密钥 */
    secret?: string;
    isAccept?: boolean;
    /** 验证用户信息，用户名和密码 */
    auth?: AcceptAuthData;
-   [key: string]: any;
-}
+   isDirect?: boolean;
+   //[key: string]: any;
+};
 /**
  * 连接器配置参数
  */
-export interface ConnectOptions {
+export type ConnectOptions = {
    /** 是否直接连接目标 */
    isDirect?: boolean;
-   [key: string]: any;
-}
+   protocol?: string;
+   //[key: string]: any;
+};
 /**
  * 默认实例入口配置参数
  */
-export interface Options extends AcceptOptions, ConnectOptions {
-   [key: string]: any;
-}
+export type Options = AcceptOptions &
+   ConnectOptions & {
+      [key: string]: any;
+   };
 
 /**
  * accept用户信息验证

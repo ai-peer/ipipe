@@ -4,6 +4,7 @@ import assert from "assert";
 import { Proxy } from "..//types";
 import SSocket from "../core/ssocket";
 import { buildSN } from "../core/password";
+import * as http from "./protocol/http";
 
 /**
  * http代理连接
@@ -22,7 +23,8 @@ export default class HttpConnect extends Connect {
     * @param callback 连接成功后的回调方法
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
-      proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      const mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
+      proxy.mode = mode;
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
@@ -35,7 +37,7 @@ export default class HttpConnect extends Connect {
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
                let usePassword = !!proxy.username && !!proxy.password;
-               let pwd = proxy.password || "";
+               /*       let pwd = proxy.password || "";
                pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
                let up = proxy.username + ":" + pwd;
                up = Buffer.from(up).toString("base64");
@@ -46,12 +48,14 @@ export default class HttpConnect extends Connect {
                   //Buffer.from(`User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.2612.71 Safari/537.36\r\n`), //
                   Buffer.from(usePassword ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                   Buffer.from("\r\n"),
-               ]);
-               await ssocket.write(sendChunk);
+               ]); */
+               let connectChunk = http.buildConnectChunk({ mode, host: proxy.host, port: proxy.port, username: proxy.username, password: proxy.password });
+               //console.info("first send", usePassword, connectChunk.toString());
+               await ssocket.write(connectChunk);
                let receiveChunk = await ssocket.read(2000);
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败
-               //console.info("receiveChunk", receiveChunk.toString(), usePassword);
+               //console.info("receiveChunk", statusCode, checked, usePassword, receiveChunk.toString());
                if (usePassword || statusCode == "407") {
                   this.emit("auth", {
                      checked: checked,
