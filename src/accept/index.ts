@@ -4,7 +4,7 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import LightAccept from "./light.accept";
-import { CreateCallback, AcceptOptions, AcceptAuth, AcceptData, Proxy } from "../types";
+import { CreateCallback, AcceptOptions, AcceptAuthData, AcceptData, Proxy } from "../types";
 import EventEmitter from "eventemitter3";
 import { StreamEvent } from "../core/stream";
 //import { Options } from "../types";

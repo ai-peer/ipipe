@@ -1,5 +1,5 @@
 import { Proxy } from "../types";
-import { LightConnect, SSocket, Socks5Connect, HttpConnect } from "../";
+import { LightConnect, SSocket, Socks5Connect, HttpConnect, ForwardHttpConnect } from "../";
 import ua from "./ua";
 //const reqUrl = "http://httpbin.org/ip";
 //const reqUrl = "http://ip-api.com/json";
@@ -45,6 +45,35 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
 }
 export async function checkHttp(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
    let connect = new HttpConnect();
+   connect.setTimeout(timeout);
+   const info = new URL(url);
+   return new Promise((resolve) => {
+      let pid = setTimeout(() => resolve(false), timeout);
+      connect.on("timeout", () => {
+         clearTimeout(pid);
+         //console.info(`check http timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
+         resolve(false);
+      });
+      connect.on("error", (err) => {
+         clearTimeout(pid);
+         resolve(false);
+      });
+      connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
+         clearTimeout(pid);
+         let data = await request(url, socket);
+         let code = data.slice(0, 12).split(" ")[1];
+         let checked = /^[2345]/i.test(code); // code == "200";
+         if (!checked) {
+            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
+            console.info(data.slice(0, 128));
+         }
+         resolve(checked);
+      });
+   });
+}
+
+export async function checkForwardHttp(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
+   let connect = new ForwardHttpConnect();
    connect.setTimeout(timeout);
    const info = new URL(url);
    return new Promise((resolve) => {

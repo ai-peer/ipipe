@@ -18,7 +18,8 @@ console.info("nsecret", nsecret);
 
 export async function createProxyServer(port: number = 4321) {
    console.info("createProxyServer port=", port);
-   let dport = 8989;
+   let dport = 8989,
+      forwardPort = 9999;
    let directProxy = new IPipe({
       isDirect: true,
       /*  auth: async (username, password) => {
@@ -36,8 +37,8 @@ export async function createProxyServer(port: number = 4321) {
 
    let acceptProxy = new IPipe({
       isDirect: false,
-      auth: async (username, password, { args, socket, protocol }) => {
-         console.info("check user", username, password, args, protocol, socket.remoteAddress);
+      auth: async ({ username, password, args, protocol }) => {
+         console.info("check user", username, password, args, protocol);
          //console.info("relayProxy accept auth====", username, password);
          return username == "admin" && password == "123";
       },
@@ -61,6 +62,15 @@ export async function createProxyServer(port: number = 4321) {
    relayProxy.on("out", (data) => {
       console.info("out", data);
    }); */
+   /** 中转代理 */
+   let forwardProxy = new IPipe({
+      isDirect: false,
+      auth: async ({ username, password, args, protocol }) => {
+         console.info("check forward user", username, password, args, protocol);
+         return true;
+      },
+   });
+   forwardProxy.createAcceptServer(forwardPort);
 
    return directProxy;
 }
@@ -83,6 +93,11 @@ export async function requestByLight(proxy: Proxy): Promise<Buffer> {
    return Buffer.from(checked ? "OK" : "");
 }
 
+export async function requestByForwardHttp(proxy: Proxy): Promise<Buffer> {
+   let checked = await check.checkForwardHttp(proxy);
+   console.info("http=========receive", `code=${checked}`);
+   return Buffer.from(checked ? "OK" : "");
+}
 async function wait(ttl) {
    return new Promise((resolve) => {
       setTimeout(() => resolve(undefined), ttl);

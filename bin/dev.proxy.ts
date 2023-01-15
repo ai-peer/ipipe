@@ -40,7 +40,7 @@ async function createRemoteProxy() {
    //创建代理测试服务器
    let relayProxy = new IPipe({
       isDirect: true,
-      auth: async (username, password) => {
+      auth: async ({username, password}) => {
          //return username == "admin" && password == "123456";
          return true;
       },

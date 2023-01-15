@@ -40,17 +40,32 @@ export default class HttpAccept extends Accept {
 
       // 需要鉴权
       if (isAuth) {
+         this.sessions.add(socket, user.username);
+         const session = this.getSession(socket);
+         const clientIp = socket.remoteAddress || "";
          //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
          let authRes = this.acceptAuth
-            ? await this.acceptAuth(user.username, user.password, {
+            ? await this.acceptAuth({
+                 username: user.username,
+                 password: user.password,
                  args: user.args, //
-                 socket: socket,
+                 //socket: socket,
                  protocol: this.protocol,
+                 session,
+                 clientIp,
               })
             : true;
-         this.sessions.add(socket, user.username);
+
          //console.info("accept s3",authRes, this.getSession(socket), user);
-         this.emit("auth", { checked: authRes, type: "accept", session: this.getSession(socket), username: user.username, password: user.password, args: user.args });
+         this.emit("auth", {
+            checked: authRes,
+            type: "accept",
+            session, //
+            username: user.username,
+            password: user.password,
+            args: user.args,
+            clientIp,
+         });
          //console.info("accept s4",authRes);
 
          if (!authRes) {

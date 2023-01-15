@@ -16,7 +16,7 @@ describe("测试IPipe", async function () {
    testServer = await com.createProxyServer(proxy.port);
    //await wait(2000);
 
-    it("测试light是否连接成功", () => {
+   it("测试light是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "light" });
          let info = await com.requestByLight(nproxy);
@@ -33,12 +33,22 @@ describe("测试IPipe", async function () {
          //console.info("===http receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);
       });
-   }); 
+   });
    it("测试socks5是否连接成功", () => {
       return new Promise(async (resolve) => {
          let nproxy = Object.assign({}, proxy, { protocol: "socks5" });
          //let nproxy = {protocol: "socks5", host: "127.0.0.1", port: 9150, single: 129};
          let info = await com.requestBySocks5(nproxy);
+         assert.ok(info && info.length > 1, "socks5 res is null");
+         // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
+         resolve(undefined);
+      });
+   });
+   it("测试http.forward是否连接成功", () => {
+      return new Promise(async (resolve) => {
+         let nproxy = Object.assign({}, proxy, { protocol: "forward.http", forwardHost: "127.0.0.1", forwardPort: 9999 });
+         //let nproxy = {protocol: "socks5", host: "127.0.0.1", port: 9150, single: 129};
+         let info = await com.requestByForwardHttp(nproxy);
          assert.ok(info && info.length > 1, "socks5 res is null");
          // console.info("===socks5 receive", info.length, [...info].slice(0, 16), info.slice(0, 16).toString());
          resolve(undefined);

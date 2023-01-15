@@ -37,16 +37,32 @@ export default class LightAccept extends Accept {
       let step2Req = await this.read(socket); //读取将要建立连接的目标服务,
       step2Req = cipherAccept.decode(step2Req, face);
       let user = this.getUser(step2Req);
+
+      this.sessions.add(socket, user.username);
+      const session = this.getSession(socket);
+      const clientIp = socket.remoteAddress || "";
+
       let authRes = this.acceptAuth
-         ? await this.acceptAuth(user.username, user.password, {
+         ? await this.acceptAuth({
+              username: user.username,
+              password: user.password,
               args: user.args, //
-              socket: socket,
+              // socket: socket,
               protocol: this.protocol,
+              session,
+              clientIp,
            })
          : true;
       //console.info("auth res =", authRes, !!this.acceptAuth);
-      this.sessions.add(socket, user.username);
-      this.emit("auth", { checked: authRes, type: "accept", session: this.getSession(socket), username: user.username, password: user.password, args: user.args });
+      this.emit("auth", {
+         checked: authRes,
+         type: "accept",
+         session,
+         clientIp, //
+         username: user.username,
+         password: user.password,
+         args: user.args,
+      });
       if (!authRes) {
          this.end(socket, cipherAccept.encode(Buffer.from([0x01, 0x01]))); //鉴权失败
          logger.debug(`===>auth error username=${user.username} password=${user.password}`);

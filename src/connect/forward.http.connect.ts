@@ -56,7 +56,7 @@ export default class ForwardHttpConnect extends Connect {
                   return;
                }
 
-               /** 第二步 通过中转服务器连接到目标服务器 */
+               /** 第二步 通过中转服务器连接到目标代理服务器 */
                sendChunk = Buffer.concat([
                   Buffer.from(`CONNECT ${host}:${port} HTTP/1.1\r\n`), //
                   Buffer.from(`Host: ${host}:${port}\r\n`), //

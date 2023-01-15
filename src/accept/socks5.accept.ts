@@ -45,15 +45,32 @@ export default class Socks5Accept extends Accept {
             return;
          }
          user = this.getUser(userChunk);
+
+         this.sessions.add(socket, user.username);
+         const session = this.getSession(socket);
+         const clientIp = socket.remoteAddress || "";
+
          let authRes = this.acceptAuth
-            ? await this.acceptAuth(user.username, user.password, {
+            ? await this.acceptAuth({
+                 username: user.username,
+                 password: user.password,
                  args: user.args, //
-                 socket: socket,
+                 // socket: socket,
                  protocol: this.protocol,
+                 session,
+                 clientIp,
               })
             : true;
          this.sessions.add(socket, user.username);
-         this.emit("auth", { checked: authRes, type: "accept", session: this.getSession(socket), username: user.username, password: user.password, args: user.args });
+         this.emit("auth", {
+            checked: authRes,
+            type: "accept",
+            session,
+            clientIp, //
+            username: user.username,
+            password: user.password,
+            args: user.args,
+         });
          if (!authRes) {
             this.end(socket, Buffer.from([0x01, 0x01]));
             socket.destroy();

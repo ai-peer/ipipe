@@ -277,6 +277,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          .catch((err) => {
             logger.debug("===>connect error", err);
             !isCorrection && localSocket.destroy(err);
+            this.emit("error", err);
          });
       if (isCorrection && !isConnect) {
          let nproxys = [...this.proxys];

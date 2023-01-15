@@ -78,6 +78,7 @@ export default class LightConnect extends Connect {
                   checked: checked,
                   type: "connect",
                   session: this.getSession(socket),
+                  clientIp: socket.remoteAddress || "",
                   username: proxy.username || "",
                   password: proxy.password || "",
                   args: (proxy.password || "").split("_").slice(1),

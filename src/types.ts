@@ -22,6 +22,7 @@ export type AuthData = {
    username: string;
    password: string;
    session: string;
+   clientIp: string;
    type: "connect" | "accept";
    args: any[];
    //[key: string]: any;
@@ -38,7 +39,7 @@ export interface AcceptOptions {
    secret?: string;
    isAccept?: boolean;
    /** 验证用户信息，用户名和密码 */
-   auth?: AcceptAuth;
+   auth?: AcceptAuthData;
    [key: string]: any;
 }
 /**
@@ -59,16 +60,15 @@ export interface Options extends AcceptOptions, ConnectOptions {
 /**
  * accept用户信息验证
  */
-export type AcceptAuth = (
-   username: string,
-   password: string, //
-   options: {
-      [key: string]: any; //
-      args: string[];
-      socket: net.Socket;
-      protocol: string;
-   },
-) => Promise<boolean>;
+export type AcceptAuthData = (data: {
+   username: string;
+   password: string; //
+   //socket: net.Socket;
+   protocol: string;
+   args: string[];
+   session: string;
+   clientIp: string;
+}) => Promise<boolean>;
 
 export interface Proxy {
    /** 协议 */

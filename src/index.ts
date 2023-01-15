@@ -9,6 +9,7 @@ import LightConnect from "./connect/light.connect";
 import Socks5Connect from "./connect/socks5.connect";
 import HttpConnect from "./connect/http.connect";
 import DirectConnect from "./connect/direct.connect";
+import ForwardHttpConnect from "./connect/forward.http.connect";
 
 import AcceptFactor from "./accept";
 import ConnectFactor, { RequestData } from "./connect";
@@ -43,6 +44,7 @@ export {
    LightConnect,
    Socks5Connect,
    HttpConnect,
+   ForwardHttpConnect,
    DirectConnect,
    Cipher,
    check,

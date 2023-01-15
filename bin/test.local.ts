@@ -7,8 +7,8 @@ export default async function create(port: number = 4321) {
    //step1
    //===== 创建接入客户端， 默认可以通过http和socks5协议接入代理
    const ipipe = new IPipe({
-      auth: async (...args) => {
-         //console.info("auth--", ...args );
+      auth: async (data) => {
+         console.info("event log auth-->", data);
          return true;
       },
    }); //初始化实例

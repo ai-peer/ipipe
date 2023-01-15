@@ -13,9 +13,9 @@ let appParams: any = program //
 async function createServer() {
    let ipipe = new IPipe({
       isDirect: true,
-      auth: async (username, password) => {
-         console.info("check user", username, password);
-         return username == "admin" && password == "123";
+      auth: async (data) => {
+         console.info("event log auth accept function check user==========>", data);
+         return data.username == "admin" && data.password == "123";
       },
    });
    await ipipe.createAcceptServer(4321);
