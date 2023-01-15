@@ -84,7 +84,7 @@ async function createClient() {
          //await tstream.write(socket, list.join("\r\n"));
          await socket.write(list.join("\r\n"));
          //let chunk = await tstream.read(socket);
-         let chunk = await socket.read();
+         let chunk = await socket.read(15 * 1000);
          console.info("get res log", chunk.length, chunk.slice(0, 1024).toString());
          socket.destroy();
       },
