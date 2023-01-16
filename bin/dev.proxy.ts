@@ -7,6 +7,7 @@ let configProxy = runJSFromFile(cFileConfig);
 let proxyList = configProxy.getProxyList("CN", 1);
 console.info("proxyList", proxyList); */
 const RemotePort = 4322,
+   ReplyPort = 4300,
    LocalPort = 4321;
 const secret = password.generateRandomPassword().toString();
 
@@ -52,6 +53,20 @@ async function createRemoteProxy() {
    await targetProxy.createAcceptServer(proxy.port);
    //targetProxy.on("auth", (data) => console.info("event auth target", data.checked));
 
+   let replyProxy = new IPipe({
+      isDirect: false,
+      auth: async ({ username, password }) => {
+         return username == "admin" && password == "12345678";
+      },
+   });
+   await replyProxy.createAcceptServer(ReplyPort);
+   replyProxy.registerProxy(proxy);
+   replyProxy.on("auth", (data) => console.info("event auth local", data.type, data.checked, data.username, data.password, "\r\n\r\n"));
+   //console.info("create local proxy", LocalPort);
+   replyProxy.on("request", (data) => {
+      //console.info("connect=>", data.host + ":" + data.port, data.status, data.source);
+   });
+
    let localProxy = new IPipe({
       isDirect: false,
       auth: async ({ username, password }) => {
@@ -59,11 +74,17 @@ async function createRemoteProxy() {
       },
    });
    await localProxy.createAcceptServer(LocalPort);
-   localProxy.registerProxy(proxy);
+   localProxy.registerProxy({
+      host: "127.0.0.1",
+      port: ReplyPort,
+      protocol: "http",
+      username: "admin",
+      password: "12345678",
+   });
    localProxy.on("auth", (data) => console.info("event auth local", data.type, data.checked, data.username, data.password, "\r\n\r\n"));
    //console.info("create local proxy", LocalPort);
    localProxy.on("request", (data) => {
-      //console.info("connect=>", data.host + ":" + data.port, data.status, data.source);
+      console.info("event log request connect=>", data.host + ":" + data.port, data.status, data.source);
    });
 }
 

@@ -63,8 +63,6 @@ async function createClient() {
          protocol: "http",
          username: "admin",
          password: "123",
-         //forwardHost: "127.0.0.1",
-         //forwardPort: forwardPort,
          forward: {
             host: "127.0.0.1",
             port: forwardPort,
