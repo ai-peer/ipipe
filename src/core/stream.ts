@@ -41,6 +41,7 @@ export type StreamEvent = {
    error: (err: Error) => void;
 
    timeout: () => void;
+   heartbeat: () => void;
 };
 export default class Stream extends EventEmitter<StreamEvent> {
    protected sessions: Sessions = Sessions.instance;

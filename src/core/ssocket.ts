@@ -12,12 +12,34 @@ export default class SSocket {
    public cipher: Cipher | undefined;
    private face: number = 99;
    private stream = new Stream();
-
+   /** 最后一次心跳检测时间 */
+   lastHeartbeat: number = Date.now();
    constructor(socket: net.Socket, cipher?: Cipher, face: number = 99) {
       this.socket = socket;
       this.cipher = cipher;
       this.face = face;
       socket.setMaxListeners(99);
+      this.init();
+   }
+   private init() {
+      this.stream.on("heartbeat", () => {
+         this.lastHeartbeat = Date.now();
+      });
+      let pid = setInterval(() => {
+         /** 心跳检测 发送检测包到远程 */
+         this.socket.write(Buffer.from([0]), (err) => {
+            if (err) {
+               this.destroy(new Error("lost connection"));
+            }
+         });
+         /** 心跳检测 判断是否超时 */
+         if (Date.now() - this.lastHeartbeat >= 7000) {
+            this.destroy(new Error("lost connection"));
+         }
+      }, 5000);
+      this.socket.once("close", () => {
+         clearInterval(pid);
+      });
    }
    private getSession(socket: net.Socket) {
       return Sessions.instance.getSession(socket);
@@ -35,11 +57,12 @@ export default class SSocket {
       return this.socket.destroyed;
    }
    async destroy(err?: Error) {
-      if (err) {
-         logger.debug(err);
-         await this.end(err.message).catch((err) => {});
-      }
-      this.socket.destroy();
+      /* if (err) {
+         //logger.debug(err);
+         //await this.end(err.message).catch((err) => {});
+      } */
+      this.socket.destroy(err);
+      this.stream.emit("close", this.socket);
    }
    setTimeout(ttl: number = 0) {
       this.socket.setTimeout(ttl);
@@ -112,6 +135,12 @@ export default class SSocket {
       this.socket
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
+               // 心跳检测
+               if (chunk.byteLength == 1 && chunk[0] == 0) {
+                  this.stream.emit("heartbeat");
+                  return;
+               }
+               this.stream.emit("heartbeat");
                if (this.cipher) {
                   chunk = this.decode(chunk);
                }

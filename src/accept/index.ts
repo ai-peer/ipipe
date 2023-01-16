@@ -173,13 +173,6 @@ export default class AcceptFactor extends EventEmitter<EventName> {
 
                this.on("open", () => {
                   //console.info("open================", protocol, socket.localPort, socket.remotePort);
-                  let pid = setInterval(() => {
-                     //HEART 心跳 check
-                     //socket.write(Buffer.from([0]));
-                  }, 5 * 1000);
-                  socket.once("close", () => {
-                     clearInterval(pid); //取消心态检测
-                  });
                });
                socket.once("close", () => {
                   this.emit("close", socket);
