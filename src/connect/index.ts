@@ -278,6 +278,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             });
             proxySocket.on("close", () => localSocket.end());
             //if (recChunk) localSocket.write(recChunk);
+            //console.info("xxxx", chunk.toString(), ">>\r\n");
             connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {

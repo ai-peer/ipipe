@@ -30,8 +30,8 @@ export default class HttpAccept extends Accept {
          this.emit("write", data);
       });
       /** 解析首次http请求协议获取反馈和主机信息 start */
-      let str = firstChunk.toString();
-      let headers = parseHeader(str);
+      let connectStr = firstChunk.toString();
+      let headers = parseHeader(connectStr);
       let hp = headers["host"]?.split(":");
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
@@ -39,13 +39,13 @@ export default class HttpAccept extends Accept {
          ssocket.encode(Buffer.from(`HTTP/1.0 400 badheader`));
          return;
       }
-      str = str.replace(/Proxy-Authorization: Basic .*[\r\n]+/i, "");
-      firstChunk = Buffer.from(str);
+      let connectTargetStr = connectStr.replace(/Proxy-Authorization: Basic .*[\r\n]+/i, "");
+      firstChunk = Buffer.from(connectTargetStr);
 
       let user: ConnectUser | undefined = http.parseHttpUser(headers["proxy-authorization"]);
       let isAuth = !!this.acceptAuth;
-      if (this.options.isDirect && !user.username) isAuth = false;
-      //console.info("accept http", isAuth, this.protocol, this.options, user.username + "/" + user.password, str);
+      //if (this.options.isDirect && !user.username) isAuth = false;
+      //console.info("accept http", isAuth, this.protocol, this.options, user.username + "/" + user.password, connectStr);
       // 需要鉴权
       if (isAuth) {
          this.sessions.add(socket, user.username);
@@ -87,13 +87,14 @@ export default class HttpAccept extends Accept {
          this.sessions.add(socket, user?.username);
       }
 
-      if (/^CONNECT/i.test(str)) {
+      if (/^CONNECT/i.test(connectTargetStr)) {
          port = parseInt(hp[1]) || 443;
          await ssocket.write(Buffer.from(`HTTP/1.1 200 Connection Established\r\n\r\n`));
          firstChunk = await ssocket.read(500);
+         //console.info("firstChunk===", firstChunk.toString(), host, port);
       }
       /** 解析首次http请求协议获取反馈和主机信息 end */
-
+      //console.info("connect>>>>>", host, port, firstChunk.toString());
       this.connect(host, port, ssocket, firstChunk, user);
    }
 

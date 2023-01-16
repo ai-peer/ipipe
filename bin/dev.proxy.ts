@@ -12,7 +12,8 @@ const secret = password.generateRandomPassword().toString();
 
 async function proxyIp(proxy: { host: string; port: number }) {
    let info = await fetch({
-      url: "http://icanhazip.com",
+      //url: "http://icanhazip.com",
+      url: "http://www.gd.gov.cn/",
       timeout: 15000,
       method: "get",
       proxy: {
@@ -25,8 +26,11 @@ async function proxyIp(proxy: { host: string; port: number }) {
       },
    })
       .then((res) => res.text())
-      .catch((err) => console.error("get proxy ip error", err.stack, err.message));
-   console.info("get proxy ip", info);
+      .catch((err) => {
+         console.error("get proxy ip error", err.stack, err.message);
+         return "";
+      });
+   console.info("get proxy ip", info.substring(0, 256));
 }
 async function createRemoteProxy() {
    let proxy = {
@@ -56,7 +60,7 @@ async function createRemoteProxy() {
    });
    await localProxy.createAcceptServer(LocalPort);
    localProxy.registerProxy(proxy);
-   localProxy.on("auth", (data) => console.info("event auth local", data.type, data.checked, data.username, data.password));
+   localProxy.on("auth", (data) => console.info("event auth local", data.type, data.checked, data.username, data.password, "\r\n\r\n"));
    //console.info("create local proxy", LocalPort);
    localProxy.on("request", (data) => {
       //console.info("connect=>", data.host + ":" + data.port, data.status, data.source);

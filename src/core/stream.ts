@@ -100,13 +100,6 @@ export default class Stream extends EventEmitter<StreamEvent> {
       resolve(ss);
       ss?.length > 0 && callback && callback(ss.length);
     }); */
-         function handle(chunk: Buffer) {
-            pid && clearTimeout(pid);
-            if (isRead) return;
-            isRead = true;
-            _this.emit("read", { chunk, size: chunk.length, session: _this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
-            resolve(chunk);
-         }
          if (ttl > 0) {
             pid = setTimeout(() => {
                socket.removeListener("data", handle);
@@ -114,6 +107,14 @@ export default class Stream extends EventEmitter<StreamEvent> {
                isRead = true;
                resolve(Buffer.alloc(0));
             }, ttl);
+         }
+         function handle(chunk: Buffer) {
+            socket.removeListener("data", handle);
+            pid && clearTimeout(pid);
+            if (isRead) return;
+            isRead = true;
+            _this.emit("read", { chunk, size: chunk.length, session: _this.getSession(socket), clientIp: socket.remoteAddress || "", protocol: this.protocol || "" });
+            resolve(chunk);
          }
          socket.once("data", handle);
       });

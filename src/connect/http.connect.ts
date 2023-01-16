@@ -28,6 +28,7 @@ export default class HttpConnect extends Connect {
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
+         //console.info("conext http proxy", host+":"+port, "proxy", proxy.host+":"+proxy.port);
          let socket = net.connect(proxy.port, proxy.host, async () => {
             try {
                isTimeout = false;
@@ -49,7 +50,7 @@ export default class HttpConnect extends Connect {
                   Buffer.from(usePassword ? `Proxy-Authorization: Basic ${up}\r\n` : ""),
                   Buffer.from("\r\n"),
                ]); */
-               let connectChunk = http.buildConnectChunk({ mode, host: proxy.host, port: proxy.port, username: proxy.username, password: proxy.password });
+               let connectChunk = http.buildConnectChunk({ mode, host: host, port: port, username: proxy.username, password: proxy.password });
                //console.info("first send", usePassword, connectChunk.toString());
                await ssocket.write(connectChunk);
                let receiveChunk = await ssocket.read(2000);

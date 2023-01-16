@@ -20,6 +20,7 @@ export default class DirectConnect extends Connect {
     * @param callback 连接成功后的回调方法
     */
    public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
+      //console.info("connect direct", host+":"+port);
       return new Promise((resolve, reject) => {
          let isTimeout = true,
             pid;
