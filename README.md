@@ -10,17 +10,15 @@
     let proxy = {
         host: "127.0.0.1",
         port: 1082,
-        protocol: 'http',
+        protocol: 'socks5', //socks5, http
         //username: 'user',
         //password: '12345'
-        //forwardHost: "127.0.0.1",
-        //forwardPort: 1082,
     };
 
     
     async function testProxy(proxy: { host: string; port: number }) {
         let info = await axios({
-            url: "http://ip-api.com/json",
+            url: "http://icanhazip.com",
             timeout: 15000,
             method: "get",
             proxy: {
