@@ -23,6 +23,7 @@ export type RequestData = {
    port: number;
    source: string;
    status: "ok" | "no";
+   ttl: number;
 };
 
 export type EventName = {
@@ -321,7 +322,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             }
          }
       }
-      this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no" });
+      this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
       if (!isConnect) {
          logger.debug("====>no connect");
          localSocket.destroy();
