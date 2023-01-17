@@ -8,6 +8,7 @@
       "ipipe-check": "dist/cli-check.js"
    },
    "types": "dist/src/index.d.ts",
+   "engines" : { "node" : ">=16.0.0" },
    "scripts": {
       "test": "mocha 'tests/**/test.*.ts' ",
       "build": "webpack --mode=production --node-env=production",
