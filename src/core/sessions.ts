@@ -12,13 +12,12 @@ class Sessions {
       socket.once("close", () => {
          _this.pool.delete(key);
       });
-      session = session || "rand-" + nanoid();
+      session = session || `ts-${socket.localPort + ":" + (socket.remoteAddress || "") + ":" + socket.remotePort}`;
       this.pool.set(key, session);
    }
    getSession(socket: net.Socket) {
       let key = this.getKey(socket);
-      //console.info("get session", key, this.pool.has(key));
-      return this.pool.get(key) || "";
+      return this.pool.get(key) || `ts-${socket.localPort + ":" + (socket.remoteAddress || "") + ":" + socket.remotePort}`;
    }
 
    /*  static getInstance() {

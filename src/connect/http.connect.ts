@@ -68,7 +68,7 @@ export default class HttpConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-
+               ssocket.heartbeat();
                callback(checked ? undefined : receiveChunk, ssocket);
                resolve(ssocket);
             } catch (err) {
@@ -76,14 +76,14 @@ export default class HttpConnect extends Connect {
             }
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
-         socket.on("timeout", () => {
+         socket.once("timeout", () => {
             let error = new Error(`HTTP/1.1 500 timeout[${this.timeout}]`);
             socket.emit("error", error);
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.on("error", (err) => {
-            socket.destroy();
+         socket.once("error", (err) => {
+            socket.destroy(err);
             this.emit("error", err);
             callback(err, new SSocket(socket));
             resolve(new SSocket(socket));

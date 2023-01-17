@@ -39,14 +39,14 @@ export default class DirectConnect extends Connect {
             }
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
-         socket.on("timeout", () => {
+         socket.once("timeout", () => {
             let error = new Error(`HTTP/1.1 500 timeout[${this.timeout}-direct]`);
             socket.emit("error", error);
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.on("error", (err) => {
-            socket.destroy();
+         socket.once("error", (err) => {
+            socket.destroy(err);
             this.emit("error", err);
             callback(err, new SSocket(socket));
             resolve(new SSocket(socket));

@@ -96,6 +96,7 @@ export default class Socks5Connect extends Connect {
                assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
                /**     socks5协议连接 end      */
 
+               ssocket.heartbeat();
                //准备连接协议
                callback(undefined, ssocket);
                resolve(ssocket);
@@ -104,14 +105,14 @@ export default class Socks5Connect extends Connect {
             }
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
-         socket.on("timeout", () => {
+         socket.once("timeout", () => {
             let error = new Error(`HTTP/1.1 500 timeout[${this.timeout}]`);
             socket.emit("error", error);
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.on("error", (err) => {
-            socket.destroy();
+         socket.once("error", (err) => {
+            socket.destroy(err);
             this.emit("error", err);
             callback(err, new SSocket(socket));
             resolve(new SSocket(socket));

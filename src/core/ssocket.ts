@@ -14,32 +14,45 @@ export default class SSocket {
    private stream = new Stream();
    /** 最后一次心跳检测时间 */
    lastHeartbeat: number = Date.now();
+   timeout: number = 30 * 1000;
    constructor(socket: net.Socket, cipher?: Cipher, face: number = 99) {
       this.socket = socket;
       this.cipher = cipher;
       this.face = face;
       socket.setMaxListeners(99);
+      socket.setKeepAlive(true, 15 * 1000);
+      //socket.setTimeout(30 * 1000);
       this.init();
    }
+   get id(): string {
+      return this.getSession(this.socket);
+   }
    private init() {
-      this.stream.on("heartbeat", () => {
+      this.stream.on("heartbeat", (ssocket) => {
+         //console.info("event heartbeat", this.id, ssocket.socket.readyState);
          this.lastHeartbeat = Date.now();
       });
+   }
+   /**
+    * 开启心跳检测
+    */
+   heartbeat() {
+      if (this.socket.readyState == "closed") return;
+      if (this.protocol == "direct") return;
+      this.lastHeartbeat = Date.now();
       let pid = setInterval(() => {
-         /** 心跳检测 发送检测包到远程 */
-         this.socket.write(Buffer.from([0]), (err) => {
-            if (err) {
-               this.destroy(new Error("lost connection"));
-            }
-         });
+         if (this.socket.readyState == "closed") return clearInterval(pid);
+         const ttl = Date.now() - this.lastHeartbeat;
          /** 心跳检测 判断是否超时 */
-         if (Date.now() - this.lastHeartbeat >= 7000) {
-            this.destroy(new Error("lost connection"));
+         if (ttl >= this.timeout) {
+            logger.info("lost connection", this.socket.remoteAddress || "");
+            this.socket.emit("timeout");
+            return;
          }
-      }, 5000);
-      this.socket.once("close", () => {
-         clearInterval(pid);
-      });
+         /** 心跳检测 发送检测包到远程 */
+         if (ttl >= Math.ceil(this.timeout / 2)) this.write(Buffer.from([0]));
+      }, 5 * 1000);
+      this.socket.once("close", () => clearInterval(pid));
    }
    private getSession(socket: net.Socket) {
       return Sessions.instance.getSession(socket);
@@ -135,17 +148,10 @@ export default class SSocket {
       this.socket
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
-               // 心跳检测
-               if (chunk.byteLength == 1 && chunk[0] == 0) {
-                  this.stream.emit("heartbeat");
-                  return;
-               }
-               this.stream.emit("heartbeat");
                if (this.cipher) {
                   chunk = this.decode(chunk);
                }
                if (!!target.cipher) {
-                  // chunk = target.cipher.encode(chunk, target.face);
                   chunk = target.encode(chunk);
                }
                this.stream.emit("read", {
@@ -162,6 +168,19 @@ export default class SSocket {
                   clientIp: target.socket.remoteAddress || "",
                   protocol: target.protocol || "",
                });
+               callback(null, chunk);
+            }),
+         )
+         .pipe(
+            transform((chunk: Buffer, encoding, callback) => {
+               this.lastHeartbeat = Date.now();
+               if (chunk.byteLength == 1) {
+                  let hearts = target.decode(chunk);
+                  if (hearts[0] == 0) {
+                     this.stream.emit("heartbeat", target);
+                     return;
+                  }
+               }
                callback(null, chunk);
             }),
          )

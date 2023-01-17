@@ -105,6 +105,7 @@ export default class LightConnect extends Connect {
                step3Res = cipherTransport.decode(step3Res, face);
                assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
 
+               ssocket.heartbeat();
                //准备连接协议
                callback(undefined, ssocket);
                resolve(ssocket);
@@ -113,14 +114,14 @@ export default class LightConnect extends Connect {
             }
          });
          if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
-         socket.on("timeout", () => {
+         socket.once("timeout", () => {
             let error = new Error("timeout " + this.timeout);
             socket.emit("error", error);
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.on("error", (err) => {
-            socket.destroy();
+         socket.once("error", (err) => {
+            socket.destroy(err);
             this.emit("error", err);
             callback(err, new SSocket(socket));
             resolve(new SSocket(socket));

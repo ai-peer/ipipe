@@ -2,6 +2,7 @@ import net from "net";
 import EventEmitter from "eventemitter3";
 import { AuthData, WriteData, ReadData, ConnectUser } from "../types";
 import Sessions from "./sessions";
+import SSocket from './ssocket';
 
 //export type Callback = (length: number) => void;
 export type StreamEvent = {
@@ -41,7 +42,7 @@ export type StreamEvent = {
    error: (err: Error) => void;
 
    timeout: () => void;
-   heartbeat: () => void;
+   heartbeat: (ssocket: SSocket) => void;
 };
 export default class Stream extends EventEmitter<StreamEvent> {
    protected sessions: Sessions = Sessions.instance;

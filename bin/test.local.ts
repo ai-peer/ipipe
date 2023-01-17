@@ -7,10 +7,10 @@ export default async function create(port: number = 4321) {
    //step1
    //===== 创建接入客户端， 默认可以通过http和socks5协议接入代理
    const ipipe = new IPipe({
-      auth: async (data) => {
-         console.info("event log auth-->", data);
+  /*     auth: async (data) => {
+         //console.info("event log auth-->", data);
          return true;
-      },
+      }, */
    }); //初始化实例
    await ipipe.createAcceptServer(port); //创建接入服务kk, 4321 端口是本地接入的端口
    /*  ipipe.registerProxy({
@@ -38,14 +38,14 @@ export default async function create(port: number = 4321) {
       //username: "u-" + Math.random().toString(36).slice(2),
       //password: "",
    });
-   ipipe.on("auth", (data) => console.info("event log auth", data));
+   /* ipipe.on("auth", (data) => console.info("event log auth", data));
    ipipe2.on("auth", (data) => console.info("event log auth2", data));
    ipipe.on("auth", (data) => console.info("event log auth", data));
    ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
    ipipe.on("request", (data) => console.info("event log request", data));
    ipipe.on("in", (data) => console.info("event log in", data.size));
    ipipe.on("out", (data) => console.info("event log out", data.size));
-   ipipe.on("error", (err) => console.info("event log error", err));
+   ipipe.on("error", (err) => console.info("event log error", err)); */
    //console.info("proxys", ipipe.getProxys());
 }
 
@@ -101,7 +101,7 @@ function connect() {
    socket.write(send.join("\r\n"));
 }
 (async () => {
-   const port = 4321;
+   const port = 1082;
    //connect();
    await create(port);
    await testProxy({ host: "127.0.0.1", port: port });
