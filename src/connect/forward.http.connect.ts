@@ -119,7 +119,7 @@ export default class ForwardHttpConnect extends Connect {
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.once("error", (err) => {
+         socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
             callback(err, new SSocket(socket));
