@@ -14,7 +14,7 @@ export default class SSocket {
    private stream = new Stream();
    /** 最后一次心跳检测时间 */
    lastHeartbeat: number = Date.now();
-   timeout: number = 30 * 1000;
+   timeout: number = 60 * 1000;
    constructor(socket: net.Socket, cipher?: Cipher, face: number = 99) {
       this.socket = socket;
       this.cipher = cipher;
@@ -40,18 +40,19 @@ export default class SSocket {
       if (this.socket.readyState == "closed") return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();
+      let delay = Math.ceil(this.timeout / 2);
       let pid = setInterval(() => {
          if (this.socket.readyState == "closed") return clearInterval(pid);
          const ttl = Date.now() - this.lastHeartbeat;
          /** 心跳检测 判断是否超时 */
          if (ttl >= this.timeout) {
-            logger.info("lost connection", this.socket.remoteAddress || "");
+            //logger.info("lost connection", this.socket.remoteAddress || "");
             this.socket.emit("timeout");
             return;
          }
          /** 心跳检测 发送检测包到远程 */
-         if (ttl >= Math.ceil(this.timeout / 2)) this.write(Buffer.from([0]));
-      }, 5 * 1000);
+         if (ttl >= delay) this.write(Buffer.from([0]));
+      }, 10 * 1000);
       this.socket.once("close", () => clearInterval(pid));
    }
    private getSession(socket: net.Socket) {
