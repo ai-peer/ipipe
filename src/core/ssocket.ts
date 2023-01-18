@@ -48,6 +48,7 @@ export default class SSocket {
          if (ttl >= this.timeout) {
             //logger.info("lost connection", this.socket.remoteAddress || "");
             this.socket.emit("timeout");
+            this.socket.destroy();
             return;
          }
          /** 心跳检测 发送检测包到远程 */
