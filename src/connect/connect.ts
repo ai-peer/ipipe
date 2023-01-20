@@ -1,12 +1,9 @@
-import net from "net";
 //import { EventEmitter } from "events";
 //import ping from "ping";
 import { Proxy, ConnectOptions, ProxyMode } from "../types";
 import Stream from "../core/stream";
 import transform from "../core/transform";
-import { Transform } from "stream";
 import SSocket from "../core/ssocket";
-import { buildSN } from "../core/password";
 
 export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => void;
 
@@ -15,7 +12,7 @@ export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => v
  */
 export default abstract class Connect extends Stream {
    protected options: ConnectOptions;
-   protected timeout: number = 30 * 1000;
+   protected timeout: number = 15 * 1000;
    constructor(options: ConnectOptions) {
       super();
       //this.setMaxListeners(99);

@@ -34,6 +34,7 @@ export type EventName = {
    auth: (data: AuthData) => void;
    accept: (data: AcceptData) => void;
    error: (err: Error) => void;
+   open: () => void;
 };
 export {
    password,
@@ -111,7 +112,19 @@ export default class IPipe extends EventEmitter<EventName> {
     * @param host 代理ip, 默认0.0.0.0,代表所有ip都可以访问
     */
    createAcceptServer(port: number = 4321, host: string = "0.0.0.0", callback?: CreateCallback): Promise<net.Server> {
-      return this.acceptFactor.createServer(port, host, callback);
+      let isSocketOpen = false;
+      let pid = setTimeout(() => {
+         if (isSocketOpen) this.emit("open");
+      }, 10 * 1000);
+      XPeer.instance.once("open", () => {
+         clearTimeout(pid);
+         this.emit("open");
+      });
+      return this.acceptFactor.createServer(port, host, (...args) => {
+         //this.emit("open");
+         isSocketOpen = true;
+         callback && callback(...args);
+      });
    }
 
    //registerServer(server: net.Server) {}

@@ -68,6 +68,9 @@ export default class SSocket {
    get remoteAddress(): string {
       return this.socket.remoteAddress || "";
    }
+   get remotePort(): number {
+      return this.socket.remotePort || 0;
+   }
    get destroyed() {
       return this.socket.destroyed;
    }

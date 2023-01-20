@@ -7,14 +7,14 @@ async function createServer() {
    const ipipe = new IPipe({
       peerId: "accept-go",
       isDirect: true,
-      auth: async({username, password})=>{
-         return username=="admin" && password == "123"
-      }
+      auth: async ({ username, password }) => {
+         return username == "admin" && password == "123";
+      },
    });
    //ipeer.registerAccept(new WrtcAccept());
    await ipipe.createAcceptServer(1072);
-   ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
-    
+   ipipe.on("accept", (data) => console.info("event log accept", new Date(), data.protocol));
+
    //let socket = new net.Socket();
    //socket.pipe(new Transform());
    /*    const ipeerAccept = new IPeer({});

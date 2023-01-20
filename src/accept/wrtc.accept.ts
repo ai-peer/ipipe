@@ -91,7 +91,7 @@ export default class WrtcAccept extends Accept {
       //port = parseInt(hp[1]) || 443;
       await ssocket.write(Buffer.from(`WRTC-OS/1.0 200 Connection Established\r\n\r\n`));
       firstChunk = await ssocket.read(500);
-      //console.info("firstChunk===", firstChunk.toString(), host, port);
+      //console.info("firstChunk===", [...firstChunk], host, port);
       //}
       /** 解析首次http请求协议获取反馈和主机信息 end */
       //console.info("connect>>>>>", host, port, firstChunk.toString());

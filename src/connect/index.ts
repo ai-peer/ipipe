@@ -245,6 +245,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          log.warn(`ipipe connect is no proxy node`);
          return;
       }
+      //console.info("connect===", connect.protocol);
       //let headers = parseHeader(chunk.toString());
       //连接目标超时
       //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
@@ -254,8 +255,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       let startTime = Date.now();
       await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket) => {
-            //, recChunk?: Buffer
-            //console.info("ccxxxxx",connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
+            //console.info("ccxxxxx",err, connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
                //console.info("error===", this.proxys.length, err.toString(), err instanceof Error, connect?.protocol, isCorrection);
@@ -282,7 +282,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             });
             proxySocket.on("close", () => localSocket.end());
             //if (recChunk) localSocket.write(recChunk);
-            //console.info("xxxx", chunk.toString(), ">>\r\n");
+            //console.info("write first to target", proxySocket.protocol, [...chunk], ">>\r\n",host+":"+port, proxySocket.protocol + ":" + proxySocket.remoteAddress + ":" + proxySocket.remotePort);
             connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {

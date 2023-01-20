@@ -1,14 +1,24 @@
 import IPipe, { WrtcAccept, WrtcConnect, SSocket } from "../src";
 import XPeer from "../src/core/xpeer";
-import IPeer from "@ai-lion/ipeer";
-
+import fetch from "../src/utils/fetch";
+process.on("uncaughtException", (err) => {});
+process.on("unhandledRejection", (err) => {});
 async function createServer() {
    const ipipe = new IPipe({
-      peerId: "accept-go",
-      isDirect: true,
+      peerId: "accept-goxxx",
+      isDirect: false,
    });
    //ipeer.registerAccept(new WrtcAccept());
-   await ipipe.createAcceptServer(1071);
+   ipipe.registerProxy({
+      protocol: "wrtc",
+      host: "accept-go",
+      port: 0,
+      username: "admin",
+      password: "123",
+   });
+   ipipe.on("auth", (data) => console.info("event log auth", data.checked, data.type));
+   ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
+   await ipipe.createAcceptServer(1082);
    //ipipe.on("accept", (data) => console.info("accept", data.protocol));
 
    /*    const ipeerAccept = new IPeer({});
@@ -18,19 +28,28 @@ async function createServer() {
       host: "accept-go",
       port: 0,
    }); */
-}
-async function test1() {
-   const id = "xxaabbcdx";
-   let ipeer = new IPeer(id, {
-      token: id,
-   });
-   ipeer.on("open", () => {
-      console.info("open", ipeer.id);
-      let socket = ipeer.connect("accept-go");
-      socket.on("open", () => {
-         console.info("connect op", socket.peer);
+   return new Promise((resolve) => {
+      ipipe.once("open", () => {
+         resolve(undefined);
       });
    });
+}
+async function test1() {
+   console.info("fetch");
+   let res = await fetch({
+      url: "http://www.gov.cn/",
+      proxy: {
+         host: "127.0.0.1",
+         port: 1082,
+         auth: {
+            username: "admin",
+            password: "123",
+         },
+      },
+   });
+   console.info("status", res.status);
+   let text = (await res.text()) || "";
+   console.info("res===", res.status, text.length);
 }
 async function test() {
    new XPeer();
@@ -47,14 +66,14 @@ async function test() {
    let startTime = Date.now();
    connect.on("error", () => {});
    connect.once("close", () => console.info("close"));
-   connect.on("auth", (data)=>console.info("auth", data));
+   connect.on("auth", (data) => console.info("auth", data));
    connect.connect(
       info.hostname,
       80,
       {
          host: "accept-go",
          port: 0,
-         protocol: "http",
+         protocol: "wrtc",
          username: "admin",
          password: "123",
       },
@@ -72,13 +91,14 @@ async function test() {
          await socket.write(list.join("\r\n"));
          //let chunk = await tstream.read(socket);
          let chunk = await socket.read(15 * 1000);
-         console.info("get res log", chunk.length, chunk.slice(0, 256).toString());
+         console.info("get res log", chunk.length, chunk.slice(0, 1024).toString());
          socket.destroy();
       },
    );
 }
 
 (async () => {
-   //await createServer();
-   await test();
+   await createServer();
+   test1();
+   //await test();
 })();

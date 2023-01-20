@@ -34,7 +34,7 @@ export default class WrtcConnect extends Connect {
          const xpeer = XPeer.instance;
          let socket = xpeer.connect(peerId, async () => {
             try {
-               console.info("connect ttl=", Date.now() - startTime);
+               //console.info("connect ttl=", Date.now() - startTime);
                isTimeout = false;
                pid && clearTimeout(pid);
                let ssocket = new SSocket(socket);
