@@ -37,11 +37,14 @@ export type AcceptData = {
  * 接收器配置参数
  */
 export type AcceptOptions = {
+   peerId?: string;
    /** 密钥 */
    secret?: string;
+   /** 是否接入,默认true */
    isAccept?: boolean;
    /** 验证用户信息，用户名和密码 */
    auth?: AcceptAuthData;
+   /** 是否直接连接目标服务, 代理终点 */
    isDirect?: boolean;
    //[key: string]: any;
 };
@@ -52,6 +55,7 @@ export type ConnectOptions = {
    /** 是否直接连接目标 */
    isDirect?: boolean;
    protocol?: string;
+   peerId?: string;
    //[key: string]: any;
 };
 /**

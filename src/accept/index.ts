@@ -4,11 +4,13 @@ import ConnectFactor from "../connect";
 import Socks5Accept from "./socks5.accept";
 import HttpAccept from "./http.accept";
 import LightAccept from "./light.accept";
+import WrtcAccept from "./wrtc.accept";
 import { CreateCallback, AcceptOptions, AcceptAuthData, AcceptData, Proxy } from "../types";
 import EventEmitter from "eventemitter3";
 import { StreamEvent } from "../core/stream";
 //import { Options } from "../types";
 import logger from "../core/logger";
+import XPeer from "../core/xpeer";
 
 export type EventName = StreamEvent & {
    accept: (data: AcceptData) => void;
@@ -26,6 +28,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
    static HttpAccept = HttpAccept;
    static Socks5Accept = Socks5Accept;
    static LightAccept = LightAccept;
+   static WrtcAccept = WrtcAccept;
    static Accept = Accept;
    /** 接入协议类列表 */
    public accepts: Map<string, Accept> = new Map();
@@ -41,7 +44,8 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       this.options = options;
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
-
+      let wrtcAccept = new WrtcAccept(options);
+      this.register(wrtcAccept);
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
    public close() {
@@ -106,7 +110,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
    registerServer(server: net.Server) {
       server.on("connection", (socket: net.Socket) => {
          socket.on("error", (err) => {
-            socket.destroy(err);
+            socket.destroy();
          });
          this.accept(socket);
       });
@@ -140,6 +144,15 @@ export default class AcceptFactor extends EventEmitter<EventName> {
             callback && callback(server);
             resolve(server);
          });
+
+         XPeer.instance.on("connection", (socket) => {
+            //console.info("accept====", socket.socket.peer);
+            socket.on("error", (err) => {
+               socket.destroy(err);
+            });
+            this.accept(socket);
+         });
+
          this.server = server;
       });
    }
@@ -148,9 +161,8 @@ export default class AcceptFactor extends EventEmitter<EventName> {
     * @param socket
     */
    public async accept(socket: net.Socket) {
-      let chunk: Buffer = await this.read(socket, 500);
+      let chunk: Buffer = await this.read(socket, 5 * 1000);
       let isAccept = false;
-      //console.info("accpet receive", chunk.toString());
       if (this.timeout > 0) {
          //检测超时
          socket.on("timeout", () => socket.end());

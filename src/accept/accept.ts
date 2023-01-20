@@ -4,6 +4,8 @@ import Stream from "../core/stream";
 import Sessions from "../core/sessions";
 import { AcceptOptions, ConnectUser } from "../types";
 import SSocket from "../core/ssocket";
+import { Duplex } from "stream";
+
 
 /**
  * 接收应用端接入协议处理基类

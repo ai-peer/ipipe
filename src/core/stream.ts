@@ -2,7 +2,7 @@ import net from "net";
 import EventEmitter from "eventemitter3";
 import { AuthData, WriteData, ReadData, ConnectUser } from "../types";
 import Sessions from "./sessions";
-import SSocket from './ssocket';
+import SSocket from "./ssocket";
 
 //export type Callback = (length: number) => void;
 export type StreamEvent = {
@@ -64,6 +64,7 @@ export default class Stream extends EventEmitter<StreamEvent> {
    public async write(socket: net.Socket, chunk: Buffer | string): Promise<Error | undefined> {
       return new Promise((resolve) => {
          socket.pause();
+         //console.info("pause===", socket.writable);
          //setTimeout(() => {
          socket.writable &&
             socket.write(chunk, (err) => {
@@ -111,7 +112,7 @@ export default class Stream extends EventEmitter<StreamEvent> {
             }, ttl);
          }
          function handle(chunk: Buffer) {
-            socket.removeListener("data", handle);
+            //socket.removeListener("data", handle);
             pid && clearTimeout(pid);
             if (isRead) return;
             isRead = true;

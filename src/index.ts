@@ -4,17 +4,18 @@ import Accept from "./accept/accept";
 import LightAccept from "./accept/light.accept";
 import Socks5Accept from "./accept/socks5.accept";
 import HttpAccept from "./accept/http.accept";
+import WrtcAccept from "./accept/wrtc.accept";
 import Connect from "./connect/connect";
 import LightConnect from "./connect/light.connect";
 import Socks5Connect from "./connect/socks5.connect";
 import HttpConnect from "./connect/http.connect";
 import DirectConnect from "./connect/direct.connect";
 import ForwardHttpConnect from "./connect/forward.http.connect";
+import WrtcConnect from "./connect/wrtc.connect";
 
 import AcceptFactor from "./accept";
 import ConnectFactor, { RequestData } from "./connect";
 import { Callback as ConnectCallback } from "./connect/connect";
-
 export * from "./types";
 import { Proxy, CreateCallback, Options, ReadData, WriteData, AcceptData, AuthData } from "./types";
 import net from "net";
@@ -24,6 +25,7 @@ import { getPublicIp, isInLocalIp, isIpv4, isIpv6, isDomain } from "./core/geoip
 import * as check from "./utils/check";
 import ua from "./utils/ua";
 import * as password from "./core/password";
+import XPeer from "./core/xpeer";
 
 export type EventName = {
    out: (data: WriteData & { type: "accept" | "connect" }) => void;
@@ -41,11 +43,13 @@ export {
    LightAccept,
    Socks5Accept,
    HttpAccept, //
+   WrtcAccept,
    LightConnect,
    Socks5Connect,
    HttpConnect,
    ForwardHttpConnect,
    DirectConnect,
+   WrtcConnect,
    Cipher,
    check,
    ua,
@@ -66,6 +70,7 @@ export default class IPipe extends EventEmitter<EventName> {
       Socks5Accept: AcceptFactor.Socks5Accept,
       HttpAccept: AcceptFactor.HttpAccept,
       Accept: AcceptFactor.Accept,
+      WrtcAccept: WrtcAccept,
    };
    static Connect = {
       LightConnect: ConnectFactor.LightConnect,
@@ -73,13 +78,15 @@ export default class IPipe extends EventEmitter<EventName> {
       HttpConnect: ConnectFactor.HttpConnect,
       DirectConnect: ConnectFactor.DirectConnect,
       Connect: ConnectFactor.Connect,
+      WrtcConnect: WrtcConnect,
    };
-   static Event = Event;
+   private xpeer: XPeer;
    public connectFactor: ConnectFactor;
    public acceptFactor: AcceptFactor;
    constructor(options?: Options) {
       super();
       options = Object.assign({}, options);
+      this.xpeer = new XPeer(options.peerId);
       this.acceptFactor = new AcceptFactor(options);
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
