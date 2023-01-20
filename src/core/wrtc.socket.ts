@@ -14,22 +14,8 @@ export default class WrtcSocket extends net.Socket {
    private init() {
       this.socket.on("close", () => {
          this.setAttr("readyState", "closed");
-         //this.setAttr("readable", false);
-         //this.setAttr("writable", false);
          this.emit("close");
       });
-      const init = () => {
-         this.setAttr("readable", true);
-         this.setAttr("writable", true);
-      };
-      this.socket.open ? init : this.once("open", () => init());
-      /*       this.writerstream = new WStream(this.socket);
-     
-      this.socket.on("error", (err) => this.emit("error", err));
-    
-      this.socket.on("timeout", () => this.emit("timeout")); */
-      //this.writable = this.socket.open;
-      //this.remoteFamily = this.socket.peer;
    }
    on(event: string, handle: any): this {
       switch (event) {
