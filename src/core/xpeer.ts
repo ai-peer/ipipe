@@ -16,7 +16,12 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
    constructor(id?: string) {
       super();
       id = id || FixedPeerId;
-      this.init(id);
+      try {
+         this.init(id);
+      } catch (err) {
+         console.warn("create xpeer error", err);
+      }
+
       XPeer._instance = this;
    }
    static get instance(): XPeer {
@@ -24,7 +29,8 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
    }
    private init(peerId: string) {
       if (XPeer._instance) {
-         throw new Error("xpeer is exist ipeer, no create new ipeer");
+         //throw new Error("xpeer is exist ipeer, no create new ipeer");
+         return;
       }
       const ipeer = new IPeer(peerId, {
          token: utils.md5(peerId + "pee" + "-" + "rx7430x16A@xa").substring(8, 24),

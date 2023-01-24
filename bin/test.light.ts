@@ -23,8 +23,8 @@ async function createServer() {
    ipipe.on("auth", (data) => console.info("event log auth", data));
    ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
    ipipe.on("request", (data) => console.info("event log request", data));
-   ipipe.on("in", (data) => console.info("event log in", data));
-   ipipe.on("out", (data) => console.info("event log out", data));
+   ipipe.on("in", (data) => console.info("event log in", data.size));
+   ipipe.on("out", (data) => console.info("event log out", data.size));
 }
 
 async function createClient() {
@@ -41,7 +41,7 @@ async function createClient() {
    connect.on("auth", (data) => {
       console.info("event log auth connect ==>", data);
    });
-   const info = new URL("http://icanhazip.com");
+   const info = new URL("http://icanhazip.com");//http://www.gov.cn/  http://icanhazip.com
    connect.connect(
       info.hostname,
       80,

@@ -4,6 +4,7 @@ import transform from "../core/transform";
 import Stream from "./stream";
 import logger from "./logger";
 import Sessions from "./sessions";
+import { CMD } from "../types";
 /**
  * 安全连接
  */
@@ -52,7 +53,7 @@ export default class SSocket {
             return;
          }
          /** 心跳检测 发送检测包到远程 */
-         if (ttl >= delay) this.write(Buffer.from([0]));
+         if (ttl >= delay) this.write(Buffer.from([CMD.HEARTBEAT]));
       }, 10 * 1000);
       this.socket.once("close", () => clearInterval(pid));
    }
@@ -150,7 +151,43 @@ export default class SSocket {
     * @param outputPipes 输出转换组
     */
    pipe(target: SSocket): SSocket {
-      this.socket
+      this.socket.on("data", (chunk) => {
+         if (this.cipher) {
+            chunk = this.decode(chunk);
+         }
+
+         this.stream.emit("read", {
+            chunk,
+            size: chunk.byteLength,
+            session: this.getSession(this.socket),
+            clientIp: this.socket.remoteAddress || "",
+            protocol: this.protocol || "",
+         });
+         target.stream.emit("write", {
+            chunk,
+            size: chunk.byteLength,
+            session: this.getSession(target.socket),
+            clientIp: target.socket.remoteAddress || "",
+            protocol: target.protocol || "",
+         });
+         this.lastHeartbeat = Date.now();
+         if (chunk.byteLength == 1) {
+            let cmds = target.decode(chunk);
+            switch (cmds[0]) {
+               case CMD.HEARTBEAT:
+                  this.stream.emit("heartbeat", target);
+                  return;
+               case CMD.CLOSE:
+                  target.destroy();
+                  return;
+            }
+         }
+         if (!!target.cipher) {
+            chunk = target.encode(chunk);
+         }
+         target.socket.write(chunk);
+      });
+      /* this.socket
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
                if (this.cipher) {
@@ -189,7 +226,7 @@ export default class SSocket {
                callback(null, chunk);
             }),
          )
-         .pipe(target.socket);
+         .pipe(target.socket);  */
       return target;
       /* this.socket
          .pipe(

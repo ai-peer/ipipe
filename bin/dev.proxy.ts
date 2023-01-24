@@ -11,7 +11,7 @@ const RemotePort = 4322,
    LocalPort = 4321;
 const secret = password.generateRandomPassword().toString();
 
-async function proxyIp(proxy: { host: string; port: number }) {
+async function test(proxy: { host: string; port: number }) {
    let info = await fetch({
       //url: "http://icanhazip.com",
       url: "http://www.gd.gov.cn/",
@@ -105,7 +105,7 @@ async function createRemoteProxy() {
       .catch((err) => err.message);
    console.info("res===>", res.length, res.slice(0, 128)); */
 
-   await proxyIp({ host: "127.0.0.1", port: LocalPort });
+   await test({ host: "127.0.0.1", port: LocalPort });
    console.info("end======");
    process.exit();
 })();

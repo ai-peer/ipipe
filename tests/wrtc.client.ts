@@ -47,9 +47,8 @@ async function test1() {
          },
       },
    });
-   console.info("status", res.status);
    let text = (await res.text()) || "";
-   console.info("res===", res.status, text.length);
+   console.info("res===", res.status, text.length, text.substring(0, 128));
 }
 async function test() {
    new XPeer();

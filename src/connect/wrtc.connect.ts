@@ -58,7 +58,7 @@ export default class WrtcConnect extends Connect {
                //console.info("first send connectChunk", usePassword, connectChunk.toString());
                await ssocket.write(connectChunk);
                //console.info("write 1");
-               let receiveChunk = await ssocket.read(2000);
+               let receiveChunk = await ssocket.read(5000);
                //console.info("read 2", receiveChunk.toString());
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败

@@ -36,7 +36,7 @@ export default class HttpAccept extends Accept {
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) {
-         ssocket.encode(Buffer.from(`HTTP/1.0 400 badheader`));
+         ssocket.write(Buffer.from(`HTTP/1.0 400 badheader`));
          return;
       }
       let connectTargetStr = connectStr.replace(/Proxy-Authorization: Basic .*[\r\n]+/i, "");
