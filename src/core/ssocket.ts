@@ -80,6 +80,7 @@ export default class SSocket {
          //logger.debug(err);
          //await this.end(err.message).catch((err) => {});
       } */
+      setTimeout(() => this.clear(), 10);
       this.socket.destroy(err);
       this.stream.emit("close", this.socket);
    }
@@ -179,7 +180,6 @@ export default class SSocket {
                   return;
                case CMD.CLOSE: //关闭连接指令
                   target.destroy();
-                  setTimeout(() => target.clear(), 10);
                   return;
             }
          }
