@@ -151,7 +151,7 @@ export default class SSocket {
     * @param outputPipes 输出转换组
     */
    pipe(target: SSocket): SSocket {
-      this.socket.on("data", (chunk) => {
+      const onData = (chunk: Buffer) => {
          if (this.cipher) {
             chunk = this.decode(chunk);
          }
@@ -174,11 +174,12 @@ export default class SSocket {
          if (chunk.byteLength == 1) {
             let cmds = target.decode(chunk);
             switch (cmds[0]) {
-               case CMD.HEARTBEAT:
+               case CMD.HEARTBEAT: //心跳检测指令
                   this.stream.emit("heartbeat", target);
                   return;
-               case CMD.CLOSE:
+               case CMD.CLOSE: //关闭连接指令
                   target.destroy();
+                  setTimeout(() => target.clear(), 10);
                   return;
             }
          }
@@ -186,7 +187,9 @@ export default class SSocket {
             chunk = target.encode(chunk);
          }
          target.socket.write(chunk);
-      });
+      };
+      this.socket.on("data", (chunk) => onData(chunk));
+      target.socket.once("close", () => this.socket.removeListener("data", onData));
       /* this.socket
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
@@ -251,5 +254,8 @@ export default class SSocket {
          )
          .pipe(outputPipe)
          .pipe(this.socket);*/
+   }
+   clear() {
+      this.socket.removeAllListeners();
    }
 }

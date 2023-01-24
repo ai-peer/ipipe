@@ -272,15 +272,15 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             localSocket.on("error", (err) => {
                logger.debug("error local", err.message);
                localSocket.destroy();
-               proxySocket?.destroy();
+               //proxySocket?.destroy();
             });
-            localSocket.on("close", () => proxySocket?.end());
+            localSocket.on("close", () => proxySocket?.destroy());
             proxySocket.on("error", (err) => {
                logger.debug("error proxy", err.message);
                proxySocket.destroy();
-               localSocket.destroy();
+               //localSocket.destroy();
             });
-            proxySocket.on("close", () => localSocket.end());
+            proxySocket.on("close", () => localSocket.destroy());
             //if (recChunk) localSocket.write(recChunk);
             //console.info("write first to target", proxySocket.protocol, [...chunk], ">>\r\n",host+":"+port, proxySocket.protocol + ":" + proxySocket.remoteAddress + ":" + proxySocket.remotePort);
             connect?.pipe(localSocket, proxySocket, chunk);
