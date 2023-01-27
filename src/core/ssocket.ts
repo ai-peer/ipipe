@@ -118,7 +118,7 @@ export default class SSocket extends EventEmitter<EventType> {
       this.clear();
    }
    /** 假关闭 */
-   destroyFace() {
+   async destroyFace() {
       if (this.destroyed) {
          this.emit("close", true);
          this.removeListener("close");
@@ -130,7 +130,7 @@ export default class SSocket extends EventEmitter<EventType> {
       }
       this.type == "connect" && setTimeout(() => multi.add(this), 100);
       if (this.cmdClose) return;
-      this.write(Buffer.from([CMD.CLOSE]));
+      await this.write(Buffer.from([CMD.CLOSE]));
       this.emit("close", false);
    }
    setTimeout(ttl: number = 0) {
@@ -217,7 +217,7 @@ export default class SSocket extends EventEmitter<EventType> {
     * @param outputPipes 输出转换组
     */
    pipe(target: SSocket): SSocket {
-      const onData = (chunk: Buffer) => {
+      const onData = async (chunk: Buffer) => {
          if (this.cipher) {
             chunk = this.decode(chunk);
          }
@@ -238,44 +238,46 @@ export default class SSocket extends EventEmitter<EventType> {
          });
          this.lastHeartbeat = Date.now();
          if (chunk.byteLength == 1) {
-            let cmds = target.decode(chunk);
-            switch (cmds[0]) {
+            let cmd = chunk[0]; // target.decode(chunk);
+            //console.info("cmd==", cmd, this.type + ":" + this.protocol, target.type + ":" + target.protocol);
+            switch (cmd) {
                case CMD.HEARTBEAT: //心跳检测指令
                   this.stream.emit("heartbeat", target);
+                  return;
                case CMD.CLOSE: //关闭连接指令
-                  this.destroyFace();
+                  if (this.type == "accept" && this.protocol != "wrtc") {
+                     this.destroy();
+                     return;
+                  }
+                  if (this.type == "connect" && this.protocol == "wrtc") {
+                     this.clear();
+                  }
                   if (target.protocol == "direct") {
                      target.destroy();
                   } else {
-                     target.destroyFace();
+                     await target.destroyFace();
                   }
-                  this.socket.removeAllListeners();
-                  this.clear();
-                  this.socket.on("data", (chunk) => {
-                     if (chunk.byteLength == 1 && chunk[0] == CMD.RESET) {
-                        console.info("diy reset");
-                        this.cmdClose = false;
-                        this.socket.write(Buffer.from([CMD.RESPONSE]));
-                        this.onResetHandle && this.onResetHandle(this.clone());
-                     }
-                  });
+                  multi.add(this);
                   this.cmdClose = true;
+                  return;
                case CMD.RESET: //复位
+                  //console.info("cmd==", cmd, Date.now(), this.type + ":" + this.protocol, target.type + ":" + target.protocol);
+                  if (this.type == "accept" && this.protocol != "wrtc") {
+                     this.destroy();
+                     return;
+                  }
                   this.cmdClose = false;
-                  this.socket.removeAllListeners();
-                  this.clear();
                   if (target.protocol == "direct") {
                      target.destroy();
-                  } else {
-                     //target.write(Buffer.from([CMD.RESET]));
                   }
-                  this.socket.write(Buffer.from([CMD.RESPONSE]));
-                  if (!!this.onResetHandle) {
-                     let nsocket = this.clone();
-                     nsocket.onResetHandle(nsocket);
+                  if (this.type == "accept" && this.protocol == "wrtc") {
+                     await this.socket.write(Buffer.from([CMD.RESPONSE]));
+                     this.onResetHandle && this.onResetHandle(this.clone());
                   }
+                  return;
                case CMD.RESPONSE:
                   this.emit("responseCMD");
+                  return;
             }
             if (target.protocol == "direct") return;
          }
@@ -360,8 +362,10 @@ export default class SSocket extends EventEmitter<EventType> {
    clear() {
       //["connect", "data", "close", "error", "read", "write"].forEach((key: any) => this.removeAllListeners(key));
       this.removeAllListeners();
+      this.socket.removeAllListeners();
    }
    clone() {
+      this.clear();
       let nsocket = new SSocket(this.socket, this.cipher, this.face);
       nsocket.protocol = this.protocol;
       nsocket.type = this.type;

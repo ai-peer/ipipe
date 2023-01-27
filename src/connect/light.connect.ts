@@ -96,6 +96,7 @@ export default class LightConnect extends Connect {
                //创建加密连接
                let ssocket = new SSocket(socket, cipherTransport, face);
                ssocket.protocol = this.protocol;
+               ssocket.type = "connect";
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
 

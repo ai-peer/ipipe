@@ -15,7 +15,7 @@ async function createServer() {
    await ipipe.createAcceptServer(1072, "127.0.0.1", (id) => {
       console.info("open", id);
    });
-   ipipe.on("accept", (data) => console.info("event log accept", new Date(), data.protocol));
+   //ipipe.on("accept", (data) => console.info("event log accept", new Date(), data.protocol));
 
    //let socket = new net.Socket();
    //socket.pipe(new Transform());

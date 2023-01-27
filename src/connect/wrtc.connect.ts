@@ -37,7 +37,6 @@ export default class WrtcConnect extends Connect {
          const xpeer = XPeer.instance;
          const onConnect = async (ssocket: SSocket) => {
             try {
-               //console.info("connect ttl=", Date.now() - startTime);
                isTimeout = false;
                pid && clearTimeout(pid);
                //let ssocket = new SSocket(socket);
@@ -63,9 +62,9 @@ export default class WrtcConnect extends Connect {
                //console.info("first send connectChunk", usePassword, connectChunk.toString());
                await ssocket.write(connectChunk);
                //console.info("write 1");
-               let receiveChunk = await ssocket.read(5000);
+               let receiveChunk = await ssocket.read(1000);
                if (receiveChunk.byteLength < 1) {
-                  callback(Buffer.alloc(0), ssocket);
+                  callback(new Error("connect ready nodata"), ssocket);
                   return;
                }
                //console.info("read 2", receiveChunk.toString());
@@ -112,6 +111,7 @@ export default class WrtcConnect extends Connect {
          if (ssocket) {
             await ssocket.write(Buffer.from([CMD.RESET]));
             let cmds = await ssocket.read(1000);
+            //console.info("receive", cmds.byteLength, cmds[0]);
             if (cmds.byteLength == 1 && cmds[0] == CMD.RESPONSE) {
                onConnect(ssocket);
             } else {

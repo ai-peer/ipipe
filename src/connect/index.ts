@@ -282,7 +282,6 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             proxySocket.on("error", (err) => {
                logger.debug("error proxy", err.message);
                proxySocket.destroy();
-               //localSocket.destroy();
             });
             proxySocket.once("close", (isReal) => {
                if (localSocket.type == "accept") {
@@ -301,7 +300,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             !isCorrection && localSocket.destroy(err);
             this.emit("error", err);
          });
-      if (isCorrection && !isConnect) {
+/*       if (isCorrection && !isConnect) {
          let nproxys = [...this.proxys];
          nproxys = nproxys.sort((a, b) => (Math.floor(Math.random() * 2) == 0 ? -1 : 1));
          for (let cproxy of nproxys) {
@@ -335,7 +334,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                break;
             }
          }
-      }
+      } */
       this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
       if (!isConnect) {
          logger.debug("====>no connect");

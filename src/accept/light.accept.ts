@@ -84,6 +84,7 @@ export default class LightAccept extends Accept {
 
       let ssocket = new SSocket(socket, cipherTransport, face);
       ssocket.protocol = this.protocol;
+      ssocket.type = "accept";
       ssocket.on("read", (data) => this.emit("read", data));
       ssocket.on("write", (data) => this.emit("write", data));
 

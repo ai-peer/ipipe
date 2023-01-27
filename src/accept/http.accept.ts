@@ -21,6 +21,7 @@ export default class HttpAccept extends Accept {
    public async handle(socket: net.Socket, firstChunk: Buffer) {
       let ssocket = new SSocket(socket);
       ssocket.protocol = this.protocol;
+      ssocket.type = "accept";
       ssocket.on("read", (data) => {
          //console.info("====read", Math.ceil(1000 * data.size/1024)/1000);
          this.emit("read", data);

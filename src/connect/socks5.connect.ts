@@ -36,6 +36,7 @@ export default class Socks5Connect extends Connect {
                pid && clearTimeout(pid);
                let ssocket = new SSocket(socket);
                ssocket.protocol = this.protocol;
+               ssocket.type = "connect";
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
                /**     socks5协议连接 start      */
