@@ -6,7 +6,13 @@ import SSocket from "./ssocket";
 export class Multiplexing {
    private pool: Map<string, SSocket[]> = new Map();
 
-   constructor() {}
+   constructor() {
+/*       setInterval(()=>{
+         this.pool.forEach((vals, key)=>{
+            console.info("key", key, vals.length);
+         })
+      }, 30 * 1000); */
+   }
    key(host: string, port: string | number) {
       port = port || "";
       if (port) {
