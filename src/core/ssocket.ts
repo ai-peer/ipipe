@@ -12,6 +12,10 @@ import { buildSN } from "./password";
 export type EventType = {
    connect: (ssocket: SSocket) => void;
    data: (chunk: Buffer) => void;
+   /** 关闭事件
+    *    @param real: 是否真实关闭
+    *
+    */
    close: (real: boolean) => void;
    error: (error: Error) => void;
    read: (data: ReadData) => void;

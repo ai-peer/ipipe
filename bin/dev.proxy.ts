@@ -8,22 +8,22 @@ let proxyList = configProxy.getProxyList("CN", 1);
 console.info("proxyList", proxyList); */
 const RemotePort = 4322,
    ReplyPort = 4300,
-   LocalPort = 4321;
+   LocalPort = 1082;
 const secret = password.generateRandomPassword().toString();
 
 async function test(proxy: { host: string; port: number }) {
    let info = await fetch({
       //url: "http://icanhazip.com",
-      url: "http://www.gd.gov.cn/",
+      url: "http://ifconfig.me/ip",
       timeout: 15000,
       method: "get",
       proxy: {
          host: proxy.host,
          port: proxy.port,
-         auth: {
+/*          auth: {
             username: "admin",
             password: "1234567",
-         },
+         }, */
       },
    })
       .then((res) => res.text())
@@ -31,7 +31,7 @@ async function test(proxy: { host: string; port: number }) {
          console.error("get proxy ip error", err.stack, err.message);
          return "";
       });
-   console.info("get proxy ip", info.substring(0, 256));
+   console.info("get proxy ip",proxy, info.substring(0, 256));
 }
 async function createRemoteProxy() {
    let proxy = {
@@ -69,9 +69,9 @@ async function createRemoteProxy() {
 
    let localProxy = new IPipe({
       isDirect: false,
-      auth: async ({ username, password }) => {
+/*       auth: async ({ username, password }) => {
          return username == "admin" && password == "1234567";
-      },
+      }, */
    });
    await localProxy.createAcceptServer(LocalPort);
    localProxy.registerProxy({
@@ -107,5 +107,5 @@ async function createRemoteProxy() {
 
    await test({ host: "127.0.0.1", port: LocalPort });
    console.info("end======");
-   process.exit();
+   //process.exit();
 })();
