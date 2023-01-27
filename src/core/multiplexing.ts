@@ -42,7 +42,7 @@ export class Multiplexing {
       if (!!list.find((v) => v.socket.id == socket.id)) return;
 
       /** */
-      if (list.length > 64) {
+      if (list.length > 32) {
          return socket.destroy();
       }
 
