@@ -4,31 +4,58 @@ import transform from "../core/transform";
 import Stream from "./stream";
 import logger from "./logger";
 import Sessions from "./sessions";
-import { CMD } from "../types";
+import { CMD, ReadData, WriteData } from "../types";
+import EventEmitter from "eventemitter3";
+import multi from "./multiplexing";
+import { buildSN } from "./password";
+
+export type EventType = {
+   connect: (ssocket: SSocket) => void;
+   data: (chunk: Buffer) => void;
+   close: (real: boolean) => void;
+   error: (error: Error) => void;
+   read: (data: ReadData) => void;
+   write: (data: WriteData) => void;
+   reset: (ssocket: SSocket) => void;
+   /** 响应指令 */
+   responseCMD: () => void;
+};
 /**
  * 安全连接
  */
-export default class SSocket {
-   public socket: net.Socket;
-   public cipher: Cipher | undefined;
+export default class SSocket extends EventEmitter<EventType> {
+   public type: "accept" | "connect";
+   private socket: net.Socket;
+   private cipher: Cipher | undefined;
    private face: number = 99;
    private stream = new Stream();
+   private _id: string;
    /** 最后一次心跳检测时间 */
    lastHeartbeat: number = Date.now();
    timeout: number = 60 * 1000;
+   /**　状态机 */
+   private cmdClose: boolean = false;
+   private onResetHandle: (ssocket: SSocket) => void;
    constructor(socket: net.Socket, cipher?: Cipher, face: number = 99) {
+      super();
       this.socket = socket;
       this.cipher = cipher;
       this.face = face;
+      this._id = (this.socket.remoteAddress || "") + (this.socket.remotePort ? ":" + this.socket.remotePort || "" : "") + "-" + buildSN(3);
       socket.setMaxListeners(99);
-      socket.setKeepAlive(true, 15 * 1000);
+      socket.setKeepAlive(true, 30 * 1000);
       //socket.setTimeout(30 * 1000);
-      this.init();
+      this.initEvent();
    }
    get id(): string {
-      return this.getSession(this.socket);
+      return this._id;
    }
-   private init() {
+   private initEvent() {
+      this.socket.once("connect", () => this.emit("connect", this));
+      this.socket.once("error", (err) => this.emit("error", err));
+      this.socket.on("data", (chunk) => this.emit("data", chunk));
+      this.socket.once("close", () => this.emit("close", true));
+      this.socket.once("timeout", () => this.emit("error", new Error("timeout")));
       this.stream.on("heartbeat", (ssocket) => {
          //console.info("event heartbeat", this.id, ssocket.socket.readyState);
          this.lastHeartbeat = Date.now();
@@ -57,8 +84,8 @@ export default class SSocket {
       }, 10 * 1000);
       this.socket.once("close", () => clearInterval(pid));
    }
-   private getSession(socket: net.Socket) {
-      return Sessions.instance.getSession(socket);
+   getSession(socket?: net.Socket) {
+      return Sessions.instance.getSession(socket || this.socket);
    }
    set protocol(protocol: string) {
       this.stream.protocol = protocol;
@@ -72,26 +99,59 @@ export default class SSocket {
    get remotePort(): number {
       return this.socket.remotePort || 0;
    }
+   get localAddress(): string {
+      return this.socket.localAddress || "";
+   }
+   get localPort(): number {
+      return this.socket.localPort || 0;
+   }
    get destroyed() {
       return this.socket.destroyed;
    }
    async destroy(err?: Error) {
-      /* if (err) {
-         //logger.debug(err);
-         //await this.end(err.message).catch((err) => {});
-      } */
-      setTimeout(() => this.clear(), 10);
+      if (this.destroyed) return;
       this.socket.destroy(err);
-      this.stream.emit("close", this.socket);
+      this.clear();
+   }
+   /** 假关闭 */
+   destroyFace() {
+      if (this.destroyed) {
+         this.emit("close", true);
+         this.removeListener("close");
+         return;
+      }
+      if (this.protocol != "wrtc") {
+         this.destroy();
+         return;
+      }
+      this.type == "connect" && setTimeout(() => multi.add(this), 100);
+      if (this.cmdClose) return;
+      this.write(Buffer.from([CMD.CLOSE]));
+      this.emit("close", false);
    }
    setTimeout(ttl: number = 0) {
       this.socket.setTimeout(ttl);
    }
-   on(name: string, listener: (...args: any[]) => void) {
+   on(name: "connect" | "data" | "close" | "error" | "read" | "write" | "reset" | "responseCMD", listener: any) {
+      if (name == "reset") {
+         this.removeAllListeners("reset");
+         this.onResetHandle = listener;
+         return this;
+      }
+      super.on(name, listener);
+      return this;
+   }
+   once(name: "connect" | "data" | "close" | "error" | "read" | "write" | "reset" | "responseCMD", listener: any) {
+      if (name == "reset") {
+         this.removeAllListeners("reset");
+         this.onResetHandle = listener;
+         return this;
+      }
+      super.once(name, listener);
+      return this;
+   }
+   /*    on(name: string, listener: (...args: any[]) => void) {
       if (name == "read") {
-         /*  this.socket.on("data", (chunk) => {
-            listener({ size: chunk.byteLength, socket: this.socket, protocol: this.protocol || "" });
-         }); */
          this.stream.on(name, listener);
       } else if (name == "write") {
          this.stream.on(name, listener);
@@ -103,13 +163,14 @@ export default class SSocket {
       } else {
          this.socket.on(name, listener);
       }
-   }
+   } */
    async write(chunk: Buffer | string): Promise<void> {
       //console.info("write1",!!this.cipher, [...chunk], chunk.toString());
       /*       if (this.cipher) {
          chunk = this.cipher.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk), this.face);
       } */
       chunk = this.encode(chunk instanceof Buffer ? chunk : Buffer.from(chunk));
+      //console.info("===send", chunk, this.socket.readyState);
       await this.stream.write(this.socket, chunk);
    }
    async end(chunk?: Buffer | string): Promise<void> {
@@ -157,14 +218,14 @@ export default class SSocket {
             chunk = this.decode(chunk);
          }
 
-         this.stream.emit("read", {
+         this.emit("read", {
             chunk,
             size: chunk.byteLength,
             session: this.getSession(this.socket),
             clientIp: this.socket.remoteAddress || "",
             protocol: this.protocol || "",
          });
-         target.stream.emit("write", {
+         target.emit("write", {
             chunk,
             size: chunk.byteLength,
             session: this.getSession(target.socket),
@@ -177,19 +238,56 @@ export default class SSocket {
             switch (cmds[0]) {
                case CMD.HEARTBEAT: //心跳检测指令
                   this.stream.emit("heartbeat", target);
-                  return;
                case CMD.CLOSE: //关闭连接指令
-                  target.destroy();
-                  return;
+                  this.destroyFace();
+                  if (target.protocol == "direct") {
+                     target.destroy();
+                  } else {
+                     target.destroyFace();
+                  }
+                  this.socket.removeAllListeners();
+                  this.clear();
+                  this.socket.on("data", (chunk) => {
+                     if (chunk.byteLength == 1 && chunk[0] == CMD.RESET) {
+                        console.info("diy reset");
+                        this.cmdClose = false;
+                        this.socket.write(Buffer.from([CMD.RESPONSE]));
+                        this.onResetHandle && this.onResetHandle(this.clone());
+                     }
+                  });
+                  this.cmdClose = true;
+               case CMD.RESET: //复位
+                  this.cmdClose = false;
+                  this.socket.removeAllListeners();
+                  this.clear();
+                  if (target.protocol == "direct") {
+                     target.destroy();
+                  } else {
+                     //target.write(Buffer.from([CMD.RESET]));
+                  }
+                  this.socket.write(Buffer.from([CMD.RESPONSE]));
+                  if (!!this.onResetHandle) {
+                     let nsocket = this.clone();
+                     nsocket.onResetHandle(nsocket);
+                  }
+               case CMD.RESPONSE:
+                  this.emit("responseCMD");
             }
+            if (target.protocol == "direct") return;
          }
          if (!!target.cipher) {
             chunk = target.encode(chunk);
          }
          target.socket.write(chunk);
       };
-      this.socket.on("data", (chunk) => onData(chunk));
-      target.socket.once("close", () => this.socket.removeListener("data", onData));
+      this.socket.on("data", onData);
+      this.socket.once("close", () => {
+         target.protocol == "direct" && target.destroy();
+      });
+      target.once("close", () => {
+         this.socket.write(Buffer.from([CMD.CLOSE]));
+      });
+
       /* this.socket
          .pipe(
             transform((chunk: Buffer, encoding, callback) => {
@@ -256,6 +354,15 @@ export default class SSocket {
          .pipe(this.socket);*/
    }
    clear() {
-      this.socket.removeAllListeners();
+      //["connect", "data", "close", "error", "read", "write"].forEach((key: any) => this.removeAllListeners(key));
+      this.removeAllListeners();
+   }
+   clone() {
+      let nsocket = new SSocket(this.socket, this.cipher, this.face);
+      nsocket.protocol = this.protocol;
+      nsocket.type = this.type;
+      nsocket._id = this._id;
+      nsocket.onResetHandle = this.onResetHandle;
+      return nsocket;
    }
 }

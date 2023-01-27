@@ -7,7 +7,7 @@ import WrtcSocket from "./wrtc.socket";
 const FixedPeerId = buildSN(32);
 
 export type XPeerEvent = {
-   open: () => void;
+   open: (id: string) => void;
    connection: (socket: WrtcSocket) => void;
 };
 export default class XPeer extends EventEmitter<XPeerEvent> {
@@ -38,8 +38,8 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
       });
       XPeer.ipeer = ipeer;
       ipeer.on("open", () => {
-         console.info("open peer", peerId);
-         this.emit("open");
+         //console.info("open peer", peerId);
+         this.emit("open", peerId);
       });
       ipeer.on("connection", (socket) => {
          let seSocket = new SerialSocket(socket);

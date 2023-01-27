@@ -65,6 +65,7 @@ export default class ForwardHttpConnect extends Connect {
                   this.emit("auth", {
                      checked: checkedAuthForward,
                      type: "connect",
+                     protocol: "forward.http",
                      session: this.getSession(socket),
                      clientIp: "127.0.0.1",
                      username: forward?.username || "",
@@ -98,6 +99,7 @@ export default class ForwardHttpConnect extends Connect {
                   this.emit("auth", {
                      checked: checkedAuth,
                      type: "connect",
+                     protocol: "forward.http",
                      session: this.getSession(socket),
                      clientIp: "127.0.0.1",
                      username: proxy?.username || "",

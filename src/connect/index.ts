@@ -195,7 +195,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          hid0 = hashId(user) % (list.length || 1);
          proxy = list[hid0];
       } else {
-         hid0 = hashId({ username: "ip-" + localSocket.socket.localPort + "-" + localSocket.socket.remotePort, password: "", args: [] }) % (list.length || 1);
+         hid0 = hashId({ username: "ip-" + localSocket.localPort + "-" + localSocket.remotePort, password: "", args: [] }) % (list.length || 1);
          proxy = list[hid0];
       }
       return proxy || this.proxys.find((v) => v.checked);
@@ -209,7 +209,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
    public async pipe(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       if (!user || !user.username) {
          user = {
-            username: "ip-" + localSocket.socket.localPort + "-" + localSocket.socket.remotePort,
+            username: "ip-" + localSocket.localPort + "-" + localSocket.remotePort,
             password: "",
             args: [],
          };
@@ -272,17 +272,28 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             localSocket.on("error", (err) => {
                logger.debug("error local", err.message);
                localSocket.destroy();
-               //proxySocket?.destroy();
             });
-            localSocket.on("close", () => proxySocket?.destroy());
+            localSocket.once("close", (isReal) => {
+               if (proxySocket.type == "connect") {
+                  if (proxySocket.protocol == "direct") proxySocket?.destroy();
+                  else proxySocket?.destroyFace();
+               }
+            });
             proxySocket.on("error", (err) => {
                logger.debug("error proxy", err.message);
                proxySocket.destroy();
                //localSocket.destroy();
             });
-            proxySocket.on("close", () => localSocket.destroy());
+            proxySocket.once("close", (isReal) => {
+               if (localSocket.type == "accept") {
+                  localSocket.destroyFace();
+               }
+               if (proxySocket.protocol != "direct") {
+               }
+            });
+            chunk = chunk.byteLength <= 1 ? Buffer.alloc(0) : chunk;
             //if (recChunk) localSocket.write(recChunk);
-            //console.info("write first to target", proxySocket.protocol, [...chunk], ">>\r\n",host+":"+port, proxySocket.protocol + ":" + proxySocket.remoteAddress + ":" + proxySocket.remotePort);
+            //console.info("request", host + ":" + port, chunk.byteLength);
             connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {

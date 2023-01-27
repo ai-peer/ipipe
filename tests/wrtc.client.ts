@@ -16,8 +16,15 @@ async function createServer() {
       username: "admin",
       password: "123",
    });
-   ipipe.on("auth", (data) => console.info("event log auth", data.checked, data.type));
-   ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
+   ipipe.on("auth", (data) => {
+   /*    if (data.checked) {
+         console.info("event log auth", data.checked, data.type);
+      } else {
+         console.info("event log auth", data);
+      } */
+   });
+   ipipe.on("request", (data) => console.info("request", data.status, data.host, data.ttl));
+   //ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
    await ipipe.createAcceptServer(1082);
    //ipipe.on("accept", (data) => console.info("accept", data.protocol));
 
@@ -34,10 +41,12 @@ async function createServer() {
       });
    });
 }
-async function test1() {
-   console.info("fetch");
+async function test1(count) {
+   console.info("fetch=================", count);
+   let startTime = Date.now();
    let res = await fetch({
       url: "http://www.gov.cn/",
+      timeout: 30 * 1000,
       proxy: {
          host: "127.0.0.1",
          port: 1082,
@@ -46,9 +55,12 @@ async function test1() {
             password: "123",
          },
       },
+   }).catch((err) =>{
+      console.info("error", err.message);
+      return err.message || ""
    });
    let text = (await res.text()) || "";
-   console.info("res===", res.status, text.length, text.substring(0, 128));
+   console.info("res===", res.status, text.length, "ttl=" + (Date.now() - startTime));
 }
 async function test() {
    new XPeer();
@@ -98,6 +110,14 @@ async function test() {
 
 (async () => {
    await createServer();
-   test1();
+   for (let i = 0; i < 12; i++) {
+      await test1(i + 1);
+      await wait(1 * 1000);
+   }
    //await test();
 })();
+async function wait(ttl) {
+   return new Promise((resolve) => {
+      setTimeout(() => resolve(undefined), ttl);
+   });
+}

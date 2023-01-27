@@ -5,6 +5,8 @@ import { Proxy } from "..//types";
 import SSocket from "../core/ssocket";
 import { buildSN } from "../core/password";
 import XPeer from "../core/xpeer";
+import multi from "../core/multiplexing";
+import { CMD } from "../types";
 
 /**
  * http代理连接
@@ -14,6 +16,7 @@ export default class WrtcConnect extends Connect {
       super({
          protocol: "wrtc",
       });
+      this.timeout = 60 * 1000;
    }
    /**
     * 连接远程代理主机
@@ -26,21 +29,23 @@ export default class WrtcConnect extends Connect {
       const mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
       proxy.mode = mode;
       const peerId = proxy.host + (proxy.port ? ":" + proxy.port : "");
-      return new Promise((resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
          let isTimeout = true,
             pid;
          let startTime = Date.now();
          //console.info("connect wrtc proxy", host + ":" + port, "proxy", peerId);
          const xpeer = XPeer.instance;
-         let socket = xpeer.connect(peerId, async () => {
+         const onConnect = async (ssocket: SSocket) => {
             try {
                //console.info("connect ttl=", Date.now() - startTime);
                isTimeout = false;
                pid && clearTimeout(pid);
-               let ssocket = new SSocket(socket);
+               //let ssocket = new SSocket(socket);
                ssocket.protocol = this.protocol;
+               ssocket.type = "connect";
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
+
                let usePassword = !!proxy.username && !!proxy.password;
                let pwd = proxy.password || "";
                pwd = proxy.mode == 1 ? pwd + "_" + proxy.mode + "_" + buildSN(6) : pwd + "_" + proxy.mode;
@@ -59,39 +64,63 @@ export default class WrtcConnect extends Connect {
                await ssocket.write(connectChunk);
                //console.info("write 1");
                let receiveChunk = await ssocket.read(5000);
+               if (receiveChunk.byteLength < 1) {
+                  callback(Buffer.alloc(0), ssocket);
+                  return;
+               }
                //console.info("read 2", receiveChunk.toString());
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败
                //console.info("receiveChunk", statusCode, checked, usePassword, receiveChunk.toString());
+
                if (usePassword || statusCode == "407") {
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
-                     session: this.getSession(socket),
-                     clientIp: socket.remoteAddress || "",
+                     protocol: "wrtc",
+                     session: ssocket.id, //this.getSession(socket),
+                     clientIp: ssocket.remoteAddress || "",
                      username: proxy.username || "",
                      password: proxy.password || "",
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               //  ssocket.heartbeat(); 
+               ssocket.heartbeat();
                callback(checked ? undefined : receiveChunk, ssocket);
                resolve(ssocket);
             } catch (err) {
-               socket.emit("error", err);
+               ssocket.emit("error", err);
             }
-         });
-         if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
-         socket.once("timeout", () => {
-            let error = new Error(`WRTC/1.0 500 timeout[${this.timeout}]`);
-            socket.emit("error", error);
-            this.emit("timeout");
-         });
-         socket.once("error", (err) => {
-            this.emit("error", err);
-            callback(err, new SSocket(socket));
-            resolve(new SSocket(socket));
-         });
+         };
+         const connect = () => {
+            let socket = xpeer.connect(peerId, async () => {
+               onConnect(new SSocket(socket));
+            });
+            if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
+            socket.once("timeout", () => {
+               let error = new Error(`WRTC/1.0 500 timeout[${this.timeout}]`);
+               socket.emit("error", error);
+               this.emit("timeout");
+            });
+            socket.once("error", (err) => {
+               this.emit("error", err);
+               callback(err, new SSocket(socket));
+               resolve(new SSocket(socket));
+            });
+         };
+         let ssocket = multi.get(peerId, "");
+         if (ssocket) {
+            await ssocket.write(Buffer.from([CMD.RESET]));
+            let cmds = await ssocket.read(1000);
+            if (cmds.byteLength == 1 && cmds[0] == CMD.RESPONSE) {
+               onConnect(ssocket);
+            } else {
+               connect();
+            }
+         } else {
+            connect();
+         }
+
          /*     socket.on("close", (err) => {
             console.info("==========close======")
          }); */

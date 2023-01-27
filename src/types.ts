@@ -8,6 +8,10 @@ export enum CMD {
    HEARTBEAT = 0,
    /** 连接关闭指令 */
    CLOSE = 1,
+   /** 重置指令 */
+   RESET = 2,
+   /** 收到指令并h响应 */
+   RESPONSE = 11,
 }
 
 export type ReadData = {
@@ -33,6 +37,7 @@ export type AuthData = {
    session: string;
    clientIp: string;
    type: "connect" | "accept";
+   protocol: string;
    args: any[];
    //[key: string]: any;
 };
@@ -138,7 +143,7 @@ export interface ConnectUser {
 }
 
 /** 创建服务回调 */
-export type CreateCallback = (server: net.Server) => void;
+export type CreateCallback = (s: any) => void;
 
 /**创建本地服务回调 */
 //export type LocalServerCallbacck = (server: LocalTestProxyServer) => void;

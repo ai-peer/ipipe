@@ -7,7 +7,7 @@ import { Buffer } from "buffer";
 
 async function createRelayProxyServer() {
    let ipipe = new IPipe();
-   let server = await ipipe.createAcceptServer(1081, "127.0.0.1");
+   let server = await ipipe.createAcceptServer(1082, "127.0.0.1");
    let acceptAddress: any = server.address();
    let acceptPort = acceptAddress.port;
    console.info("create relay server", acceptAddress);

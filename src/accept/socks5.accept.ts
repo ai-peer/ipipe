@@ -65,6 +65,7 @@ export default class Socks5Accept extends Accept {
          this.emit("auth", {
             checked: authRes,
             type: "accept",
+            protocol: "socks5",
             session,
             clientIp, //
             username: user.username,

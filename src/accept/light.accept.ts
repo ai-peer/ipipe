@@ -57,6 +57,7 @@ export default class LightAccept extends Accept {
       this.emit("auth", {
          checked: authRes,
          type: "accept",
+         protocol: "light",
          session,
          clientIp, //
          username: user.username,

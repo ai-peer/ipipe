@@ -68,6 +68,7 @@ export default class HttpAccept extends Accept {
          this.emit("auth", {
             checked: authRes,
             type: "accept",
+            protocol: "http",
             session, //
             username: user.username,
             password: user.password,

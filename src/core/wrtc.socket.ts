@@ -12,6 +12,10 @@ export default class WrtcSocket extends net.Socket {
       this.init();
    }
    private init() {
+      this.setAttr("remoteAddress", this.socket.peer);
+      this.setAttr("remotePort", 0);
+      this.setAttr("remoteFamily", "wrtc");
+
       this.socket.on("close", () => {
          this.setAttr("readyState", "closed");
          this.emit("close");
@@ -43,6 +47,14 @@ export default class WrtcSocket extends net.Socket {
       }
       return this;
    }
+   removeAllListeners(name: any) {
+      this.socket.removeAllListeners(name);
+      return this;
+   }
+   removeListener(name: any, handle: any) {
+      this.socket.removeListener(name, handle);
+      return this;
+   }
    pause() {
       return this;
    }
@@ -63,7 +75,6 @@ export default class WrtcSocket extends net.Socket {
       return new Promise((resolve) => {
          let pid = ttl > 0 ? setTimeout(() => resolve(Buffer.alloc(0)), ttl) : undefined;
          this.socket.once("data", (data) => {
-            console.info("read=========", data);
             pid && clearTimeout(pid);
             resolve(data);
          });
@@ -88,31 +99,6 @@ export default class WrtcSocket extends net.Socket {
         },
      } */
    pipe(destination: any, options?: { end?: boolean }): any {
-      let _this = this;
-      // let ws = new WStream(this.socket);
-      //console.info("wrtc.socket pipe");
-      /*     destination.on("data", (data) => {
-         console.info("data 1", [...data]);
-         this.socket.write(data, true);
-      });
-      destination.once("close", () => {
-         console.info("close============");
-         this.socket.destroy();
-      }); */
-
-      /*     let transform = new Transform({
-         transform(chunk, encoding, cb) {
-            console.info("data 2", [...chunk]);
-            _this.socket.write(chunk);
-            cb(undefined, chunk);
-         },
-      }); */
-      //return new Trans(this.socket);
-      //console.info("============pipe");
-      this.on("data", (data) => {
-         //console.info("r data", data.byteLength);
-         //destination.write(data, true);
-      });
       return new Trans(this.socket);
    }
    private setAttr(key: string, value: any) {

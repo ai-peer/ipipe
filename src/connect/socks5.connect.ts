@@ -67,6 +67,7 @@ export default class Socks5Connect extends Connect {
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
+                     protocol: "socks5",
                      session: this.getSession(socket),
                      clientIp: socket.remoteAddress || "",
                      username: proxy.username || "",

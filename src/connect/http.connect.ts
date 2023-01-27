@@ -61,6 +61,7 @@ export default class HttpConnect extends Connect {
                   this.emit("auth", {
                      checked: checked,
                      type: "connect",
+                     protocol: "http",
                      session: this.getSession(socket),
                      clientIp: socket.remoteAddress || "",
                      username: proxy.username || "",
