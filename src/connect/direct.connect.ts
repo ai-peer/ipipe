@@ -33,7 +33,7 @@ export default class DirectConnect extends Connect {
                ssocket.type = "connect";
                ssocket.on("read", (data) => this.emit("read", data));
                ssocket.on("write", (data) => this.emit("write", data));
-               callback(undefined, ssocket);
+               callback(undefined, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);
@@ -49,7 +49,7 @@ export default class DirectConnect extends Connect {
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
-            callback(err, new SSocket(socket));
+            callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
       });

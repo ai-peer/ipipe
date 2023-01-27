@@ -294,6 +294,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             //if (recChunk) localSocket.write(recChunk);
             //console.info("request", host + ":" + port, chunk.byteLength);
             connect?.pipe(localSocket, proxySocket, chunk);
+            this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
          })
          .catch((err) => {
             logger.debug("===>connect error", err);
@@ -335,7 +336,6 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             }
          }
       } */
-      this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
       if (!isConnect) {
          logger.debug("====>no connect");
          localSocket.destroy();

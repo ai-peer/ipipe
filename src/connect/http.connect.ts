@@ -71,7 +71,7 @@ export default class HttpConnect extends Connect {
                   });
                }
                ssocket.heartbeat();
-               callback(checked ? undefined : receiveChunk, ssocket);
+               callback(checked ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);
@@ -87,7 +87,7 @@ export default class HttpConnect extends Connect {
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
-            callback(err, new SSocket(socket));
+            callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
          /*     socket.on("close", (err) => {

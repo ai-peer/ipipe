@@ -64,7 +64,7 @@ export default class WrtcConnect extends Connect {
                //console.info("write 1");
                let receiveChunk = await ssocket.read(1000);
                if (receiveChunk.byteLength < 1) {
-                  callback(new Error("connect ready nodata"), ssocket);
+                  callback(new Error("connect ready nodata"), ssocket, { host, port });
                   return;
                }
                //console.info("read 2", receiveChunk.toString());
@@ -85,7 +85,7 @@ export default class WrtcConnect extends Connect {
                   });
                }
                ssocket.heartbeat();
-               callback(checked ? undefined : receiveChunk, ssocket);
+               callback(checked ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                ssocket.emit("error", err);
@@ -103,7 +103,7 @@ export default class WrtcConnect extends Connect {
             });
             socket.once("error", (err) => {
                this.emit("error", err);
-               callback(err, new SSocket(socket));
+               callback(err, new SSocket(socket), { host, port });
                resolve(new SSocket(socket));
             });
          };

@@ -5,7 +5,7 @@ import Stream from "../core/stream";
 import transform from "../core/transform";
 import SSocket from "../core/ssocket";
 
-export type Callback = (error: Error | Buffer | undefined, socket: SSocket) => void;
+export type Callback = (error: Error | Buffer | undefined, socket: SSocket, data: { host: string; port: number }) => void;
 
 /**
  * 连接远程代理服务器的抽象类

@@ -28,7 +28,7 @@ export default class LightConnect extends Connect {
     * @param proxy 代理服务器信息
     * @param callback 连接成功后的回调方法
     */
-   public async connect(host: string, port: number, proxy: Proxy, callback: (error: Error | Buffer | undefined, socket: SSocket) => void): Promise<SSocket> {
+   public async connect(host: string, port: number, proxy: Proxy, callback: Callback): Promise<SSocket> {
       let secret = proxy.secret || DefaultSecret;
       let cipherConnect = Cipher.createCipher(secret);
       proxy.mode = proxy.mode == undefined || String(proxy.mode) == "undefined" ? 1 : proxy.mode;
@@ -86,7 +86,7 @@ export default class LightConnect extends Connect {
                });
                if (!checked) {
                   let ssocket = new SSocket(socket);
-                  callback(step2Res, ssocket);
+                  callback(step2Res, ssocket, { host, port });
                   resolve(ssocket);
                   return;
                }
@@ -109,7 +109,7 @@ export default class LightConnect extends Connect {
 
                ssocket.heartbeat();
                //准备连接协议
-               callback(undefined, ssocket);
+               callback(undefined, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);
@@ -125,7 +125,7 @@ export default class LightConnect extends Connect {
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
-            callback(err, new SSocket(socket));
+            callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
       });

@@ -78,7 +78,7 @@ export default class Socks5Connect extends Connect {
                   if (!checked) {
                      //ssocket.destroy(new Error(`HTTP/1.1 407 autherror`));
                      ssocket.end(chunkReceive);
-                     callback(chunkReceive, ssocket);
+                     callback(chunkReceive, ssocket, { host, port });
                      resolve(ssocket);
                      return;
                   }
@@ -100,7 +100,7 @@ export default class Socks5Connect extends Connect {
 
                ssocket.heartbeat();
                //准备连接协议
-               callback(undefined, ssocket);
+               callback(undefined, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);
@@ -116,7 +116,7 @@ export default class Socks5Connect extends Connect {
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
-            callback(err, new SSocket(socket));
+            callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
       });

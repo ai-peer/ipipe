@@ -11,11 +11,6 @@ export class Multiplexing {
    private pool: Map<string, XS[]> = new Map();
 
    constructor() {
-      /*       setInterval(()=>{
-         this.pool.forEach((vals, key)=>{
-            console.info("key", key, vals.length);
-         })
-      }, 30 * 1000); */
       setInterval(() => {
          this.pool.forEach((list, key) => {
             for (let i = list.length - 1; i >= 0; i--) {
@@ -25,7 +20,7 @@ export class Multiplexing {
                }
             }
          });
-      }, 30 * 1000);
+      }, 66 * 1000);
    }
    key(host: string, port: string | number) {
       port = port || "";

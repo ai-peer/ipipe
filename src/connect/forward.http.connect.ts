@@ -77,7 +77,7 @@ export default class ForwardHttpConnect extends Connect {
                if (!checkedAuthForward) {
                   this.emit("error", new Error(`connect forward.http[${proxy.host}:${proxy.port}] error`));
                   socket.destroy(new Error(receiveChunk.toString()));
-                  callback(undefined, ssocket);
+                  callback(undefined, ssocket, { host, port });
                   resolve(ssocket);
                   return;
                }
@@ -109,7 +109,7 @@ export default class ForwardHttpConnect extends Connect {
                   });
                }
                ssocket.heartbeat();
-               callback(checkedAuth ? undefined : receiveChunk, ssocket);
+               callback(checkedAuth ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
                socket.emit("error", err);
@@ -125,7 +125,7 @@ export default class ForwardHttpConnect extends Connect {
          socket.on("error", (err) => {
             socket.destroy(err);
             this.emit("error", err);
-            callback(err, new SSocket(socket));
+            callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
       });
