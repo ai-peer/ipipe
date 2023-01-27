@@ -14,11 +14,13 @@ export class Multiplexing {
       setInterval(() => {
          this.pool.forEach((list, key) => {
             for (let i = list.length - 1; i >= 0; i--) {
-               let xs = list[i];
-               if (xs.start + 60 * 1000 < Date.now()) {
-                  list.splice(i, 1);
-                  xs.socket.destroy();
-               }
+               try {
+                  let xs = list[i];
+                  if (xs.start + 60 * 1000 < Date.now()) {
+                     list.splice(i, 1);
+                     xs.socket.destroy();
+                  }
+               } catch (err) {}
             }
          });
       }, 66 * 1000);
