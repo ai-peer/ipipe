@@ -17,6 +17,7 @@ export class Multiplexing {
                let xs = list[i];
                if (xs.start + 60 * 1000 < Date.now()) {
                   list.splice(i, 1);
+                  xs.socket.destroy();
                }
             }
          });
