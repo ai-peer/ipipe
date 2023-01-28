@@ -36,7 +36,6 @@ export default class SSocket extends EventEmitter<EventType> {
    private _id: string;
    /** 最后一次心跳检测时间 */
    lastHeartbeat: number = Date.now();
-   timeout: number = 60 * 1000;
    /**　状态机 */
    private cmdClose: boolean = false;
    private onResetHandle: (ssocket: SSocket) => void;
@@ -47,8 +46,7 @@ export default class SSocket extends EventEmitter<EventType> {
       this.face = face;
       this._id = (this.socket.remoteAddress || "") + (this.socket.remotePort ? ":" + this.socket.remotePort || "" : "") + "-" + buildSN(3);
       socket.setMaxListeners(99);
-      socket.setKeepAlive(true, 30 * 1000);
-      //socket.setTimeout(30 * 1000);
+      socket.setKeepAlive(true, 60 * 1000);
       this.initEvent();
    }
    get id(): string {
@@ -67,17 +65,18 @@ export default class SSocket extends EventEmitter<EventType> {
    }
    /**
     * 开启心跳检测
+    * @param timeout 检测周期
     */
-   heartbeat() {
+   heartbeat(timeout: number = 60 * 1000) {
       if (this.socket.readyState == "closed") return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();
-      let delay = Math.ceil(this.timeout / 2);
+      let delay = Math.ceil(timeout / 2);
       let pid = setInterval(() => {
          if (this.socket.readyState == "closed") return clearInterval(pid);
          const ttl = Date.now() - this.lastHeartbeat;
          /** 心跳检测 判断是否超时 */
-         if (ttl >= this.timeout) {
+         if (ttl >= timeout) {
             //logger.info("lost connection", this.socket.remoteAddress || "");
             this.socket.emit("timeout");
             this.socket.destroy();

@@ -9,14 +9,22 @@ type XS = {
  */
 export class Multiplexing {
    private pool: Map<string, XS[]> = new Map();
-
+   private checkPid;
    constructor() {
-      setInterval(() => {
+      this.check();
+   }
+   /**
+    * 定期检测连接
+    * @param timeout 周期时间, 默认10分钟,单位毫秒
+    */
+   check(timeout: number = 10 * 60 * 1000) {
+      this.checkPid && clearInterval(this.checkPid);
+      this.checkPid = setInterval(() => {
          this.pool.forEach((list, key) => {
             for (let i = list.length - 1; i >= 0; i--) {
                try {
                   let xs = list[i];
-                  if (xs.start + 5 * 60 * 1000 < Date.now()) {
+                  if (xs.start + timeout < Date.now()) {
                      list.splice(i, 1);
                      xs.socket.destroy();
                   }

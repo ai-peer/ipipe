@@ -16,7 +16,10 @@ export default class WrtcConnect extends Connect {
       super({
          protocol: "wrtc",
       });
-      this.timeout = 5 * 60 * 1000;
+      this.timeout = 10 * 60 * 1000;
+   }
+   public setTimeout(ttl: number = 10 * 60 * 1000) {
+      if (ttl > 0) this.timeout = ttl;
    }
    /**
     * 连接远程代理主机

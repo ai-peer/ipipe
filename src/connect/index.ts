@@ -71,6 +71,9 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          .register(lightConnect)
          .register(wrtcConnect);
    }
+   get(protocol: "wrtc" | "http" | "socks5" | "light") {
+      return this.connects.get(protocol);
+   }
    /**
     * 注册连接方式
     * @param connect
@@ -301,7 +304,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             !isCorrection && localSocket.destroy(err);
             this.emit("error", err);
          });
-/*       if (isCorrection && !isConnect) {
+      /*       if (isCorrection && !isConnect) {
          let nproxys = [...this.proxys];
          nproxys = nproxys.sort((a, b) => (Math.floor(Math.random() * 2) == 0 ? -1 : 1));
          for (let cproxy of nproxys) {
