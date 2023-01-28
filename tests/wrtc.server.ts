@@ -11,6 +11,7 @@ async function createServer() {
          return username == "admin" && password == "123";
       },
    });
+   ipipe.on("error", (err) => console.info("event log error", err.message));
    //ipeer.registerAccept(new WrtcAccept());
    await ipipe.createAcceptServer(1072, "127.0.0.1", (id) => {
       console.info("open", id);

@@ -34,7 +34,7 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
       }
       const ipeer = new IPeer(peerId, {
          token: utils.md5(peerId + "pee" + "-" + "rx7430x16A@xa").substring(8, 24),
-         handshakeMode: "forever",
+         handshakeMode: "all",
       });
       XPeer.ipeer = ipeer;
       ipeer.on("open", () => {

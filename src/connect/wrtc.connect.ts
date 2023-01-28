@@ -16,7 +16,7 @@ export default class WrtcConnect extends Connect {
       super({
          protocol: "wrtc",
       });
-      this.timeout = 60 * 1000;
+      this.timeout = 5 * 60 * 1000;
    }
    /**
     * 连接远程代理主机
@@ -95,7 +95,7 @@ export default class WrtcConnect extends Connect {
             let socket = xpeer.connect(peerId, async () => {
                onConnect(new SSocket(socket));
             });
-            if (this.timeout > 0) pid = setTimeout(() => isTimeout && socket.emit("timeout"), this.timeout);
+            pid = setTimeout(() => isTimeout && socket.emit("timeout"), 60 * 1000);
             socket.once("timeout", () => {
                let error = new Error(`WRTC/1.0 500 timeout[${this.timeout}]`);
                socket.emit("error", error);

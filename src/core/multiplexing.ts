@@ -16,14 +16,14 @@ export class Multiplexing {
             for (let i = list.length - 1; i >= 0; i--) {
                try {
                   let xs = list[i];
-                  if (xs.start + 60 * 1000 < Date.now()) {
+                  if (xs.start + 5 * 60 * 1000 < Date.now()) {
                      list.splice(i, 1);
                      xs.socket.destroy();
                   }
                } catch (err) {}
             }
          });
-      }, 66 * 1000);
+      }, 60 * 1000);
    }
    key(host: string, port: string | number) {
       port = port || "";
@@ -61,9 +61,11 @@ export class Multiplexing {
       let key = this.key(host, port);
       let list = this.pool.get(key) || [];
       if (list.length < 1) return;
-      let xs = list.splice(0, 1)[0];
-      //console.info("get socket", key, !!socket, socket?.id || "", list?.length, this.pool.size);
-      return xs?.socket;
+      while (true) {
+         if (list.length < 1) return;
+         let xs = list.splice(0, 1)[0];
+         if (!xs.socket.destroyed) return xs.socket;
+      }
    }
    /*    private clear(socket: SSocket) {
       socket.removeAllListeners("data");

@@ -24,6 +24,7 @@ async function createServer() {
       } */
    });
    ipipe.on("request", (data) => console.info("event log request", data.status, data.host, data.ttl));
+   ipipe.on("error", (err) => console.info("event log error", err.message));
    //ipipe.on("accept", (data) => console.info("event log accept", data.protocol));
    await ipipe.createAcceptServer(1082, "0.0.0.0", (id) => {
       console.info("create server", id);
