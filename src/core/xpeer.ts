@@ -41,6 +41,10 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
          //console.info("open peer", peerId);
          this.emit("open", peerId);
       });
+      /** 丢失连接, 重新连接 */
+      ipeer.on("disconnected", () => {
+         setTimeout(() => ipeer.reconnect(), 10 * 1000);
+      });
       ipeer.on("connection", (socket) => {
          let seSocket = new SerialSocket(socket);
          let ssocket = new WrtcSocket(seSocket);

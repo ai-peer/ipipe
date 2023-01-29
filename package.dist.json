@@ -1,0 +1,21 @@
+{
+   "name": "@ai-lion/ipipe",
+   "version": "2.0.7",
+   "main": "dist/lib.js",
+   "license": "MIT",
+   "bin": {
+      "ipipe": "dist/cli.js",
+      "ipipe-check": "dist/cli-check.js"
+   },
+   "types": "dist/src/index.d.ts",
+   "engines": {
+      "node": ">=12.0.0"
+   },
+   "scripts": {},
+   "dependencies": {
+      "@ai-lion/ipeer": "^1.3.17"
+   },
+   "devDependencies": {},
+   "description": "IPIPE project, include http,socks5 protocol",
+   "files": ["dist", "package.json", "README.md"]
+}

@@ -7,7 +7,7 @@ const path = require("path");
 const isProduction = process.env.NODE_ENV == "production";
 const webpack = require("webpack");
 const TerserPlugin = require("terser-webpack-plugin");
-//const CopyPlugin = require("copy-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 //const { createCompleted } = require("./src/utils/build.dist");
 //createCompleted();
@@ -27,7 +27,7 @@ const config = {
       },
    },
    output: {
-      path: path.resolve(__dirname, "dist"),
+      path: path.resolve(__dirname, "publish/dist"),
       clean: {
          keep: /\/ignored\//, // 保留 'ignored/dir' 下的静态资源
       },
@@ -46,7 +46,7 @@ const config = {
    },
    target: "node",
    externals: {
-      "transparent-proxy": "transparent-proxy",
+      "@ai-lion/ipeer": "@ai-lion/ipeer",
    },
    devServer: {
       open: false,
@@ -99,14 +99,15 @@ const config = {
       //new VueLoaderPlugin(),
       // Add your plugins here
       // Learn more about plugins from https://webpack.js.org/configuration/plugins/
-      /*   new CopyPlugin({
+      new CopyPlugin({
          patterns: [
-          
             //{ from: path.resolve("node_modules/@ai-lion/liondb/dist/prebuilds"), to: "service/prebuilds" },
-            //{ from: path.resolve("package.dist.json"), to: "package.json" },
+            { from: path.resolve("package.dist.json"), to: "../package.json" },
+            { from: path.resolve("README.md"), to: "../" },
             //node_modules\node-analyzer\lib\dict
+            //{ from: "node_modules/@ai-lion/ipeer/dist/wrtc", to: "wrtc" },
          ],
-      }), */
+      }),
       //new webpack.BannerPlugin({
       //   banner: "/*! https://github.com/ai-lion/liondb */",
       //   raw: true,
