@@ -16,9 +16,9 @@ export default class WrtcConnect extends Connect {
       super({
          protocol: "wrtc",
       });
-      this.timeout = 10 * 60 * 1000;
+      this.timeout = 30 * 60 * 1000;
    }
-   public setTimeout(ttl: number = 10 * 60 * 1000) {
+   public setTimeout(ttl: number = 30 * 60 * 1000) {
       if (ttl > 0) this.timeout = ttl;
    }
    /**
@@ -96,11 +96,12 @@ export default class WrtcConnect extends Connect {
          };
          const connect = () => {
             let socket = xpeer.connect(peerId, async () => {
+               pid && clearTimeout(pid);
                onConnect(new SSocket(socket));
             });
             pid = setTimeout(() => isTimeout && socket.emit("timeout"), 60 * 1000);
             socket.once("timeout", () => {
-               let error = new Error(`WRTC/1.0 500 timeout[${this.timeout}]`);
+               let error = new Error(`WRTC/1.0 500 timeout`);
                socket.emit("error", error);
                this.emit("timeout");
             });

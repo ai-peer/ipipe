@@ -17,7 +17,7 @@ export class Multiplexing {
     * 定期检测连接
     * @param timeout 周期时间, 默认10分钟,单位毫秒
     */
-   check(timeout: number = 10 * 60 * 1000) {
+   check(timeout: number = 30 * 60 * 1000) {
       this.checkPid && clearInterval(this.checkPid);
       this.checkPid = setInterval(() => {
          this.pool.forEach((list, key) => {
@@ -50,8 +50,9 @@ export class Multiplexing {
       if (!!list.find((v) => v.socket.id == socket.id)) return;
 
       /** */
-      if (list.length > 32) {
-         return socket.destroy();
+      if (list.length > 48) {
+         socket.destroy();
+         return;
       }
 
       socket.once("close", (real) => {
