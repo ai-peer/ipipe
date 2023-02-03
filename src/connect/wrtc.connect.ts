@@ -106,6 +106,7 @@ export default class WrtcConnect extends Connect {
                this.emit("timeout");
             });
             socket.once("error", (err) => {
+               socket.destroy();
                this.emit("error", err);
                callback(err, new SSocket(socket), { host, port });
                resolve(new SSocket(socket));

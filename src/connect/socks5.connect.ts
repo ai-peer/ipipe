@@ -113,8 +113,8 @@ export default class Socks5Connect extends Connect {
             this.emit("timeout");
             //callback(error, new SSocket(socket));
          });
-         socket.on("error", (err) => {
-            socket.destroy(err);
+         socket.once("error", (err) => {
+            socket.destroy();
             this.emit("error", err);
             callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
