@@ -244,11 +244,13 @@ export default class SSocket extends EventEmitter<EventType> {
                   this.stream.emit("heartbeat", target);
                   return;
                case CMD.CLOSE: //关闭连接指令
+                  //console.info("close--", this.type, this.protocol, target.type, target.protocol);
                   if (this.type == "accept" && this.protocol != "wrtc") {
                      this.destroy();
                      return;
                   }
                   if (this.type == "connect" && this.protocol == "wrtc") {
+                     this.emit("close", false);
                      this.clear();
                   }
                   if (target.protocol == "direct") {

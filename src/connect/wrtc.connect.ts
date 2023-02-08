@@ -88,6 +88,20 @@ export default class WrtcConnect extends Connect {
                   });
                }
                ssocket.heartbeat();
+               ssocket.once("close", (real) => {
+                  if (real == false) {
+                     multi.add(ssocket);
+                  }
+               });
+               ssocket.on("data", (chunk: Buffer) => {
+                  if (chunk.byteLength == 1 || chunk.length == 1) {
+                     switch (chunk[0]) {
+                        case CMD.CLOSE:
+                           ssocket.emit("close", false);
+                           return;
+                     }
+                  }
+               });
                callback(checked ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
@@ -99,24 +113,24 @@ export default class WrtcConnect extends Connect {
                pid && clearTimeout(pid);
                onConnect(new SSocket(socket));
             });
-            pid = setTimeout(() => isTimeout && socket.emit("timeout"), 60 * 1000);
+            pid = setTimeout(() => isTimeout && socket.destroy(new Error("timeout")), 30 * 1000);
             socket.once("timeout", () => {
                let error = new Error(`WRTC/1.0 500 timeout`);
                socket.emit("error", error);
                this.emit("timeout");
             });
             socket.once("error", (err) => {
-               socket.destroy();
+               socket.destroy(err);
                this.emit("error", err);
                callback(err, new SSocket(socket), { host, port });
                resolve(new SSocket(socket));
             });
          };
          let ssocket = multi.get(peerId, "");
+         console.info("get xxx", peerId, !!ssocket);
          if (ssocket) {
             await ssocket.write(Buffer.from([CMD.RESET]));
             let cmds = await ssocket.read(1000);
-            //console.info("receive", cmds.byteLength, cmds[0]);
             if (cmds.byteLength == 1 && cmds[0] == CMD.RESPONSE) {
                onConnect(ssocket);
             } else {
