@@ -127,7 +127,6 @@ export default class WrtcConnect extends Connect {
             });
          };
          let ssocket = multi.get(peerId, "");
-         console.info("get xxx", peerId, !!ssocket);
          if (ssocket) {
             await ssocket.write(Buffer.from([CMD.RESET]));
             let cmds = await ssocket.read(1000);

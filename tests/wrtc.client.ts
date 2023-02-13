@@ -1,22 +1,51 @@
-import IPipe, { WrtcAccept, WrtcConnect, SSocket } from "../src";
+import IPipe, { WrtcAccept, WrtcConnect, SSocket, password, Cipher } from "../src";
 import XPeer from "../src/core/xpeer";
 import fetch from "../src/utils/fetch";
 import fs from "fs";
+const passwordSecret =
+   "g35S152AORUWePWZjezQ8UVZXV5nbTxCkW87ZU+L6gVULjFTL+MP8vgJjBnvhwZM3f0HRhxAECVEWjOjjvuo0SIsV6nZcdQTNHJL/nVb4u2r3qLLSdXIF8A1iipDevmbhYTWrGinuJ7P8xvNJFDwlz9VPQA3zEEDEh8RDSlff6+GpcKcXLtuiWTT0oLkGpS+9ms+abeBv2H8SFafsK7EyfR0DCAtfL2qjxR94bzaYpAeOMGWC2pYumN36+6gyk5NZv8YxukmBArgrWwd36EBCA6kx9sjYLM2JzDOK5XmsXkCe9zlmMW12IhzUej693C0MiG2pnbDsjqSSii5R5qT5w==";
+const cipherPassword = Cipher.createCipher(passwordSecret);
+
+console.info("new sec", password.generateRandomPassword());
 process.on("uncaughtException", (err) => {});
 process.on("unhandledRejection", (err) => {});
+async function getProxys(): Promise<{ peer: string; username: string; password: string }[]> {
+   let list = await fetch({ url: "https://p0.iee.one/api/client/res/aad?apikey=ivideos&hasIp=true" }) //
+      .then((res) => res.json())
+      .then((res) => res.data?.list || []);
+   list = list.map((v) => {
+      return {
+         peer: v.id,
+         username: v.username,
+         password: cipherPassword.decode(Buffer.from(v.password, "base64"), v.cf).toString(),
+      };
+   });
+   console.info("list", list.length);
+   return list;
+}
 async function createServer() {
    const ipipe = new IPipe({
       peerId: "accept-goxxx",
       isDirect: false,
    });
    //ipeer.registerAccept(new WrtcAccept());
-   ipipe.registerProxy({
+   let list = await getProxys();
+   list.forEach((p) => {
+      ipipe.registerProxy({
+         protocol: "wrtc",
+         host: p.peer,
+         port: 0,
+         username: "2DOlUv4R",
+         password: "F7wwnWXF",
+      });
+   });
+   /*    ipipe.registerProxy({
       protocol: "wrtc",
       host: "414522daa2e5b3a22477f032f949d731",
       port: 0,
       username: "2DOlUv4R",
       password: "F7wwnWXF",
-   });
+   }); */
    ipipe.on("auth", (data) => {
       /*    if (data.checked) {
          console.info("event log auth", data.checked, data.type);
@@ -108,7 +137,7 @@ async function test() {
             socket.on("data", (data) => {
                if (data.byteLength <= 1) return;
                count += data.byteLength;
-               //console.info("chunk size=", data.length);
+               //console.info("chunk size=", Date.now(), data.length);
                outData.push(data);
             });
             socket.once("close", () => {
@@ -260,6 +289,7 @@ async function testWebSocket() {
       await test();
       console.info("req ttl", Date.now() - st);
    }
+
    console.info("===========edd============");
 
    // process.exit(0);
