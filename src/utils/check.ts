@@ -37,6 +37,7 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
          if (err) return resolve(false);
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
+         console.info("receive", connect.protocol, data.toString());
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
             console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);

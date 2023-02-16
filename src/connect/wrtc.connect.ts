@@ -87,7 +87,6 @@ export default class WrtcConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               ssocket.heartbeat();
                let pidx = setTimeout(() => ssocket.destroy(new Error("timeoutx")), 5000);
                ssocket.once("close", (real) => {
                   if (real == false) {
