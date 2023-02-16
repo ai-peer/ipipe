@@ -261,6 +261,9 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             //console.info("ccxxxxx",err, connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
+               if(connect?.protocol == "wrtc"){
+                  this.removeProxy(proxy.host, proxy.port);
+               }
                //console.info("error===", this.proxys.length, err.toString(), err instanceof Error, connect?.protocol, isCorrection);
                if (connect?.protocol == "direct") {
                   isConnect = true;

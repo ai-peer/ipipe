@@ -36,7 +36,6 @@ export default class WrtcConnect extends Connect {
          let isTimeout = true,
             pid;
          let startTime = Date.now();
-         //console.info("connect wrtc proxy", host + ":" + port, "proxy", peerId);
          const xpeer = XPeer.instance;
          const onConnect = async (ssocket: SSocket) => {
             try {
@@ -65,7 +64,7 @@ export default class WrtcConnect extends Connect {
                //console.info("first send connectChunk", usePassword, connectChunk.toString());
                await ssocket.write(connectChunk);
                //console.info("write 1");
-               let receiveChunk = await ssocket.read(1000);
+               let receiveChunk = await ssocket.read(3000);
                if (receiveChunk.byteLength < 1) {
                   callback(new Error("connect ready nodata"), ssocket, { host, port });
                   return;
@@ -88,6 +87,7 @@ export default class WrtcConnect extends Connect {
                   });
                }
                ssocket.heartbeat();
+               let pidx = setTimeout(() => ssocket.destroy(new Error("timeoutx")), 5000);
                ssocket.once("close", (real) => {
                   if (real == false) {
                      multi.add(ssocket);
@@ -101,6 +101,7 @@ export default class WrtcConnect extends Connect {
                            return;
                      }
                   }
+                  clearTimeout(pidx);
                });
                callback(checked ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
@@ -108,12 +109,16 @@ export default class WrtcConnect extends Connect {
                ssocket.emit("error", err);
             }
          };
+
          const connect = () => {
             let socket = xpeer.connect(peerId, async () => {
                pid && clearTimeout(pid);
                onConnect(new SSocket(socket));
             });
-            pid = setTimeout(() => isTimeout && socket.destroy(new Error("timeout")), 30 * 1000);
+            pid = setTimeout(() => {
+               callback(new Error("timeout0"), new SSocket(socket), { host, port });
+               resolve(new SSocket(socket));
+            }, 5 * 1000);
             socket.once("timeout", () => {
                let error = new Error(`WRTC/1.0 500 timeout`);
                socket.emit("error", error);
@@ -129,19 +134,27 @@ export default class WrtcConnect extends Connect {
          let ssocket = multi.get(peerId, "");
          if (ssocket) {
             await ssocket.write(Buffer.from([CMD.RESET]));
-            let cmds = await ssocket.read(1000);
-            if (cmds.byteLength == 1 && cmds[0] == CMD.RESPONSE) {
-               onConnect(ssocket);
-            } else {
+            let isConnect = false;
+            for (let i = 0; i < 10; i++) {
+               let cmds = await ssocket.read(100);
+               if (cmds.byteLength < 1) continue;
+               if (cmds.byteLength == 1) {
+                  if (cmds[0] == CMD.RESPONSE) {
+                     onConnect(ssocket);
+                     isConnect = true;
+                     return;
+                  }
+                  continue;
+               }
+               break;
+            }
+            if (!isConnect) {
+               ssocket.destroy();
                connect();
             }
          } else {
             connect();
          }
-
-         /*     socket.on("close", (err) => {
-            console.info("==========close======")
-         }); */
       });
    }
 }

@@ -9,18 +9,26 @@ const cipherPassword = Cipher.createCipher(passwordSecret);
 console.info("new sec", password.generateRandomPassword());
 process.on("uncaughtException", (err) => {});
 process.on("unhandledRejection", (err) => {});
-async function getProxys(): Promise<{ peer: string; username: string; password: string }[]> {
-   let list = await fetch({ url: "https://p0.iee.one/api/client/res/aad?apikey=ivideos&hasIp=true" }) //
+type Proxy = { peer: string; username: string; password: string; ip: string; country: string };
+const proxyList: Proxy[] = [];
+async function getProxys(): Promise<Proxy[]> {
+   if (proxyList.length > 0) return proxyList.sort((a, b) => (Math.floor(Math.random() * 2) == 0 ? -1 : 1));
+   let list = await fetch({ url: "https://p0.iee.one/api/client/res/xxx?apikey=ivideos&hasIp=true" }) //
       .then((res) => res.json())
       .then((res) => res.data?.list || []);
-   list = list.map((v) => {
-      return {
-         peer: v.id,
-         username: v.username,
-         password: cipherPassword.decode(Buffer.from(v.password, "base64"), v.cf).toString(),
-      };
-   });
-   console.info("list", list.length);
+   list = list
+      .map((v) => {
+         return {
+            peer: v.id,
+            username: v.username,
+            ip: v.id4,
+            country: v.country,
+            password: cipherPassword.decode(Buffer.from(v.password, "base64"), v.cf).toString(),
+         };
+      })
+      .filter((v) => /^[a-z0-9]+$/.test(v.password));
+   proxyList.push(...list);
+   //console.info("list", list.map((v) => v.peer + ":" + v.username + ":" + v.password+":"+v.ip).join("\r\n"));
    return list;
 }
 async function createServer() {
@@ -35,8 +43,8 @@ async function createServer() {
          protocol: "wrtc",
          host: p.peer,
          port: 0,
-         username: "2DOlUv4R",
-         password: "F7wwnWXF",
+         username: p.username,
+         password: p.password,
       });
    });
    /*    ipipe.registerProxy({
@@ -47,11 +55,11 @@ async function createServer() {
       password: "F7wwnWXF",
    }); */
    ipipe.on("auth", (data) => {
-      /*    if (data.checked) {
-         console.info("event log auth", data.checked, data.type);
+      if (data.checked) {
+         //console.info("event log auth", data.checked, data.type);
       } else {
          console.info("event log auth", data);
-      } */
+      }
    });
    ipipe.on("request", (data) => console.info("event log request", data.status, data.host, data.ttl));
    ipipe.on("error", (err) => console.info("event log error", err.message));
@@ -83,10 +91,10 @@ async function test1(count = 0) {
       proxy: {
          host: "127.0.0.1",
          port: 1082,
-         auth: {
+         /* auth: {
             username: "admin",
             password: "123",
-         },
+         }, */
       },
    }).catch((err) => {
       return {
@@ -98,38 +106,49 @@ async function test1(count = 0) {
    console.info("log res===", res.status, text.length, text, "ttl=" + (Date.now() - startTime));
 }
 async function test() {
-   new XPeer();
-   const info = new URL("https://www.qq.com/"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
+   const info = new URL("https://ifconfig.me/ip"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
 
    const connect = new WrtcConnect();
    let startTime = Date.now();
-   connect.on("error", () => {});
-   connect.once("close", () => console.info("close"));
-   // connect.on("auth", (data) => console.info("auth", data));
+   connect.on("error", (err) => console.info("error====", err.message));
+   connect.on("close", () => console.info("close"));
+   connect.on("auth", (data) => data.checked || console.info("event log auth", data));
+   connect.on("timeout", () => console.info("event log timeout"));
+   let list = await getProxys();
+   //ca86dbe3b547bd1783154614de9968cb:14de9968:17831546
+   /*    let proxy = {
+      peer: "b9e23bc8aee6224af2bf92f90c4c495b",
+      username: "f90c4c49",
+      password: "4af2bf92",
+   }; */
+   let proxy = list[0];
+   console.info("user proxy", proxy.country + ":" + proxy.ip + "@" + proxy.username + ":" + proxy.password);
    return new Promise(async (resolve) => {
       connect.connect(
          info.hostname,
          80,
          {
             protocol: "wrtc",
-            host: "924c67c05e2271ad3fb91a1f8a7ebebc",
+            host: proxy.peer,
             port: 0,
-            username: "3ptDx1gf",
-            password: "1EgKHIfR",
+            username: proxy.username,
+            password: proxy.password,
          },
          async (err, socket: SSocket) => {
+            if (err) {
+               console.info("connect error==", err["message"] || err.toString() || "");
+               resolve(Buffer.alloc(0));
+               return;
+            }
             console.info("connect ttl", Date.now() - startTime);
             let list: string[] = [
                `GET ${info.href} HTTP/1.1`,
-               "Accept: application/json, text/plain, */*",
-               "User-Agent: axios/0.25.0",
+               "accept: application/json, text/plain, */*",
+               "user-Agent: axios/0.25.0",
                `host: ${info.hostname}`,
-               "Connection: close",
+               "connection: close",
                "\r\n",
-               //`{"mid": "fa96b01a8a21adc6955c5f6a10ec84d5"}`
             ];
-            //await tstream.write(socket, list.join("\r\n"));
-            //console.info("send xx", list.join("\r\n"));
 
             let count = 0;
             let isFirst = true;
@@ -137,7 +156,7 @@ async function test() {
             socket.on("data", (data) => {
                if (data.byteLength <= 1) return;
                count += data.byteLength;
-               //console.info("chunk size=", Date.now(), data.length);
+               //console.info("receive ", Date.now(), data.length, data.toString());
                outData.push(data);
             });
             socket.once("close", () => {
@@ -153,19 +172,11 @@ async function test() {
                      );
                   }) + 4;
                let outxx = out.slice(endIdx);
-               console.info("content-length", count, outxx.byteLength);
-               resolve(undefined);
+               console.info("content-length", count, outxx.byteLength, outxx.toString());
+               resolve(out);
             });
-
+            //console.info("req", list.join("\r\n"));
             await socket.write(list.join("\r\n"));
-            //socket.write(`{"mid": "fa96b01a8a21adc6955c5f6a10ec84d5"}`);
-
-            //let chunk = await tstream.read(socket);
-            //let w = fs.createWriteStream("/a.ts");
-
-            //let chunk = await socket.read(15 * 1000);
-            //console.info("get res log", chunk.length, chunk.slice(0, 1024).toString());
-            //socket.destroy();
          },
       );
    });
@@ -278,13 +289,15 @@ async function testWebSocket() {
 }
 
 (async () => {
-   await createServer();
+   new XPeer();
+   await wait(200);
+   //await createServer();
    /*    for (let i = 0; i < 1; i++) {
       await test1(i + 1);
       await wait(1 * 1000);
    } */
    //await testWebSocket();
-   for (let i = 0; i < 3; i++) {
+   for (let i = 0; i < 6; i++) {
       let st = Date.now();
       await test();
       console.info("req ttl", Date.now() - st);
