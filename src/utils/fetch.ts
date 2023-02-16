@@ -1,7 +1,7 @@
 import axios from "axios";
 import HttpsProxyAgent from "https-proxy-agent";
 
-export default function fetch(options: { url: string; [key: string]: any }) {
+export function fetch(options: { url: string; [key: string]: any }) {
    if (options.proxy) {
       if (/^https:/i.test(options.url)) {
          var agent = HttpsProxyAgent(`http://${options.proxy.host}:${options.proxy.port}`);
@@ -29,3 +29,4 @@ export default function fetch(options: { url: string; [key: string]: any }) {
       };
    });
 }
+export default fetch;

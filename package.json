@@ -27,7 +27,7 @@
       "format:js": " prettier --write   \"src/**/*.ts\"  "
    },
    "dependencies": {
-      "@ai-lion/ipeer": "^1.4.16",
+      "@ai-lion/ipeer": "^1.4.17",
       "eventemitter3": "^5.0.0"
    },
    "devDependencies": {

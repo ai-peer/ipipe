@@ -37,6 +37,7 @@ export default class WrtcConnect extends Connect {
             pid;
          let startTime = Date.now();
          const xpeer = XPeer.instance;
+
          const onConnect = async (ssocket: SSocket) => {
             try {
                isTimeout = false;
@@ -73,7 +74,7 @@ export default class WrtcConnect extends Connect {
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败
                //console.info("receiveChunk", statusCode, checked, usePassword, receiveChunk.toString());
-
+   
                if (usePassword || statusCode == "407") {
                   this.emit("auth", {
                      checked: checked,
@@ -115,12 +116,9 @@ export default class WrtcConnect extends Connect {
                pid && clearTimeout(pid);
                onConnect(new SSocket(socket));
             });
-            pid = setTimeout(() => {
-               callback(new Error("timeout0"), new SSocket(socket), { host, port });
-               resolve(new SSocket(socket));
-            }, 5 * 1000);
+            pid = setTimeout(() => this.emit("timeout"), 10 * 1000);
             socket.once("timeout", () => {
-               let error = new Error(`WRTC/1.0 500 timeout`);
+               let error = new Error(`WRTC/1.0 500 timeout0`);
                socket.emit("error", error);
                this.emit("timeout");
             });
@@ -131,29 +129,35 @@ export default class WrtcConnect extends Connect {
                resolve(new SSocket(socket));
             });
          };
-         let ssocket = multi.get(peerId, "");
-         if (ssocket) {
-            await ssocket.write(Buffer.from([CMD.RESET]));
-            let isConnect = false;
-            for (let i = 0; i < 10; i++) {
-               let cmds = await ssocket.read(100);
-               if (cmds.byteLength < 1) continue;
-               if (cmds.byteLength == 1) {
-                  if (cmds[0] == CMD.RESPONSE) {
-                     onConnect(ssocket);
-                     isConnect = true;
-                     return;
+         if (xpeer.open) {
+            let ssocket = multi.get(peerId, "");
+            if (ssocket) {
+               await ssocket.write(Buffer.from([CMD.RESET]));
+               let isConnect = false;
+               for (let i = 0; i < 10; i++) {
+                  let cmds = await ssocket.read(100);
+                  if (cmds.byteLength < 1) continue;
+                  if (cmds.byteLength == 1) {
+                     if (cmds[0] == CMD.RESPONSE) {
+                        onConnect(ssocket);
+                        isConnect = true;
+                        return;
+                     }
+                     continue;
                   }
-                  continue;
+                  break;
                }
-               break;
-            }
-            if (!isConnect) {
-               ssocket.destroy();
+               if (!isConnect) {
+                  ssocket.destroy();
+                  connect();
+               }
+            } else {
                connect();
             }
          } else {
-            connect();
+            xpeer.once("open", () => {
+               connect();
+            });
          }
       });
    }

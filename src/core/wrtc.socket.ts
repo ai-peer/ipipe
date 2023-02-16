@@ -109,6 +109,10 @@ export default class WrtcSocket extends net.Socket {
          //configurable: false,
       });
    }
+   destroy(err?: Error | undefined) {
+      this.socket.destroy(err);
+      return this;
+   }
 }
 class Trans extends Transform {
    constructor(readonly socket: SerialSocket) {

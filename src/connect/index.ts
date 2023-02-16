@@ -15,6 +15,7 @@ import SSocket from "../core/ssocket";
 import * as check from "../utils/check";
 import { wait } from "../utils";
 import logger from "../core/logger";
+import XPeer from "../core/xpeer";
 
 const isDev = process.env.NODE_ENV == "development";
 
@@ -136,6 +137,14 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          proxy = existProxy;
       } else {
          this.proxys.push(proxy);
+         /*        if (proxy.protocol == "wrtc") {
+            let connect: Connect | undefined = this.connects.get(proxy.protocol);
+            connect?.connect("p0.iee.one", 80, proxy, (err, ssocket) => {
+               if (err) {
+                  return this.removeProxy(proxy.host, proxy.port);
+               }
+            });
+         } */
       }
       return true;
    }
@@ -257,19 +266,26 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       //是否可以纠错
       let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
       let startTime = Date.now();
+      let ttl = connect.protocol == "wrtc" ? 10 * 1000 : 5 * 1000;
+      let pid = setTimeout(() => {
+         localSocket.destroy(new Error("connect timeout"));
+      }, ttl);
       await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket) => {
+            clearTimeout(pid);
             //console.info("ccxxxxx",err, connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
             //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
             if (err) {
-               if(connect?.protocol == "wrtc"){
+               if (connect?.protocol == "wrtc") {
                   this.removeProxy(proxy.host, proxy.port);
+                  localSocket.destroy();
+                  return;
                }
                //console.info("error===", this.proxys.length, err.toString(), err instanceof Error, connect?.protocol, isCorrection);
                if (connect?.protocol == "direct") {
                   isConnect = true;
                   err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
-               } else if (!isCorrection) {
+               } else {
                   err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
                }
                return;
@@ -299,7 +315,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             });
             chunk = chunk.byteLength <= 1 ? Buffer.alloc(0) : chunk;
             //if (recChunk) localSocket.write(recChunk);
-            //console.info("request", host + ":" + port, chunk.byteLength);
+            //console.info("request", host + ":" + port, chunk.byteLength, chunk.toString());
             connect?.pipe(localSocket, proxySocket, chunk);
             this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
          })

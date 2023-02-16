@@ -13,9 +13,9 @@ export type XPeerEvent = {
 export default class XPeer extends EventEmitter<XPeerEvent> {
    private static ipeer: IPeer;
    private static _instance: XPeer;
-   constructor(id?: string) {
+   constructor(readonly options: { id?: string | undefined; username: string; password: string }) {
       super();
-      id = id || FixedPeerId;
+      let id = options.id || FixedPeerId;
       try {
          this.init(id);
       } catch (err) {
@@ -27,15 +27,22 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
    static get instance(): XPeer {
       return XPeer._instance;
    }
+   get open() {
+      return XPeer.ipeer.open;
+   }
    private init(peerId: string) {
       if (XPeer._instance) {
          //throw new Error("xpeer is exist ipeer, no create new ipeer");
          return;
       }
+      let up = utils.md5("9423GH$5keqwlr-" + peerId);
       const ipeer = new IPeer(peerId, {
          token: utils.md5(peerId + "pee" + "-" + "rx7430x16A@xa").substring(8, 24),
          handshakeMode: "all",
+         username: this.options.username,
+         password: this.options.password,
       });
+      ipeer.acceptFactor.accepts.forEach((v, key) => ipeer.acceptFactor.accepts.delete(key));
       XPeer.ipeer = ipeer;
       ipeer.on("open", () => {
          //console.info("open peer", peerId);
@@ -57,10 +64,14 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
    }
    connect(id: string, callback: () => void): WrtcSocket {
       let socket = XPeer.ipeer.connect(id);
-      socket.on("error", () => {});
       let seSocket = new SerialSocket(socket);
       let ssocket = new WrtcSocket(seSocket);
-      socket.once("open", callback);
+      socket.once("open", () => {
+         callback();
+      });
+      ssocket.once("error", (err) => {
+         socket.destroy(err);
+      });
       return ssocket;
    }
 }

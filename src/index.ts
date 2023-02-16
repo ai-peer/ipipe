@@ -87,7 +87,7 @@ export default class IPipe extends EventEmitter<EventName> {
    constructor(options?: Options) {
       super();
       options = Object.assign({}, options);
-      this.xpeer = new XPeer(options.peerId);
+      this.xpeer = new XPeer({ id: options.peerId, username: options.username, password: options.password });
       this.acceptFactor = new AcceptFactor(options);
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);

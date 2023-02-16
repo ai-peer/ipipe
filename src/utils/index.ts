@@ -1,9 +1,27 @@
 import crypto from "crypto";
+export { fetch } from "./fetch";
 
 export async function wait(ttl: number): Promise<void> {
    return new Promise((resolve) => {
       setTimeout(() => resolve(), ttl);
    });
+}
+const Dicts: string[] = [];
+(() => {
+   // init Dicts
+   // 0-9
+   for (let i = 48; i <= 57; i++) Dicts.push(String.fromCharCode(i));
+   // a-z
+   for (let i = 97; i <= 122; i++) Dicts.push(String.fromCharCode(i));
+   // A-Z
+   for (let i = 65; i <= 90; i++) Dicts.push(String.fromCharCode(i));
+})();
+export function buildSN(size: number = 6) {
+   let vs: string[] = [];
+   for (let i = 0; i < size; i++) {
+      vs.push(Dicts[Math.floor(Math.random() * Dicts.length)]);
+   }
+   return vs.join("");
 }
 /**
  * md5

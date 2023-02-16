@@ -55,7 +55,11 @@ export default class SSocket extends EventEmitter<EventType> {
    private initEvent() {
       this.socket.once("connect", () => this.emit("connect", this));
       this.socket.once("error", (err) => this.emit("error", err));
-      this.socket.on("data", (chunk) => this.emit("data", chunk));
+      this.socket.on("data", (chunk) => {
+         chunk = this.decode(chunk);
+         if (chunk.byteLength <= 1) return;
+         this.emit("data", chunk);
+      });
       this.socket.once("close", () => this.emit("close", true));
       this.socket.once("timeout", () => this.emit("error", new Error("timeout")));
       this.stream.on("heartbeat", (ssocket) => {
@@ -135,22 +139,23 @@ export default class SSocket extends EventEmitter<EventType> {
    setTimeout(ttl: number = 0) {
       this.socket.setTimeout(ttl);
    }
-   on(name: "connect" | "data" | "close" | "error" | "read" | "write" | "reset" | "responseCMD", listener: any) {
-      if (name == "reset") {
+
+   on<T extends EventEmitter.EventNames<EventType>>(event: T, fn: EventEmitter.EventListener<EventType, T>) {
+      if (event == "reset") {
          this.removeAllListeners("reset");
-         this.onResetHandle = listener;
+         this.onResetHandle = <any>fn;
          return this;
       }
-      super.on(name, listener);
+      super.on(event, fn);
       return this;
    }
-   once(name: "connect" | "data" | "close" | "error" | "read" | "write" | "reset" | "responseCMD", listener: any) {
-      if (name == "reset") {
+   once<T extends EventEmitter.EventNames<EventType>>(event: T, fn: EventEmitter.EventListener<EventType, T>) {
+      if (event == "reset") {
          this.removeAllListeners("reset");
-         this.onResetHandle = listener;
+         this.onResetHandle = <any>fn;
          return this;
       }
-      super.once(name, listener);
+      super.once(event, fn);
       return this;
    }
    /*    on(name: string, listener: (...args: any[]) => void) {
@@ -189,6 +194,7 @@ export default class SSocket extends EventEmitter<EventType> {
    }
    async read(timeout: number = 5000): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);
+      if (chunk.byteLength == 1) return this.read(timeout);
       /*     if (this.cipher) {
          chunk = this.cipher.decode(chunk, this.face);
       } */

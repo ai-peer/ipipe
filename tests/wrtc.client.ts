@@ -116,12 +116,13 @@ async function test() {
    connect.on("timeout", () => console.info("event log timeout"));
    let list = await getProxys();
    //ca86dbe3b547bd1783154614de9968cb:14de9968:17831546
+
+   let proxy = list[0];
    /*    let proxy = {
       peer: "b9e23bc8aee6224af2bf92f90c4c495b",
       username: "f90c4c49",
       password: "4af2bf92",
    }; */
-   let proxy = list[0];
    console.info("user proxy", proxy.country + ":" + proxy.ip + "@" + proxy.username + ":" + proxy.password);
    return new Promise(async (resolve) => {
       connect.connect(
@@ -183,7 +184,7 @@ async function test() {
 }
 
 async function test2() {
-   new XPeer();
+   new XPeer({username: "admin", password: "abcd"});
    const info = new URL("http://ifconfig.me/ip"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
 
    const connect = new WrtcConnect();
@@ -241,7 +242,7 @@ async function test2() {
    );
 }
 async function testWebSocket() {
-   new XPeer();
+   new XPeer({username: "admin", password: "123"});
    const info = new URL("wss://p0.iee.one/peerjs?key=peerjs&username=admin&password=123456&id=x-server2&token=c81gqwjsk6&version=1.4.6");
 
    const connect = new WrtcConnect();
@@ -289,7 +290,7 @@ async function testWebSocket() {
 }
 
 (async () => {
-   new XPeer();
+   new XPeer({ id: "xxxx", username: "admin", password: "123" });
    await wait(200);
    //await createServer();
    /*    for (let i = 0; i < 1; i++) {
