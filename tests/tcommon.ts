@@ -103,7 +103,7 @@ export async function createProxyServer(port: number = 4321) {
       console.info("out", data);
    }); */
    /** 中转代理 */
-/*    let forwardProxy = new IPipe({
+   /*    let forwardProxy = new IPipe({
       isDirect: false,
       auth: async ({ username, password, args, protocol }) => {
          console.info("check forward user", username, password, args, protocol);
@@ -144,6 +144,8 @@ export async function createProxyServer2(port: number = 4321) {
    let directProxy = new IPipe({
       isDirect: false,
       peerId: "demoxxx",
+      username: "admin",
+      password: "123",
       auth: async ({ username, password }) => {
          //console.info("check user", username, password);
          return username == "admin" && password == "123";

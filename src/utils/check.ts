@@ -128,8 +128,8 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
          let code = data.slice(0, 12).split(" ")[1];
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
-            console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
-            console.info(data.slice(0, 128));
+            //console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
+            //console.info(data.slice(0, 128));
          }
          resolve(checked);
       });
