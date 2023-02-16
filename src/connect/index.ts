@@ -133,6 +133,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
          existProxy.forward = proxy.forward;
          existProxy.checked = proxy.checked;
          existProxy.mode = proxy.mode;
+         proxy = existProxy;
       } else {
          this.proxys.push(proxy);
       }
