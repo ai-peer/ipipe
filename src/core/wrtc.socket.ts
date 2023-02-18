@@ -113,9 +113,11 @@ export default class WrtcSocket extends net.Socket {
    }
    destroy(err?: Error | undefined) {
       if (!this.socket.open) return this;
-      console.info("close===============", Date.now(), 1 == 1);
-      //if (1 == 1) throw new Error("xafdadf");
-      this.socket.destroy(err);
+      try {
+         this.socket.destroy(err);
+      } catch (err) {
+         console.warn("destroy error", err);
+      }
       return this;
    }
 }

@@ -42,6 +42,6 @@ function testSocks5() {
 }
 (async () => {
    //await com.createProxyServer(proxy.port);
-   await testSocks5();
-   //await testWrtc();
+   //await testSocks5();
+   await testWrtc();
 })();
