@@ -1,7 +1,9 @@
 import * as com from "./tcommon";
 import XPeer from "../src/core/xpeer";
+process.on("uncaughtException", (err)=>console.info("err", err));
+process.on("unhandledRejection", (err)=>console.info("err1", err));
 
-new XPeer({ id: "localdemo", username: "admin", password: "123" });
+new XPeer({ id: "localdemo" });
 let proxy = {
    host: "127.0.0.1",
    port: 1082,
@@ -40,6 +42,6 @@ function testSocks5() {
 }
 (async () => {
    //await com.createProxyServer(proxy.port);
-
-   await testSocks5();
+   //await testSocks5();
+   await testWrtc();
 })();

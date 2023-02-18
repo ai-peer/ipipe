@@ -33,6 +33,11 @@ export type EventName = {
    auth: (data: AuthData) => void;
    error: (err: Error) => void;
    open: () => void;
+   close: (data: { id: string; host: string; port: number }) => void;
+   /**
+    * 连接代理/目标socket事件, 通知 连接状态
+    */
+   connect: (data: { status: boolean; ttl: number; error?: any; host: string; port: number; protocol: string }) => void;
 };
 /**
  * 连接代理的封装类
@@ -268,13 +273,26 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       let startTime = Date.now();
       let ttl = connect.protocol == "wrtc" ? 10 * 1000 : 5 * 1000;
       let pid = setTimeout(() => {
-         localSocket.destroy(new Error("connect timeout"));
+         let error = new Error("connect timeout");
+         this.emit("connect", {
+            status: false,
+            ttl: ttl,
+            error: error, //
+            host: proxy.host,
+            port: proxy.port,
+            protocol: proxy.protocol,
+         });
+         localSocket.destroy(error);
+         this?.emit("close", { id: "", host: proxy.host, port: proxy.port });
       }, ttl);
+
       await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket) => {
+            this.emit("connect", { status: !err, ttl: Date.now() - startTime, error: err, host: proxy.host, port: proxy.port, protocol: proxy.protocol });
             clearTimeout(pid);
-            //console.info("ccxxxxx",err, connect?.protocol, host+":"+port, proxy, proxySocket.socket.remotePort, proxySocket.socket.localPort, err?.toString());
-            //if (err) return !isCorrection ? (err instanceof Error ? localSocket.destroy(err) : localSocket.end(recChunk)) : undefined;
+            proxySocket.once("close", () => {
+               this?.emit("close", { id: proxySocket.id, host: proxy.host, port: proxy.port });
+            });
             if (err) {
                if (connect?.protocol == "wrtc") {
                   this.removeProxy(proxy.host, proxy.port);
@@ -286,23 +304,26 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                   isConnect = true;
                   err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
                } else {
+                  console.info("xxx des");
                   err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
                }
                return;
             }
             this.emit("open");
             isConnect = true;
-            localSocket.on("error", (err) => {
+            localSocket.once("error", (err) => {
                logger.debug("error local", err.message);
                localSocket.destroy();
             });
             localSocket.once("close", (isReal) => {
+               console.info("localst close", Date.now());
                if (proxySocket.type == "connect") {
                   if (proxySocket.protocol == "direct") proxySocket?.destroy();
                   else proxySocket?.destroyFace();
                }
             });
-            proxySocket.on("error", (err) => {
+            proxySocket.once("error", (err) => {
+               console.info("proxySocket close", Date.now());
                logger.debug("error proxy", err.message);
                proxySocket.destroy();
             });
@@ -315,9 +336,9 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             });
             chunk = chunk.byteLength <= 1 ? Buffer.alloc(0) : chunk;
             //if (recChunk) localSocket.write(recChunk);
-            //console.info("request", host + ":" + port, chunk.byteLength, chunk.toString());
-            connect?.pipe(localSocket, proxySocket, chunk);
+            console.info("request xxx", host + ":" + port, chunk.byteLength, chunk.toString());
             this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
+            connect?.pipe(localSocket, proxySocket, chunk);
          })
          .catch((err) => {
             logger.debug("===>connect error", err);

@@ -7,6 +7,7 @@ export type WrtcSocketEvent = {};
 
 export default class WrtcSocket extends net.Socket {
    //private writerstream: WStream;
+   destroyed = false;
    constructor(readonly socket: SerialSocket) {
       super();
       this.init();
@@ -61,6 +62,7 @@ export default class WrtcSocket extends net.Socket {
    resume() {
       return this;
    }
+
    /* 
    get remoteAddress(): string {
       return this.socket.peer;
@@ -110,6 +112,9 @@ export default class WrtcSocket extends net.Socket {
       });
    }
    destroy(err?: Error | undefined) {
+      if (!this.socket.open) return this;
+      console.info("close===============", Date.now(), 1 == 1);
+      //if (1 == 1) throw new Error("xafdadf");
       this.socket.destroy(err);
       return this;
    }

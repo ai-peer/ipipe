@@ -74,7 +74,7 @@ export default class WrtcConnect extends Connect {
                let statusCode = receiveChunk.toString().split(" ")[1];
                let checked = statusCode == "200"; //407 auth 失败
                //console.info("receiveChunk", statusCode, checked, usePassword, receiveChunk.toString());
-   
+
                if (usePassword || statusCode == "407") {
                   this.emit("auth", {
                      checked: checked,
@@ -87,7 +87,7 @@ export default class WrtcConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               let pidx = setTimeout(() => ssocket.destroy(new Error("timeoutx")), 5000);
+               let pidx = setTimeout(() => ssocket.destroy(new Error("timeoutx")), 30 * 1000);
                ssocket.once("close", (real) => {
                   if (real == false) {
                      multi.add(ssocket);

@@ -81,13 +81,11 @@ export default class IPipe extends EventEmitter<EventName> {
       Connect: ConnectFactor.Connect,
       WrtcConnect: WrtcConnect,
    };
-   private xpeer: XPeer;
    public connectFactor: ConnectFactor;
    public acceptFactor: AcceptFactor;
-   constructor(options?: Options) {
+   constructor(private readonly options?: Options) {
       super();
       options = Object.assign({}, options);
-      this.xpeer = new XPeer({ id: options.peerId, username: options.username, password: options.password });
       this.acceptFactor = new AcceptFactor(options);
       this.connectFactor = new ConnectFactor(options);
       this.acceptFactor.registerConnect(this.connectFactor);
@@ -120,11 +118,14 @@ export default class IPipe extends EventEmitter<EventName> {
             callback && callback(id);
          }
       }, 60 * 1000);
-      XPeer.instance.once("open", (id) => {
-         clearTimeout(pid);
-         this.emit("open", id);
-         callback && callback(id);
-      });
+
+      XPeer.instance &&
+         XPeer.instance.once("open", (id) => {
+            clearTimeout(pid);
+            this.emit("open", id);
+            callback && callback(id);
+         });
+
       return this.acceptFactor.createServer(port, host, (...args) => {
          //this.emit("open");
          isSocketOpen = true;

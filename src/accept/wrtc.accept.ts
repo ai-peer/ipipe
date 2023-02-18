@@ -54,19 +54,24 @@ export default class WrtcAccept extends Accept {
             this.sessions.add(socket, user.username);
             const session = this.getSession(socket);
             const clientIp = socket.remoteAddress || "";
-            //let authRes = this.options.auth?.username == user.username && this.options.auth?.password == user.password;
-            let authRes = !!this.acceptAuth
-               ? await this.acceptAuth({
-                    username: user.username,
-                    password: user.password,
-                    args: user.args, //
-                    //socket: socket,
-                    protocol: this.protocol,
-                    session,
-                    clientIp,
-                 })
-               : true;
-            if (!authRes) console.info("accc auth", authRes, this.acceptAuth);
+            let authRes = false;
+            if (this.options.username && this.options.password) {
+               authRes = this.options.username == user.username && this.options.password == user.password;
+            }
+            if (!authRes) {
+               authRes = !!this.acceptAuth
+                  ? await this.acceptAuth({
+                       username: user.username,
+                       password: user.password,
+                       args: user.args, //
+                       //socket: socket,
+                       protocol: this.protocol,
+                       session,
+                       clientIp,
+                    })
+                  : false;
+            }
+            //if (!authRes) console.info("accc auth", authRes, this.acceptAuth);
             //console.info("accept s3",authRes, this.getSession(socket), user);
             this.emit("auth", {
                checked: authRes,
@@ -83,7 +88,7 @@ export default class WrtcAccept extends Accept {
             if (!authRes) {
                //this.end(socket, Buffer.from(["HTTP/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
                await ssocket.end(Buffer.from(["WRTC/1.0 407 autherror", "Proxy-Authorization: ", "\r\n"].join("\r\n")));
-               logger.debug(`===>auth error http username=${user.username} password=${user.password}`);
+               //logger.debug(`===>auth error http username=${user.username} password=${user.password}`);
                return;
             }
             //user =

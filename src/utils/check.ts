@@ -22,22 +22,28 @@ export async function checkSocks5(proxy: Proxy, url: string = reqUrl): Promise<b
    connect.setTimeout(timeout);
    const info = new URL(url);
    return new Promise((resolve) => {
-      let pid = setTimeout(() => resolve(false), timeout);
-      connect.on("timeout", () => {
+      let pid = setTimeout(() => {
+         // connect.emit("timeout")
+      }, timeout);
+      /*      connect.on("timeout", () => {
          clearTimeout(pid);
          //console.info(`check socks5 timeout proxy=${proxy.protocol}://${proxy.host}:${proxy.port}`);
          resolve(false);
-      });
+      }); */
       connect.on("error", (err) => {
          clearTimeout(pid);
          resolve(false);
       });
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          clearTimeout(pid);
-         if (err) return resolve(false);
+         if (err) {
+            socket.destroy();
+            return resolve(false);
+         }
+
          let data = await request(url, socket);
          let code = data.slice(0, 12).split(" ")[1];
-         console.info("receive", connect.protocol, data.toString());
+         console.info("receive====>\r\n", connect.protocol, data.toString());
          let checked = /^[2345]/i.test(code); // code == "200";
          if (!checked) {
             console.info(`check socks5 false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
@@ -140,23 +146,28 @@ export async function checkWrtc(proxy: Proxy, url: string = reqUrl): Promise<boo
    connect.setTimeout(timeout);
    const info = new URL(url);
    console.info("check wrtc", url, proxy);
-   connect.on("auth", (data)=>console.info("auth", data.checked, data.username, data.password));
+   connect.on("auth", (data) => console.info("auth", data.checked, data.username, data.password));
    return new Promise((resolve) => {
       let pid = setTimeout(() => connect.emit("timeout"), 60 * 1000);
-/*       connect.once("timeout", () => {
+      connect.once("timeout", () => {
          clearTimeout(pid);
          console.info(`check wrtc timeout proxy=${proxy.protocol}://${proxy.host}@${proxy.username}:${proxy.password}`);
          resolve(false);
-      }); */
+      });
       connect.once("error", (err) => {
          clearTimeout(pid);
          resolve(false);
       });
+
       let startTime = Date.now();
       connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
          clearTimeout(pid);
-         console.info("connect wrtc ttl=", Date.now() - startTime);
-         if (err) return resolve(false);
+         console.info("connect wrtc ttl=", Date.now() - startTime, !err);
+         if (err) {
+            socket.destroy();
+            return resolve(false);
+         }
+
          let data = await request(url, socket);
          console.info("receive===data", data.toString());
          let code = data.slice(0, 12).split(" ")[1];
@@ -177,11 +188,12 @@ async function request(url: string, socket: SSocket): Promise<string> {
    let resList: Buffer[] = [];
    socket.on("data", (chunk) => {
       if (chunk.byteLength <= 1) return;
-      //console.info("====>", chunk.toString());
+      console.info("====>", chunk.byteLength);
       resList.push(chunk);
    });
    return new Promise((resolve) => {
-      socket.once("close", () => {
+      socket.once("close", (real) => {
+         console.info("close=====", real);
          let resChunk = Buffer.concat(resList);
          socket.destroy();
          resolve(resChunk.toString());

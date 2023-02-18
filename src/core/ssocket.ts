@@ -291,6 +291,7 @@ export default class SSocket extends EventEmitter<EventType> {
          if (!!target.cipher) {
             chunk = target.encode(chunk);
          }
+         console.info("send to server", this.id, target.id, chunk.toString());
          target.socket.write(chunk);
       };
       this.socket.on("data", onData);

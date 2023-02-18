@@ -38,6 +38,7 @@ export default abstract class Connect extends Stream {
    public pipe(sourceSocket: SSocket, targetSocket: SSocket, chunk: Buffer) {
       sourceSocket.pipe(targetSocket).pipe(sourceSocket);
       if (targetSocket.protocol == "wrtc") {
+         console.info("wrtc pipe write", chunk.toString());
          setTimeout(() => targetSocket.write(chunk), 50);
       } else {
          targetSocket.write(chunk);

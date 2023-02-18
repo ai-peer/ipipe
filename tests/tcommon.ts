@@ -151,11 +151,12 @@ export async function createProxyServer2(port: number = 4321) {
          return username == "admin" && password == "123";
       },
    });
-   directProxy.on("request", (data) => console.info("event log request", data.host));
+   directProxy.on("request", (data) => console.info("event log request", data.status, data.host));
    directProxy.on("auth", (data) => console.info("event log auth", data.checked, data.clientIp + ":" + data.username + ":" + data.password, data.protocol));
    let server: any = await directProxy.createAcceptServer(port);
    directProxy.registerAccept(new LightAccept({ secret: nsecret.toString() }));
-
+   directProxy.connectFactor.on("close", (data) => console.info("event log close", data.id, data.host, Date.now()));
+   directProxy.connectFactor.on("connect", (data) => console.info("event log connect", data.status, data.ttl, data.host + ":" + data.port, data.error));
    proxys.forEach((proxy) => {
       directProxy.registerProxy({
          host: proxy.host,

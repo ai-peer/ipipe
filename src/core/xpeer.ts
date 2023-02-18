@@ -13,7 +13,7 @@ export type XPeerEvent = {
 export default class XPeer extends EventEmitter<XPeerEvent> {
    private static ipeer: IPeer;
    private static _instance: XPeer;
-   constructor(readonly options: { id?: string | undefined; username: string; password: string }) {
+   constructor(readonly options: { id?: string | undefined; username?: string; password?: string }) {
       super();
       let id = options.id || FixedPeerId;
       try {
@@ -39,8 +39,8 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
       const ipeer = new IPeer(peerId, {
          token: utils.md5(peerId + "pee" + "-" + "rx7430x16A@xa").substring(8, 24),
          handshakeMode: "all",
-         username: this.options.username,
-         password: this.options.password,
+         username: this.options.username || up.slice(12, 18),
+         password: this.options.password || up.slice(18, 26),
       });
       ipeer.acceptFactor.accepts.forEach((v, key) => ipeer.acceptFactor.accepts.delete(key));
       XPeer.ipeer = ipeer;
@@ -55,7 +55,7 @@ export default class XPeer extends EventEmitter<XPeerEvent> {
       ipeer.on("connection", (socket) => {
          let seSocket = new SerialSocket(socket);
          let ssocket = new WrtcSocket(seSocket);
-         socket.on("error", () => {});
+         socket.once("error", () => {});
          this.emit("connection", ssocket);
       });
    }

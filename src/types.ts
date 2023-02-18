@@ -50,6 +50,8 @@ export type AcceptData = {
  */
 export type AcceptOptions = {
    peerId?: string;
+   username?: string;
+   password?: string;
    /** 密钥 */
    secret?: string;
    /** 是否接入,默认true */

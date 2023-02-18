@@ -90,9 +90,6 @@ export default class HttpConnect extends Connect {
             callback(err, new SSocket(socket), { host, port });
             resolve(new SSocket(socket));
          });
-         /*     socket.on("close", (err) => {
-            console.info("==========close======")
-         }); */
       });
    }
 }
