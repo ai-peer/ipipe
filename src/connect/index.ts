@@ -316,14 +316,12 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                localSocket.destroy();
             });
             localSocket.once("close", (isReal) => {
-               console.info("localst close", Date.now());
                if (proxySocket.type == "connect") {
                   if (proxySocket.protocol == "direct") proxySocket?.destroy();
                   else proxySocket?.destroyFace();
                }
             });
             proxySocket.once("error", (err) => {
-               console.info("proxySocket close", Date.now());
                logger.debug("error proxy", err.message);
                proxySocket.destroy();
             });
@@ -336,7 +334,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             });
             chunk = chunk.byteLength <= 1 ? Buffer.alloc(0) : chunk;
             //if (recChunk) localSocket.write(recChunk);
-            console.info("request xxx", host + ":" + port, chunk.byteLength, chunk.toString());
+            //console.info("request xxx", host + ":" + port, chunk.byteLength, chunk.toString());
             this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: isConnect ? "ok" : "no", ttl: Date.now() - startTime });
             connect?.pipe(localSocket, proxySocket, chunk);
          })
