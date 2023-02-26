@@ -55,9 +55,9 @@ export default class WrtcAccept extends Accept {
             const session = this.getSession(socket);
             const clientIp = socket.remoteAddress || "";
             let authRes = false;
-            if (this.options.username && this.options.password) {
+   /*          if (this.options.username && this.options.password) {
                authRes = this.options.username == user.username && this.options.password == user.password;
-            }
+            } */
             if (!authRes) {
                authRes = !!this.acceptAuth
                   ? await this.acceptAuth({

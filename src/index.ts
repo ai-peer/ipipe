@@ -34,7 +34,7 @@ export type EventName = {
    auth: (data: AuthData) => void;
    accept: (data: AcceptData) => void;
    error: (err: Error) => void;
-   open: (id: string) => void;
+   open: (server: net.Server) => void;
 };
 export {
    password,
@@ -111,24 +111,9 @@ export default class IPipe extends EventEmitter<EventName> {
     */
    createAcceptServer(port: number = 4321, host: string = "0.0.0.0", callback?: CreateCallback): Promise<net.Server> {
       let isSocketOpen = false;
-      let pid = setTimeout(() => {
-         if (isSocketOpen) {
-            let id = XPeer.instance.id || "";
-            this.emit("open", XPeer.instance.id || "");
-            callback && callback(id);
-         }
-      }, 60 * 1000);
-
-      XPeer.instance &&
-         XPeer.instance.once("open", (id) => {
-            clearTimeout(pid);
-            this.emit("open", id);
-            callback && callback(id);
-         });
 
       return this.acceptFactor.createServer(port, host, (...args) => {
-         //this.emit("open");
-         isSocketOpen = true;
+         this.emit("open", this.acceptFactor.server);
       });
    }
 

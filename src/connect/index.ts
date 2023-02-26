@@ -253,7 +253,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       }
 
       if (!connect) {
-         localSocket.destroy(new Error("no handle protocol " + proxy.protocol));
+         localSocket.destroy(new Error("no handle protocol " + proxy?.protocol));
          console.warn(`ipipe is no connector to connect target server`);
          return;
       }
@@ -269,7 +269,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       //connect.setTimeout(15 * 1000, () => this.emit("timeout"));
       let isConnect = false;
       //是否可以纠错
-      let isCorrection = proxy && connect.protocol != "direct" && proxy.mode == 1 && this.proxys.length > 1;
+      let isCorrection = proxy && connect.protocol != "direct" && this.proxys.length > 1 && proxy?.mode == 1;
       let startTime = Date.now();
       let ttl = connect.protocol == "wrtc" ? 10 * 1000 : 5 * 1000;
       let pid = setTimeout(() => {
@@ -278,34 +278,35 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             status: false,
             ttl: ttl,
             error: error, //
-            host: proxy.host,
-            port: proxy.port,
-            protocol: proxy.protocol,
+            host: proxy?.host || "",
+            port: proxy?.port || 0,
+            protocol: proxy?.protocol,
          });
-         localSocket.destroy(error);
-         this?.emit("close", { id: "", host: proxy.host, port: proxy.port });
+         localSocket.end(error.message);
+         this?.emit("close", { id: "", host: proxy?.host || "", port: proxy?.port || 0 });
       }, ttl);
 
       await connect
          .connect(host, port, proxy, (err, proxySocket: SSocket) => {
-            this.emit("connect", { status: !err, ttl: Date.now() - startTime, error: err, host: proxy.host, port: proxy.port, protocol: proxy.protocol });
+            const proxyHost = proxy?.host || "",
+               proxyPort = proxy?.port || 0;
+            this.emit("connect", { status: !err, ttl: Date.now() - startTime, error: err, host: proxyHost, port: proxyPort, protocol: proxy?.protocol });
             clearTimeout(pid);
             proxySocket.once("close", () => {
-               this?.emit("close", { id: proxySocket.id, host: proxy.host, port: proxy.port });
+               this?.emit("close", { id: proxySocket.id, host: proxyHost, port: proxyPort });
             });
             if (err) {
                if (connect?.protocol == "wrtc") {
-                  this.removeProxy(proxy.host, proxy.port);
+                  this.removeProxy(proxyHost, proxyPort);
                   localSocket.destroy();
                   return;
                }
                //console.info("error===", this.proxys.length, err.toString(), err instanceof Error, connect?.protocol, isCorrection);
                if (connect?.protocol == "direct") {
                   isConnect = true;
-                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
+                  err instanceof Error ? localSocket.end(err.message) : localSocket.end(err);
                } else {
-                  console.info("xxx des");
-                  err instanceof Error ? localSocket.destroy(err) : localSocket.end(err);
+                  err instanceof Error ? localSocket.end(err.message) : localSocket.end(err);
                }
                return;
             }

@@ -10,7 +10,6 @@ import EventEmitter from "eventemitter3";
 import { StreamEvent } from "../core/stream";
 //import { Options } from "../types";
 import logger from "../core/logger";
-import XPeer from "../core/xpeer";
 
 export type EventName = StreamEvent & {
    accept: (data: AcceptData) => void;
@@ -37,7 +36,6 @@ export default class AcceptFactor extends EventEmitter<EventName> {
    public server: net.Server;
    public options: AcceptOptions;
    public timeout: number = 0;
-   private xpeer: XPeer;
    constructor(options?: AcceptOptions) {
       super();
       options = Object.assign({}, options);
@@ -45,13 +43,13 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
-      if (options.peerId) {
+      /*       if (options.peerId) {
          //启用peer节点接入技术
          this.xpeer = new XPeer({ id: options.peerId, username: options.username, password: options.password });
          let wrtcAccept = new WrtcAccept(options);
          this.register(wrtcAccept);
       }
-
+ */
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
    public close() {
@@ -141,6 +139,7 @@ export default class AcceptFactor extends EventEmitter<EventName> {
             });
             this.accept(socket);
          });
+         this.server = server;
          server.on("error", (err) => {
             logger.warn("server error ", err.message);
             reject(err);
@@ -150,16 +149,6 @@ export default class AcceptFactor extends EventEmitter<EventName> {
             callback && callback(server);
             resolve(server);
          });
-
-         XPeer.instance.on("connection", (socket) => {
-            //console.info("accept====", socket.socket.peer);
-            socket.once("error", (err) => {
-               socket.destroy(err);
-            });
-            this.accept(socket);
-         });
-
-         this.server = server;
       });
    }
    /**

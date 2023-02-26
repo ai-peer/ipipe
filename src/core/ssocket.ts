@@ -23,6 +23,7 @@ export type EventType = {
    reset: (ssocket: SSocket) => void;
    /** 响应指令 */
    responseCMD: () => void;
+   cmd: (data: { cmd: CMD }) => void;
 };
 /**
  * 安全连接
@@ -57,7 +58,10 @@ export default class SSocket extends EventEmitter<EventType> {
       this.socket.once("error", (err) => this.emit("error", err));
       this.socket.on("data", (chunk) => {
          chunk = this.decode(chunk);
-         if (chunk.byteLength <= 1) return;
+         if (chunk.byteLength < 1) return;
+         if (chunk.byteLength == 1) {
+            return this.emit("cmd", { cmd: chunk[0] });
+         }
          this.emit("data", chunk);
       });
       this.socket.once("close", () => this.emit("close", true));
@@ -195,9 +199,6 @@ export default class SSocket extends EventEmitter<EventType> {
    async read(timeout: number = 5000): Promise<Buffer> {
       let chunk = await this.stream.read(this.socket, timeout);
       if (chunk.byteLength == 1) return this.read(timeout);
-      /*     if (this.cipher) {
-         chunk = this.cipher.decode(chunk, this.face);
-      } */
       chunk = this.decode(chunk);
       return chunk;
    }

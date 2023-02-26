@@ -133,23 +133,20 @@ export default class WrtcConnect extends Connect {
             if (ssocket) {
                await ssocket.write(Buffer.from([CMD.RESET]));
                let isConnect = false;
-               for (let i = 0; i < 10; i++) {
-                  let cmds = await ssocket.read(100);
-                  if (cmds.byteLength < 1) continue;
-                  if (cmds.byteLength == 1) {
-                     if (cmds[0] == CMD.RESPONSE) {
-                        onConnect(ssocket);
-                        isConnect = true;
-                        return;
-                     }
-                     continue;
+               let pid = setTimeout(() => {
+                  if (!isConnect) {
+                     ssocket && ssocket.destroy();
+                     connect();
                   }
-                  break;
-               }
-               if (!isConnect) {
-                  ssocket.destroy();
-                  connect();
-               }
+               }, 2000);
+               ssocket.once("cmd", ({ cmd }) => {
+                  if (cmd == CMD.RESPONSE) {
+                     clearTimeout(pid);
+                     ssocket && onConnect(ssocket);
+                     isConnect = true;
+                     return;
+                  }
+               });
             } else {
                connect();
             }

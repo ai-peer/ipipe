@@ -49,9 +49,6 @@ export type AcceptData = {
  * 接收器配置参数
  */
 export type AcceptOptions = {
-   peerId?: string;
-   username?: string;
-   password?: string;
    /** 密钥 */
    secret?: string;
    /** 是否接入,默认true */
