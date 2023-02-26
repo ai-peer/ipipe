@@ -64,6 +64,13 @@ export default class SSocket extends EventEmitter<EventType> {
          }
          this.emit("data", chunk);
       });
+      this.on("cmd", ({ cmd }) => {
+         switch (cmd) {
+            case CMD.CLOSE:
+               this.destroyFace();
+               break;
+         }
+      });
       this.socket.once("close", () => this.emit("close", true));
       this.socket.once("timeout", () => this.emit("error", new Error("timeout")));
       this.stream.on("heartbeat", (ssocket) => {

@@ -106,7 +106,7 @@ async function test1(count = 0) {
    console.info("log res===", res.status, text.length, text, "ttl=" + (Date.now() - startTime));
 }
 async function test() {
-   const info = new URL("https://ifconfig.me/ip"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
+   const info = new URL("https://baidu.shanshanku.com/20221227/ZoSfKZAl/1200kb/hls/A6c5Kuet.ts"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
 
    const connect = new WrtcConnect();
    let startTime = Date.now();
@@ -117,13 +117,13 @@ async function test() {
    let list = await getProxys();
    //ca86dbe3b547bd1783154614de9968cb:14de9968:17831546
 
-   let proxy = list[0];
-   /*    let proxy = {
-      peer: "b9e23bc8aee6224af2bf92f90c4c495b",
-      username: "f90c4c49",
-      password: "4af2bf92",
-   }; */
-   console.info("user proxy", proxy.country + ":" + proxy.ip + "@" + proxy.username + ":" + proxy.password);
+   //let proxy = list[0];
+   let proxy = {
+      peer: "fb68be42cd1d771cbeb388b5d672df8b",
+      username: "ac847e9e",
+      password: "900d2301",
+   };
+   console.info("user proxy", proxy.peer + ":" + proxy.username + ":" + proxy.password);
    return new Promise(async (resolve) => {
       connect.connect(
          info.hostname,
@@ -157,10 +157,10 @@ async function test() {
             socket.on("data", (data) => {
                if (data.byteLength <= 1) return;
                count += data.byteLength;
-               //console.info("receive ", Date.now(), data.length, data.toString());
+               console.info("receive ", Date.now(), data.length, data.byteLength < 1024 ? data.toString() : "");
                outData.push(data);
             });
-            socket.once("close", () => {
+            socket.once("close", (real) => {
                //console.info("close all size =", count);
                let out = Buffer.concat(outData);
                let endIdx =
@@ -173,7 +173,7 @@ async function test() {
                      );
                   }) + 4;
                let outxx = out.slice(endIdx);
-               console.info("content-length", count, outxx.byteLength, outxx.toString());
+               console.info("content-length", count, outxx.byteLength, out.slice(0, endIdx).toString());
                resolve(out);
             });
             //console.info("req", list.join("\r\n"));
@@ -184,7 +184,7 @@ async function test() {
 }
 
 async function test2() {
-   new XPeer({username: "admin", password: "abcd"});
+   new XPeer({ username: "admin", password: "abcd" });
    const info = new URL("http://ifconfig.me/ip"); //https://cdn3.sydwzpks.com:4433/duoda/2736/index051.ts
 
    const connect = new WrtcConnect();
@@ -242,7 +242,7 @@ async function test2() {
    );
 }
 async function testWebSocket() {
-   new XPeer({username: "admin", password: "123"});
+   new XPeer({ username: "admin", password: "123" });
    const info = new URL("wss://p0.iee.one/peerjs?key=peerjs&username=admin&password=123456&id=x-server2&token=c81gqwjsk6&version=1.4.6");
 
    const connect = new WrtcConnect();
@@ -290,20 +290,24 @@ async function testWebSocket() {
 }
 
 (async () => {
-   new XPeer({ id: "xxxx", username: "admin", password: "123" });
+   let peer = new XPeer({ id: "xxxx", username: "admin", password: "123" });
    await wait(200);
+   peer.once("open", () => {
+      console.info("open=========");
+      test();
+   });
    //await createServer();
    /*    for (let i = 0; i < 1; i++) {
       await test1(i + 1);
       await wait(1 * 1000);
    } */
    //await testWebSocket();
-   for (let i = 0; i < 6; i++) {
+   /*    for (let i = 0; i < 6; i++) {
       let st = Date.now();
       await test();
       console.info("req ttl", Date.now() - st);
    }
-
+ */
    console.info("===========edd============");
 
    // process.exit(0);
