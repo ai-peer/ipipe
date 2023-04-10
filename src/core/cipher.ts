@@ -63,7 +63,8 @@ export default class Cipher {
 
       return Buffer.from(cs);
    }
-   encode(chunk: Buffer, face: number = 99): Buffer {
+   encode(chunk: Buffer | string, face: number = 99): Buffer {
+      chunk = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
       face = face % 256;
       let cs = chunk.map((value, i) => {
          value = face <= 0 ? value : value ^ face;
