@@ -86,20 +86,20 @@ export default class SSocket extends EventEmitter<EventType> {
       if (this.socket.readyState == "closed") return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();
-      let delay = Math.ceil(timeout / 2);
+      //let delay = Math.ceil(timeout / 2);
       let pid = setInterval(() => {
          if (this.socket.readyState == "closed") return clearInterval(pid);
          const ttl = Date.now() - this.lastHeartbeat;
          /** 心跳检测 判断是否超时 */
-         if (ttl >= timeout) {
+         if (ttl >= 2 * timeout) {
             //logger.info("lost connection", this.socket.remoteAddress || "");
             this.socket.emit("timeout");
             this.socket.destroy();
             return;
          }
          /** 心跳检测 发送检测包到远程 */
-         if (ttl >= delay) this.write(Buffer.from([CMD.HEARTBEAT]));
-      }, 10 * 1000);
+         this.write(Buffer.from([CMD.HEARTBEAT]));
+      }, Math.ceil(timeout / 2));
       this.socket.once("close", () => clearInterval(pid));
    }
    getSession(socket?: net.Socket) {

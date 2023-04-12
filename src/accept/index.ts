@@ -160,8 +160,8 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       let isAccept = false;
       if (this.timeout > 0) {
          //检测超时
-         socket.on("timeout", () => socket.end());
-         socket.setTimeout(this.timeout);
+         //socket.on("timeout", () => socket.end());
+         //socket.setTimeout(this.timeout);
       }
       let accepts = this.accepts.values();
       const byteLength = chunk.byteLength;

@@ -1,6 +1,6 @@
 {
    "name": "@ai-lion/ipipe",
-   "version": "2.0.10",
+   "version": "2.1.1",
    "main": "dist/lib.js",
    "license": "MIT",
    "bin": {
