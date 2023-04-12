@@ -129,9 +129,9 @@ export default class IPipe extends EventEmitter<EventName> {
       this.acceptFactor.register(accept);
       return this;
    }
-   setTimeout(ttl: number = 0) {
+/*    setTimeout(ttl: number = 0) {
       this.acceptFactor.setTimeout(ttl);
-   }
+   } */
    /**
     * 注册连接远程代理服务器自定义协议， 原生支持http,socks5协议,forward.http http转发协议
     * 协议继承类 Connect
