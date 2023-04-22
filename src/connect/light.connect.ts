@@ -106,7 +106,7 @@ export default class LightConnect extends Connect {
                let step3Res = await this.read(socket);
                step3Res = cipherTransport.decode(step3Res, face);
                assert.ok(step3Res[0] == 0x01 && step3Res[1] == 0x00, "light connect end fail");
-
+               ssocket.heartbeat();
                //准备连接协议
                callback(undefined, ssocket, { host, port });
                resolve(ssocket);

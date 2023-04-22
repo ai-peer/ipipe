@@ -82,7 +82,7 @@ export default class SSocket extends EventEmitter<EventType> {
     * 开启心跳检测
     * @param timeout 检测周期
     */
-   heartbeat(timeout: number = 5 * 60 * 1000) {
+   heartbeat(timeout: number = 3 * 60 * 1000) {
       if (this.closed) return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();

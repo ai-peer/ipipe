@@ -70,6 +70,7 @@ export default class HttpConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
+               ssocket.heartbeat();
                callback(checked ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
