@@ -69,8 +69,8 @@ export default class Stream extends EventEmitter<StreamEvent> {
          socket.writable &&
             socket.write(chunk, (err) => {
                if (err) {
-                  resolve(err);
                   this.emit("error", err);
+                  resolve(err);
                } else {
                   socket.resume();
                   this.emit("write", { chunk, size: chunk.length, session: this.getSession(socket), protocol: this.protocol || "", clientIp: socket.remoteAddress || "" });

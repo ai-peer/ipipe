@@ -60,12 +60,6 @@ export default class SSocket extends EventEmitter<EventType> {
       this.socket.once("error", (err) => this.emit("error", err));
       this.socket.on("data", (chunk) => {
          this.lastHeartbeat = Date.now();
-         chunk = this.decode(chunk);
-         if (chunk.byteLength < 1) return;
-         if (chunk.byteLength == 1) {
-            return this.emit("cmd", { cmd: chunk[0] });
-         }
-         this.emit("data", chunk);
       });
       this.on("cmd", ({ cmd }) => {
          switch (cmd) {
@@ -92,16 +86,16 @@ export default class SSocket extends EventEmitter<EventType> {
       if (this.closed) return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();
-      let cyc = Math.max(15 * 1000, Math.ceil(timeout / 2));
+      //let cyc = Math.max(15 * 1000, Math.ceil(timeout / 2));
       let pid = setInterval(() => {
          if (this.closed) return clearInterval(pid);
          /** 心跳检测 发送检测包到远程 */
          this.write(Buffer.from([CMD.HEARTBEAT]));
-         let ttl = Date.now() - this.lastHeartbeat;
+         /*   let ttl = Date.now() - this.lastHeartbeat;
          if (ttl >= timeout + 30 * 1000) {
             this.emit("error", new Error("heartbeat timeout"));
-         }
-      }, cyc);
+         } */
+      }, timeout);
       this.write(Buffer.from([CMD.HEARTBEAT]));
       this.socket.once("close", () => clearInterval(pid));
    }
@@ -251,10 +245,9 @@ export default class SSocket extends EventEmitter<EventType> {
          });
          if (chunk.byteLength == 1) {
             let cmd = chunk[0]; // target.decode(chunk);
-            //console.info("cmd==", cmd, this.type + ":" + this.protocol, target.type + ":" + target.protocol);
+            if (cmd <= 11) this.emit("cmd", { cmd: cmd });
             switch (cmd) {
                case CMD.CLOSE: //关闭连接指令
-                  //console.info("close--", this.type, this.protocol, target.type, target.protocol);
                   if (this.type == "accept" && this.protocol != "wrtc") {
                      this.destroy();
                      return;
@@ -288,10 +281,6 @@ export default class SSocket extends EventEmitter<EventType> {
                   return;
                case CMD.HEARTBEAT:
                   return;
-
-               //case CMD.RESPONSE:
-               //this.emit("responseCMD");
-               //   return;
             }
             //if (target.protocol == "direct") return;
             if (cmd <= 11) return;
@@ -309,71 +298,7 @@ export default class SSocket extends EventEmitter<EventType> {
       target.once("close", () => {
          this.socket.write(Buffer.from([CMD.CLOSE]));
       });
-
-      /* this.socket
-         .pipe(
-            transform((chunk: Buffer, encoding, callback) => {
-               if (this.cipher) {
-                  chunk = this.decode(chunk);
-               }
-               if (!!target.cipher) {
-                  chunk = target.encode(chunk);
-               }
-               this.stream.emit("read", {
-                  chunk,
-                  size: chunk.byteLength,
-                  session: this.getSession(this.socket),
-                  clientIp: this.socket.remoteAddress || "",
-                  protocol: this.protocol || "",
-               });
-               target.stream.emit("write", {
-                  chunk,
-                  size: chunk.byteLength,
-                  session: this.getSession(target.socket),
-                  clientIp: target.socket.remoteAddress || "",
-                  protocol: target.protocol || "",
-               });
-               callback(null, chunk);
-            }),
-         )
-         .pipe(
-            transform((chunk: Buffer, encoding, callback) => {
-               this.lastHeartbeat = Date.now();
-               if (chunk.byteLength == 1) {
-                  let hearts = target.decode(chunk);
-                  if (hearts[0] == 0) {
-                     this.stream.emit("heartbeat", target);
-                     return;
-                  }
-               }
-               callback(null, chunk);
-            }),
-         )
-         .pipe(target.socket);  */
       return target;
-      /* this.socket
-         .pipe(
-            transform((chunk: Buffer, encoding, callback) => {
-               if (this.cipher) {
-                  chunk = this.cipher.decode(chunk, this.face);
-               }
-               // this.emit("write", { size: chunk.length, socket: this.socket });
-               callback(null, chunk);
-            }),
-         )
-         .pipe(inputPipe)
-         .pipe(target)
-         .pipe(
-            transform((chunk: Buffer, encoding, callback) => {
-               //this.emit("write", { size: chunk.length, socket: this.socket });
-               if (this.cipher) {
-                  chunk = this.cipher.encode(chunk, this.face);
-               }
-               callback(null, chunk);
-            }),
-         )
-         .pipe(outputPipe)
-         .pipe(this.socket);*/
    }
    clear() {
       //["connect", "data", "close", "error", "read", "write"].forEach((key: any) => this.removeAllListeners(key));
