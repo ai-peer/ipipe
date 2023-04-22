@@ -68,10 +68,11 @@ export default class Stream extends EventEmitter<StreamEvent> {
          //setTimeout(() => {
          socket.writable &&
             socket.write(chunk, (err) => {
-               socket.resume();
                if (err) {
                   resolve(err);
+                  this.emit("error", err);
                } else {
+                  socket.resume();
                   this.emit("write", { chunk, size: chunk.length, session: this.getSession(socket), protocol: this.protocol || "", clientIp: socket.remoteAddress || "" });
                   resolve(undefined);
                }

@@ -311,7 +311,9 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                return;
             }
             this.emit("open");
-            if (connect?.protocol != "direct") {
+            if (connect?.protocol == "direct") {
+               localSocket.heartbeat();
+            } else{
                proxySocket.heartbeat(); //开启心跳检测
             }
             isConnect = true;

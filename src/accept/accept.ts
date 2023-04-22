@@ -65,7 +65,6 @@ export default abstract class Accept extends Stream {
     */
    protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       try {
-         localSocket.heartbeat();
          this.connectFactor.pipe(host, port, localSocket, chunk, user).catch((err) => {
             localSocket.destroy(err);
          });

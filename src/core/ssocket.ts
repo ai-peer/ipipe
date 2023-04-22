@@ -1,8 +1,6 @@
 import net from "net";
 import Cipher from "./cipher";
-import transform from "../core/transform";
 import Stream from "./stream";
-import logger from "./logger";
 import Sessions from "./sessions";
 import { CMD, ReadData, WriteData } from "../types";
 import EventEmitter from "eventemitter3";
@@ -61,6 +59,7 @@ export default class SSocket extends EventEmitter<EventType> {
       this.socket.once("connect", () => this.emit("connect", this));
       this.socket.once("error", (err) => this.emit("error", err));
       this.socket.on("data", (chunk) => {
+         this.lastHeartbeat = Date.now();
          chunk = this.decode(chunk);
          if (chunk.byteLength < 1) return;
          if (chunk.byteLength == 1) {
@@ -70,6 +69,9 @@ export default class SSocket extends EventEmitter<EventType> {
       });
       this.on("cmd", ({ cmd }) => {
          switch (cmd) {
+            case CMD.HEARTBEAT: //心跳检测指令
+               this.emit("heartbeat");
+               break;
             case CMD.CLOSE:
                this.destroyFace();
                break;
@@ -77,10 +79,7 @@ export default class SSocket extends EventEmitter<EventType> {
       });
       this.socket.once("close", () => this.emit("close", true));
       this.socket.once("timeout", () => this.emit("error", new Error("timeout")));
-      /*  this.stream.on("heartbeat", (ssocket) => {
-         this.lastHeartbeat = Date.now();
-         this.emit("heartbeat");
-      }); */
+      this.stream.once("error", (err) => this.emit("error", err));
       this.on("heartbeat", () => {
          this.lastHeartbeat = Date.now();
       });
@@ -96,17 +95,14 @@ export default class SSocket extends EventEmitter<EventType> {
       let cyc = Math.max(15 * 1000, Math.ceil(timeout / 2));
       let pid = setInterval(() => {
          if (this.closed) return clearInterval(pid);
-         const ttl = Date.now() - this.lastHeartbeat;
-         /** 心跳检测 判断是否超时 */
-         if (ttl >= 2 * timeout) {
-            //logger.info("lost connection", this.socket.remoteAddress || "");
-            this.socket.emit("timeout");
-            this.socket.destroy();
-            return;
-         }
          /** 心跳检测 发送检测包到远程 */
          this.write(Buffer.from([CMD.HEARTBEAT]));
+         let ttl = Date.now() - this.lastHeartbeat;
+         if (ttl >= 2 * timeout) {
+            this.emit("error", new Error("heartbeat timeout"));
+         }
       }, cyc);
+      this.write(Buffer.from([CMD.HEARTBEAT]));
       this.socket.once("close", () => clearInterval(pid));
    }
    getSession(socket?: net.Socket) {
@@ -253,14 +249,10 @@ export default class SSocket extends EventEmitter<EventType> {
             clientIp: target.socket.remoteAddress || "",
             protocol: target.protocol || "",
          });
-         this.lastHeartbeat = Date.now();
          if (chunk.byteLength == 1) {
             let cmd = chunk[0]; // target.decode(chunk);
             //console.info("cmd==", cmd, this.type + ":" + this.protocol, target.type + ":" + target.protocol);
             switch (cmd) {
-               case CMD.HEARTBEAT: //心跳检测指令
-                  this.emit("heartbeat");
-                  return;
                case CMD.CLOSE: //关闭连接指令
                   //console.info("close--", this.type, this.protocol, target.type, target.protocol);
                   if (this.type == "accept" && this.protocol != "wrtc") {
