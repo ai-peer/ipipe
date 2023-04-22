@@ -286,11 +286,15 @@ export default class SSocket extends EventEmitter<EventType> {
                      this.onResetHandle && this.onResetHandle(this.clone());
                   }
                   return;
+               case CMD.HEARTBEAT:
+                  return;
+
                //case CMD.RESPONSE:
                //this.emit("responseCMD");
                //   return;
             }
-            if (target.protocol == "direct") return;
+            //if (target.protocol == "direct") return;
+            return;
          }
          if (!!target.cipher) {
             chunk = target.encode(chunk);
