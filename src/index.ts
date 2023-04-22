@@ -25,7 +25,6 @@ import { getPublicIp, isInLocalIp, isIpv4, isIpv6, isDomain } from "./core/geoip
 import * as check from "./utils/check";
 import ua from "./utils/ua";
 import * as password from "./core/password";
-import XPeer from "./core/xpeer";
 
 export type EventName = {
    out: (data: WriteData & { type: "accept" | "connect" }) => void;

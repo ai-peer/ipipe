@@ -15,7 +15,6 @@ import SSocket from "../core/ssocket";
 import * as check from "../utils/check";
 import { wait } from "../utils";
 import logger from "../core/logger";
-import XPeer from "../core/xpeer";
 
 const isDev = process.env.NODE_ENV == "development";
 
