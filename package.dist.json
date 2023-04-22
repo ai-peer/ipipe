@@ -13,7 +13,7 @@
    },
    "scripts": {},
    "dependencies": {
-      "@ai-lion/ipeer": "^1.4.9"
+      "@ai-lion/ipeer": "^2.4.8"
    },
    "devDependencies": {},
    "description": "IPIPE project, include http,socks5 protocol",
