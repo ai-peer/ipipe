@@ -88,7 +88,7 @@ export default class SSocket extends EventEmitter<EventType> {
     * 开启心跳检测
     * @param timeout 检测周期
     */
-   heartbeat(timeout: number = 60 * 1000) {
+   heartbeat(timeout: number = 5 * 60 * 1000) {
       if (this.closed) return;
       if (this.protocol == "direct") return;
       this.lastHeartbeat = Date.now();
@@ -98,7 +98,7 @@ export default class SSocket extends EventEmitter<EventType> {
          /** 心跳检测 发送检测包到远程 */
          this.write(Buffer.from([CMD.HEARTBEAT]));
          let ttl = Date.now() - this.lastHeartbeat;
-         if (ttl >= 2 * timeout) {
+         if (ttl >= timeout + 30 * 1000) {
             this.emit("error", new Error("heartbeat timeout"));
          }
       }, cyc);
@@ -294,7 +294,7 @@ export default class SSocket extends EventEmitter<EventType> {
                //   return;
             }
             //if (target.protocol == "direct") return;
-            return;
+            if (cmd <= 11) return;
          }
          if (!!target.cipher) {
             chunk = target.encode(chunk);
