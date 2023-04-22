@@ -38,7 +38,7 @@ async function createRelayProxyServer() {
       //protocols: [ 'light' ],
       //useTraffic: 0
     });
-   ipipe.setTimeout(60 * 1000);
+   //ipipe.setTimeout(60 * 1000);
    let tsize = 0,
       tout = 0;
    ipipe.on("in", ({ size, protocol, session, clientIp }) => {

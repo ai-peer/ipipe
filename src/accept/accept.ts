@@ -6,7 +6,6 @@ import { AcceptOptions, ConnectUser } from "../types";
 import SSocket from "../core/ssocket";
 import { Duplex } from "stream";
 
-
 /**
  * 接收应用端接入协议处理基类
  */
@@ -66,6 +65,7 @@ export default abstract class Accept extends Stream {
     */
    protected async connect(host: string, port: number, localSocket: SSocket, chunk: Buffer, user?: ConnectUser) {
       try {
+         localSocket.heartbeat();
          this.connectFactor.pipe(host, port, localSocket, chunk, user).catch((err) => {
             localSocket.destroy(err);
          });

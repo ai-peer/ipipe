@@ -98,7 +98,6 @@ export default class Socks5Connect extends Connect {
                assert.ok(chunkReceive[0] == 0x05 && chunkReceive[1] == 0x00, "connect error " + [...chunkReceive]);
                /**     socks5协议连接 end      */
 
-               ssocket.heartbeat();
                //准备连接协议
                callback(undefined, ssocket, { host, port });
                resolve(ssocket);

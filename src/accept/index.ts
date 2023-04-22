@@ -175,8 +175,8 @@ export default class AcceptFactor extends EventEmitter<EventName> {
             //console.info(`===>accept client ${accept.protocol} ${chunk.toString()}`);
             try {
                this.emit("accept", { socket, protocol: accept.protocol });
-               let clientIp = socket.remoteAddress || "";
-               let protocol = accept.protocol;
+               //let clientIp = socket.remoteAddress || "";
+               //let protocol = accept.protocol;
 
                this.on("open", () => {
                   //console.info("open================", protocol, socket.localPort, socket.remotePort);

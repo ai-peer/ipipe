@@ -108,7 +108,6 @@ export default class ForwardHttpConnect extends Connect {
                      args: (proxy.password || "").split("_").slice(1),
                   });
                }
-               ssocket.heartbeat();
                callback(checkedAuth ? undefined : receiveChunk, ssocket, { host, port });
                resolve(ssocket);
             } catch (err) {
