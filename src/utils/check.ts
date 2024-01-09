@@ -1,5 +1,5 @@
 import { Proxy } from "../types";
-import { LightConnect, SSocket, Socks5Connect, HttpConnect, ForwardHttpConnect, WrtcConnect } from "../";
+import { LightConnect, SSocket, Socks5Connect, HttpConnect, ForwardHttpConnect } from "../";
 import ua from "./ua";
 //const reqUrl = "http://httpbin.org/ip";
 //const reqUrl = "http://ip-api.com/json";
@@ -136,45 +136,6 @@ export async function checkLight(proxy: Proxy, url: string = reqUrl): Promise<bo
          if (!checked) {
             //console.info(`check light false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
             //console.info(data.slice(0, 128));
-         }
-         resolve(checked);
-      });
-   });
-}
-export async function checkWrtc(proxy: Proxy, url: string = reqUrl): Promise<boolean> {
-   let connect = new WrtcConnect();
-   connect.setTimeout(timeout);
-   const info = new URL(url);
-   console.info("check wrtc", url, proxy);
-   connect.on("auth", (data) => console.info("auth", data.checked, data.username, data.password));
-   return new Promise((resolve) => {
-      let pid = setTimeout(() => connect.emit("timeout"), 60 * 1000);
-      connect.once("timeout", () => {
-         clearTimeout(pid);
-         console.info(`check wrtc timeout proxy=${proxy.protocol}://${proxy.host}@${proxy.username}:${proxy.password}`);
-         resolve(false);
-      });
-      connect.once("error", (err) => {
-         clearTimeout(pid);
-         resolve(false);
-      });
-
-      let startTime = Date.now();
-      connect.connect(info.host, parseInt(info.port) || 80, proxy, async (err, socket) => {
-         clearTimeout(pid);
-         console.info("connect wrtc ttl=", Date.now() - startTime, !err);
-         if (err) {
-            socket.destroy();
-            return resolve(false);
-         }
-
-         let data = await request(url, socket);
-         console.info("receive===data", data.toString());
-         let code = data.slice(0, 12).split(" ")[1];
-         let checked = /^[2345]/i.test(code); // code == "200";
-         if (!checked) {
-            console.info(`check http false proxy=${proxy.protocol}://${proxy.host}:${proxy.port}\r\n`);
-            console.info(data.slice(0, 128));
          }
          resolve(checked);
       });

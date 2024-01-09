@@ -43,13 +43,6 @@ export default class AcceptFactor extends EventEmitter<EventName> {
       let httpAccept = new HttpAccept(options); //http接入
       let socks5Accept = new Socks5Accept(options); //socks5接入
 
-      /*       if (options.peerId) {
-         //启用peer节点接入技术
-         this.xpeer = new XPeer({ id: options.peerId, username: options.username, password: options.password });
-         let wrtcAccept = new WrtcAccept(options);
-         this.register(wrtcAccept);
-      }
- */
       if (options?.isAccept != false) this.register(socks5Accept).register(httpAccept);
    }
    public close() {

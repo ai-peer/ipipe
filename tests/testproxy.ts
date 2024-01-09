@@ -1,9 +1,7 @@
 import * as com from "./tcommon";
-import XPeer from "../src/core/xpeer";
 process.on("uncaughtException", (err)=>console.info("err", err));
 process.on("unhandledRejection", (err)=>console.info("err1", err));
 
-new XPeer({ id: "localdemo" });
 let proxy = {
    host: "127.0.0.1",
    port: 1082,

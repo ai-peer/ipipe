@@ -11,8 +11,6 @@ import Socks5Connect from "./connect/socks5.connect";
 import HttpConnect from "./connect/http.connect";
 import DirectConnect from "./connect/direct.connect";
 import ForwardHttpConnect from "./connect/forward.http.connect";
-import WrtcConnect from "./connect/wrtc.connect";
-
 import AcceptFactor from "./accept";
 import ConnectFactor, { RequestData } from "./connect";
 import { Callback as ConnectCallback } from "./connect/connect";
@@ -49,7 +47,6 @@ export {
    HttpConnect,
    ForwardHttpConnect,
    DirectConnect,
-   WrtcConnect,
    Cipher,
    check,
    ua,
@@ -78,7 +75,6 @@ export default class IPipe extends EventEmitter<EventName> {
       HttpConnect: ConnectFactor.HttpConnect,
       DirectConnect: ConnectFactor.DirectConnect,
       Connect: ConnectFactor.Connect,
-      WrtcConnect: WrtcConnect,
    };
    public connectFactor: ConnectFactor;
    public acceptFactor: AcceptFactor;

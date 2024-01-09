@@ -2,7 +2,6 @@ import HttpConnect from "./http.connect";
 import Socks5Connect from "./socks5.connect";
 import DirectConnect from "./direct.connect";
 import LightConnect from "./light.connect";
-import WrtcConnect from "./wrtc.connect";
 import Connect from "./connect";
 //import ping from "ping";
 import { Proxy, ConnectOptions, ConnectUser, AuthData } from "../types";
@@ -46,7 +45,6 @@ export default class ConnectFactor extends EventEmitter<EventName> {
    static Socks5Connect = Socks5Connect;
    static DirectConnect = DirectConnect;
    static LightConnect = LightConnect;
-   static WrtcConnect = WrtcConnect;
    static Connect = Connect;
    private directConnectDomains: string[] = [];
    /** 连接器列表 */
@@ -67,14 +65,12 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       let directConnect = new DirectConnect();
       let forwardHttpProxyConnect = new ForwardHttpConnect();
       let lightConnect = new LightConnect();
-      let wrtcConnect = new WrtcConnect();
 
       this.register(httpConnect) //
          .register(socks5Connect) //
          .register(directConnect)
          .register(forwardHttpProxyConnect)
-         .register(lightConnect)
-         .register(wrtcConnect);
+         .register(lightConnect);
    }
    get(protocol: "wrtc" | "http" | "socks5" | "light") {
       return this.connects.get(protocol);
@@ -231,6 +227,11 @@ export default class ConnectFactor extends EventEmitter<EventName> {
             args: [],
          };
       }
+      if (host == "0.0.0.0") {
+         this.emit("request", { host: host, port: port, source: localSocket.remoteAddress, status: "no", ttl: 0 });
+         localSocket.destroy();
+         return;
+      }
       let proxy: Proxy = this.findProxy(localSocket, user);
       let connect: Connect | undefined = this.options.isDirect == true ? this.connects.get("direct") : this.connects.get(proxy.protocol);
       /*if (this.options.isDirect) connect = this.connects.get("direct");
@@ -245,8 +246,8 @@ export default class ConnectFactor extends EventEmitter<EventName> {
       } */
       if (connect?.protocol != "direct") {
          let domain = getDomainFromBytes(chunk);
-         if (this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
-            log.log("===>direct connect", domain);
+         if (domain == "0.0.0.0" || this.directConnectDomains.find((v) => new RegExp(`^.*${v}$`, "i").test(domain))) {
+            log.info("===>direct connect", domain);
             connect = this.connects.get("direct");
          }
       }
@@ -310,7 +311,7 @@ export default class ConnectFactor extends EventEmitter<EventName> {
                return;
             }
             this.emit("open");
-           /*  if (connect?.protocol == "direct") {
+            /*  if (connect?.protocol == "direct") {
                localSocket.heartbeat();
             } else{
                proxySocket.heartbeat(); //开启心跳检测
