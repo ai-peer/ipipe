@@ -33,7 +33,7 @@ export default class HttpAccept extends Accept {
       /** 解析首次http请求协议获取反馈和主机信息 start */
       let connectStr = firstChunk.toString();
       let headers = parseHeader(connectStr);
-      let hp = headers["host"]?.split(":");
+      let hp = headers["host"]?.split(":") || "";
       let host = hp[0],
          port = parseInt(hp[1]) || 80;
       if (!host) {
@@ -119,7 +119,7 @@ export default class HttpAccept extends Accept {
 }
 function parseHeader(str: string) {
    let lines = str.split("\r\n");
-   let headers = {};
+   let headers: {[key: string]: any} = {};
    lines.forEach((v) => {
       let ks = v.split(": ");
       if (ks.length < 2) return;
@@ -127,5 +127,8 @@ function parseHeader(str: string) {
          value = ks[1] || "";
       headers[key.trim().toLowerCase()] = value.trim();
    });
+   if(!headers.host){
+      headers.host = lines[0]?.split(" ")[1]||"";
+   }
    return headers;
 }
